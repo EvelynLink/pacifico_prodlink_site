@@ -1,0 +1,78 @@
+<div layout-padding layout="row">
+    <div flex="40">
+        <table width="100%" tabula="configuracion" url="../boletines/BoletinesCtrl.php?act=traerConfiguracion" tamanio-inicial="15" observa-y-recarga="configuracion.recargaId">
+            <tr>
+                <td colspan="100">
+                    <tabula-paginador dataset="tabulas['configuracion']" maxbotones="5"></tabula-paginador>
+                </td>
+            </tr>
+            <tr>
+                <th tabula-encabezado="bof_nombre" titulo="<lang>Nombre</lang>" ordenar filtrar></th>
+                <th tabula-encabezado="bof_titulo" titulo="<lang>Título</lang>" ordenar filtrar></th>
+                <th tabula-encabezado="bof_pluginEnvio" titulo="<lang>Plugin Envío</lang>" ordenar filtrar></th>
+                <th></th>
+            </tr>
+            <tr ng-repeat="cn in tabulas['configuracion'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                <td>{{cn.bof_nombre}}</td>
+                <td>{{cn.bof_titulo}}</td>
+                <td>{{cn.bof_pluginEnvio}}</td>
+                <td>
+                    <i class="fa fa-edit fa-green fa-fw" ng-click="editarConfiguracion(cn)"></i>
+                    <i class="fa fa-remove fa-red fa-fw" ng-click="eliminarConfiguracion(cn.bof_id)"></i>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="100">
+                    <button class="btn btn-success" ng-click="nuevaConfiguracion()"><lang>Nueva Configuración</lang></button>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div flex="40" ng-if="configuracion.datos.id > 0">
+        <h6 class="panel-title"><b><i class="fa fa-angle-right"></i> {{configuracion.datos.nombre}}</b></h6>
+        <form name="miConfiguracion" style="padding-top: 10px;">
+            <table width="100%">
+                <tr>
+                    <td width="20%"><h5><lang>Nombre</lang></h5></td>
+                    <td width="80%"><input ng-model="configuracion.datos.nombre" class="form-control" placeholder="<lang>Nombre de directiva</lang>" required></td>
+                </tr>
+                <tr>
+                    <td><h5><lang>Título</lang></h5></td>
+                    <td width="85%"><input ng-model="configuracion.datos.titulo" class="form-control" placeholder="<lang>Título de contacto</lang>" required></td>
+                </tr>
+                <tr>
+                    <td><h5><lang>Tipo</lang></h5></td>
+                    <td><select class="form-control" ng-model="configuracion.datos.tipo" style="width:98%" ng-options="t.id as t.nombre for t in configuracion.tipos"></select></td>
+                </tr>
+                <tr>
+                    <td><h5 ng-if="configuracion.datos.tipo === 'Contacto'"><lang>Plugin de Envío</lang></h5><h5 ng-if="configuracion.datos.tipo === 'Boletin'"><lang>Plugin de Procesamiento</lang></h5></td>
+                    <td><input ng-model="configuracion.datos.pluginEnvio" class="form-control" placeholder="<lang>Plugin de Envío</lang>" required></td>
+                </tr>
+                <tr>
+                    <td valign="top"><h5><lang>Grupo de Suscripción</lang></h5></td>
+                    <td>
+                        <input ng-model="configuracion.datos.grupoSuscripcion" class="form-control" placeholder="<lang>Grupo de Suscripción</lang>">
+                        <h6><small><lang>El Grupo de Suscripción es el nombre del grupo de categoría que será presentado por la directiva de suscripciones para envío de boletines</lang></small></h6>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2"><h5><lang>Reportar contactos a los siguientes correos electrónicos</lang></h5></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        <textarea ng-model="configuracion.datos.correos" class="form-control" placeholder="<lang>Correos electrónicos</lang>"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <br><button class="btn btn-success" ng-disabled="!miConfiguracion.$valid" ng-click="guardarConfiguracion(configuracion.datos)"><lang>Guardar</lang></button>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

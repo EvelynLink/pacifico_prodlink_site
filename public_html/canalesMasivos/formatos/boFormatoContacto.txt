@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+        <title>CONTACTO</title></head>
+    <body style="background:#dbdbdb">
+        <table border="0" align="center" cellpadding="10" cellspacing="0" style="background:#fff; min-width:600px; max-width:100%">
+            <tr>
+                <td style="border-bottom: 10px solid #dbdbdb;">
+                    <table width="100%" border="0" cellspacing="0" cellpadding="5">
+                        <tr>
+                            <td style="text-align: center"><@@urlLogo></td>
+                            <td width="70%" style="font-size:18px; color:#FF9533; font-family:Verdana, Geneva, sans-serif; text-align:left"><b>INFORMACIÓN DE CONTACTO</b></td>                            
+                        </tr>
+                    </table>     
+                </td>
+            </tr>
+             <tr>
+                <td style="padding:10px 20px;font-family:Verdana, Geneva, sans-serif;font-size:12px; text-align:right">
+                    <b>Fecha: @@fecha</b>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:5px 20px;font-family:Verdana, Geneva, sans-serif;font-size:14px;">
+                    Estimado Cliente,<br/> 
+                    Hemos recibido un correo enviado a través de nuestro formulario de contacto, en pocos minutos un agente se comunicará con usted.
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:20px">
+                    <table width="100%" align="center" cellpadding="10" cellspacing="0">
+                        <tr-repite=@@__tablaDetalle>
+                            <td width="40%" style="font-family:Verdana, Geneva, sans-serif;font-size:12px;background:#ebeae7;color:#333;border-bottom:1px solid #e3e2e1"><b>@@_campo</b></td>
+                            <td width="60%" style="font-family:Verdana, Geneva, sans-serif;font-size:14px;background:#fff;color:#333;border-bottom:1px solid #e3e2e1">@@_valor</td>
+                        </tr-repite-end=@@__tablaDetalle>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:20px">@@categoriasMarcadas</td>
+            </tr>
+            <tr>
+                <td style="background:#FF9533;padding:20px 10px;color:#fff;font-family:Verdana, Geneva, sans-serif;font-size:12px;text-align:center">
+                    <b> Ultima Sección Visitada:</b> @@ultimaseccion
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

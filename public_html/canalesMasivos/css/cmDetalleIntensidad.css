@@ -1,0 +1,656 @@
+/* =========================================================================
+   cmDetalleIntensidad.css
+
+   NOTA: esta pantalla se carga en una ruta independiente del dashboard
+   principal, por lo que cmDashboardGestionesVentas.css no llega a
+   aplicarse aqui automaticamente. Por eso se repiten abajo las clases
+   base (.gv-root, .gv-container, .gv-filtros-bar, etc.) igual que en
+   las otras 4 pantallas de detalle.
+
+   La paleta de las 3 tarjetas/pestanas (azul Call Center / verde
+   WhatsApp / morado Correo) sigue el mockup que envio la usuaria para
+   esta pantalla en particular.
+========================================================================= */
+
+.gv-root, .gv-root *{
+    box-sizing: border-box;
+}
+
+.gv-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #f4f5f7;
+}
+
+.gv-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* =========================
+   FILTROS (igual al resto de pantallas)
+========================= */
+
+.gv-filtros-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gv-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gv-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gv-filtro-content{
+    padding: 12px;
+    display: flex;
+}
+
+.gv-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+}
+
+.gv-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+}
+
+.gv-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    width: 170px;
+}
+
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 170px;
+}
+
+.gv-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gv-btn-volver{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cbd0d6;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6368;
+    background: #fff;
+    white-space: nowrap;
+}
+
+.gv-btn-volver:hover{
+    background: #f2f3f5;
+}
+
+/* =========================
+   FILTROS APLICADOS (badges)
+========================= */
+
+.gv-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.gv-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gv-badge-item{
+    padding-right: 8px;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gv-titulo-span{
+    margin-right: 15px;
+}
+
+.gv-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gv-loading-icon{
+    color: #666;
+}
+
+/* =========================================================================
+   ESPECIFICO DE ESTA PANTALLA DE DETALLE
+========================================================================= */
+
+/* KPI resumen: 3 tarjetas */
+.gv-detalle-kpi-row{
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.gv-detalle-kpi-card{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 20px 16px;
+}
+
+.gv-detalle-kpi-icon{
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.gv-kpi-icon-callcenter{ background: #D9E4FA; color: #3B5BDB; }
+.gv-kpi-icon-whatsapp{ background: #25D366; color: #fff; }
+.gv-kpi-icon-correo{ background: #EAE0FA; color: #8B5CF6; }
+
+.gv-c-texto-callcenter{ color: #3B5BDB; }
+.gv-c-texto-whatsapp{ color: #1DA851; }
+.gv-c-texto-correo{ color: #8B5CF6; }
+
+.gv-detalle-kpi-text{
+    min-width: 0;
+}
+
+.gv-detalle-kpi-label{
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.gv-detalle-kpi-value{
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.gv-detalle-kpi-sub{
+    font-size: 13px;
+    color: #8a8f98;
+}
+
+/* 2 columnas (gestiones/clientes | leidos) con 1 sola linea vertical al
+   medio, en vez de un separador pegado a cada numero: asi las 2 filas de
+   "leido" quedan alineadas entre si sin importar el largo del numero de al lado. */
+.gv-kpi-correo-grid{
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 2px;
+}
+
+.gv-kpi-correo-col-izq{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.gv-kpi-correo-col-der{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding-left: 12px;
+    border-left: 2px solid #e3e6ea;
+    min-width: 0;
+}
+
+/* Cada "leido" copia tamano y color de su fila: igual a "gestiones" (grande,
+   morado) o a "clientes" (chico, gris), en vez de un estilo aparte. */
+.gv-kpi-leido-valor{
+    font-size: 22px;
+    font-weight: 700;
+    color: #8B5CF6;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.gv-kpi-leido-sub{
+    font-size: 13px;
+    font-weight: 400;
+    color: #8a8f98;
+    white-space: nowrap;
+}
+
+/* Columna "Leido" del detalle (solo aplica en la pestaña Correo). */
+.gv-badge-leido{ background: #E4F5E6; color: #2f8a3d; }
+.gv-badge-no-leido{ background: #F2F3F5; color: #8a8f98; }
+
+/* Boton propio con icono de filtro para "Leido": el tabula real no soporta
+   un select, asi que este es un control aparte, no ligado a esa columna. */
+.gv-filtro-leido-wrap{
+    position: relative;
+}
+.gv-btn-filtro-leido{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border: 1px solid #dcdfe3;
+    border-radius: 6px;
+    background: #fff;
+    color: #5f6368;
+    font-size: 13px;
+    cursor: pointer;
+}
+.gv-btn-filtro-leido.gv-filtro-leido-activo{
+    border-color: #8B5CF6;
+    color: #8B5CF6;
+}
+.gv-filtro-leido-overlay{
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 15;
+}
+.gv-filtro-leido-popup{
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 20;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    padding: 10px;
+    min-width: 160px;
+}
+.gv-filtro-leido-popup select{
+    width: 100%;
+}
+
+/* Refuerzo visual de "leido" con ancho 0 en Call Center/WhatsApp: sin esto,
+   el borde/padding de la celda podia dejar una linea visible aunque pese 0%. */
+.gv-col-oculta{ display: none; }
+
+/* Tarjeta con pestañas + tabla */
+.gv-detalle-tabs-card{
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 0 16px 16px 16px;
+    overflow: hidden;
+}
+
+.gv-detalle-tabs-bar{
+    display: flex;
+    gap: 28px;
+    border-bottom: 1px solid #e3e6ea;
+    margin: 0 -16px 16px -16px;
+    padding: 0 16px;
+}
+
+.gv-detalle-tab{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 2px 12px 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #8a8f98;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+}
+
+.gv-detalle-tab:hover{
+    color: #5f6368;
+}
+
+.gv-detalle-tab-activo.gv-detalle-tab-callcenter{
+    color: #3B5BDB;
+    border-bottom-color: #3B5BDB;
+}
+
+.gv-detalle-tab-activo.gv-detalle-tab-whatsapp{
+    color: #1DA851;
+    border-bottom-color: #25D366;
+}
+
+.gv-detalle-tab-activo.gv-detalle-tab-correo{
+    color: #8B5CF6;
+    border-bottom-color: #8B5CF6;
+}
+
+.gv-detalle-tabs-subbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.gv-detalle-tabs-caption{
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.gv-detalle-buscador{
+    position: relative;
+}
+
+.gv-detalle-buscador i{
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa0a6;
+    font-size: 13px;
+}
+
+.gv-detalle-buscador input{
+    padding-left: 30px;
+    font-size: 13px;
+    border-radius: 999px;
+}
+
+.gv-detalle-buscador-tabs{
+    width: 280px;
+    flex-shrink: 0;
+    margin: 0 !important;
+}
+
+/* Alto fijo para que el input quede a la misma altura que el botón Exportar */
+.gv-detalle-buscador-tabs input{
+    height: 34px !important;
+    margin: 0 !important;
+}
+
+.gv-detalle-subbar-derecha{
+    display: flex;
+    align-items: center !important;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Botón "Exportar" (Excel) de la tabla de detalle */
+.gv-btn-exportar{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px !important;
+    padding: 0 14px !important;
+    margin: 0 !important;
+    border: none;
+    border-radius: 4px;
+    background-color: #1d6f42;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.gv-btn-exportar:hover{
+    background-color: #16572f;
+}
+
+.gv-btn-exportar:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Tabla unica */
+.gv-detalle-tabla-wrap{
+    width: 100%;
+    overflow: hidden;
+    padding: 0 2px;
+}
+
+/* [tabula] en vez de "table" a secas: el filtro de fecha de columna abre su
+   propio calendario (uib-datepicker), que tambien es un <table> anidado
+   aqui dentro; sin este alcance, el width:100%/table-layout:fixed de abajo
+   se le aplicaba tambien a el y lo dejaba deformado. */
+.gv-detalle-tabs-card table[tabula]{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none !important;
+}
+
+.gv-detalle-tabs-card table[tabula] th,
+.gv-detalle-tabs-card table[tabula] td{
+    height: 46px;
+    box-sizing: border-box;
+    padding: 4px 8px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.gv-detalle-tabs-card table[tabula] th{
+    font-size: 12px;
+    color: #5f6368;
+    border: none;
+    border-bottom: 2px solid #e3e6ea;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.gv-detalle-tabs-card table[tabula] td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.gv-detalle-tabs-card table[tabula] td.gv-td-paginador{
+    border-bottom: none;
+    padding: 10px 0 0 0;
+}
+
+.gv-paginador-scale{
+    transform: scale(1.1);
+    transform-origin: center top;
+}
+
+/* Calendario del filtro de columna (Ultimo intento): tamano propio, sin
+   heredar el table-layout:fixed de la tabla principal de arriba. */
+.uib-datepicker-popup,
+.uib-datepicker-popup table{
+    width: auto !important;
+    table-layout: auto !important;
+    min-width: 220px;
+}
+
+.uib-datepicker-popup td,
+.uib-datepicker-popup th{
+    width: auto !important;
+    height: auto !important;
+    white-space: nowrap;
+}
+
+/* Badge de "Estado": ovalo solido, sin icono/bolita */
+.gv-badge-estado{
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* CONTACTO INDIRECTO */
+.gv-badge-gestionado{
+    background: #EFECFB;
+    color: #7C6FDB;
+}
+
+/* CONTACTO DIRECTO */
+.gv-badge-contactado{
+    background: #E4F6EA;
+    color: #2E7D46;
+}
+
+/* SIN CONTACTO */
+.gv-badge-sincontacto{
+    background: #EEF0F2;
+    color: #5f6368;
+}
+
+/* Icono de audio/transcripcion en la tabla de llamadas (duplicado en los 3 detalles, ver nota de arriba) */
+.gv-icono-audio{
+    cursor: pointer;
+    color: #3f6ad8;
+}
+
+.gv-icono-audio:hover{
+    color: #2b4fae;
+}
+
+.gv-icono-whatsapp{
+    cursor: pointer;
+    color: #25d366;
+}
+
+.gv-icono-whatsapp:hover{
+    color: #1da851;
+}
+
+.gv-icono-correo{
+    cursor: pointer;
+    color: #8B5CF6;
+}
+
+.gv-icono-correo:hover{
+    color: #6d43d1;
+}
+
+.gv-audio-modal-player{
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 16px 0;
+}
+
+.gv-transcripcion-item{
+    padding: 6px 0;
+}
+
+.gv-transcripcion-burbuja{
+    display: inline-block;
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.gv-transcripcion-agente{
+    text-align: left;
+}
+
+.gv-transcripcion-cliente{
+    text-align: right;
+}
+
+.gv-transcripcion-agente .gv-transcripcion-burbuja{
+    background-color: #fcf3cf;
+    border-radius: 0px 8px 8px 8px;
+}
+
+.gv-transcripcion-cliente .gv-transcripcion-burbuja{
+    background-color: #d6eaf8;
+    border-radius: 8px 0px 8px 8px;
+}
+
+.gv-transcripcion-hora{
+    display: block;
+    font-size: 11px;
+    color: #6f7990;
+    margin-top: 2px;
+}
+
+.gv-sin-transcripcion{
+    text-align: center;
+    color: #6f7990;
+    padding: 12px 0;
+}
+
+.gv-correo-destinatario,
+.gv-correo-asunto{
+    font-size: 13px;
+    padding: 4px 0;
+}
+
+.gv-correo-cuerpo{
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #e3e6ea;
+    border-radius: 6px;
+    max-height: 420px;
+    overflow: auto;
+}

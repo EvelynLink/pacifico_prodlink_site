@@ -1,0 +1,25 @@
+<div class="btn-group contenedorJerarquia">
+    <a href="#" ng-if="item.editable" jerarquia-control tooltip="<lang>Mueve este nodo</lang>" tooltip-popup-delay="1000">
+        <span class="fa fa-arrows"></span>
+    </a>
+    <div class="btn dragLista">
+        <div class="dragContenido col-xs-9 col-md-10" ng-click="abrecierra()">
+            <a class="fa drollDragText" data-nodrag ng-class="{'fa-chevron-right': item.cerrada, 'fa-chevron-down': !item.cerrada}" >
+                <span class="my-jerarquia-datos TxtSS" data-nodrag>{{item.nombre}}</span>
+            </a>
+        </div>
+        <div class="edicionJerarquia" ng-if="item.modelo ==='boletin'">
+            <i class="fa fa-edit fa-fw fa-green" data-nodrag ng-click="editarBoletin(item)" tooltip="<lang>Editar</lang>" tooltip-popup-delay="1000"></i>
+        </div>
+    </div>
+    <button ng-if="item.modelo ==='boletin'" style="padding: 6px 5px !important;" class="btn btn-default" data-nodrag ng-click="item.seleccionada=!item.seleccionada" ng-class="{'btn-primary': item.seleccionada,'btn-default': !item.seleccionada}" tooltip="<lang>Selecciona este nodo</lang>" tooltip-popup-delay="1000">
+        <i class="fa fa-check fa-inverse"></i>
+    </button>
+</div>
+<div jerarquia-nodos ng-model="item.hijos">
+	<div ng-class="{'hidden': item.cerrada}">
+            <li ng-repeat="item in item.hijos" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=boletines/partials/TemplateJerarquiaBoletines.html'">
+	</li>
+	</div>
+</div>
+<!-- _FIN_DE_ARCHIVO -->

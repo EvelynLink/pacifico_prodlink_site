@@ -1,0 +1,1038 @@
+<div style="display: flex; flex-direction: column; align-items: center; vertical-align: middle; justify-content: center; width: 99vw; height: 100%; padding: 8px;">
+    <div style="display: flex; flex-direction: column; padding-top: 12px; width: 100%;">
+        <!--#region FILTROS-->
+        <div style="width: 100%; display: flex; margin-bottom: 18px;  border: solid 1px #cbcbcb; border-radius: 4px;">
+            <div style="height: 65px; display: flex; justify-content: center; align-items: center; vertical-align: middle; background-color: #cbcbcb;">
+                &nbsp;
+                <li class="fa fa-filter fa-15x" style="cursor: default;"></li>
+                &nbsp;
+            </div>
+            <div style="padding: 12px; display: flex;">
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle;">
+                    <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                    <select
+                        id="filtroTiempo"
+                        class="form-control"
+                        ng-model="filtroTiempo"
+                        ng-change="traerParametrizacion()"
+                    >
+                        <option value="hora">Ultima hora</option>
+                        <option value="dia">Este d&iacute;a</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="semanaanterior">Semana anterior</option>
+                        <option value="mes">Este mes</option>
+                        <option value="mesanterior">Mes anterior</option>
+                        <option value="rango">Rango de tiempo</option>
+                        <!--<option value="todo">Todo</option>-->
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaDesde"
+                        class="form-control"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaDesde"
+                        ng-click="abreFechaDesde = !abreFechaDesde"
+                        ng-model="fechaDesde"
+                        placeholder="Desde"
+                        style="width: 120px;"
+                        ng-change="aplicarRangoFechas()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaHasta"
+                        class="form-control select-filtro"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaHasta"
+                        ng-click="abreFechaHasta = !abreFechaHasta"
+                        ng-model="fechaHasta"
+                        placeholder="Hasta"
+                        style="width: 120px;"
+                        ng-change="aplicarRangoFechas()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-hashtag fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroLote"
+                        class="form-control select-filtro"
+                        ng-model="filtroLote"
+                        ng-options="p.id as p.nombre for p in listas.lotes"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-connectdevelop fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroProveedor"
+                        class="form-control select-filtro"
+                        ng-model="filtroProveedor"
+                        ng-options="p.id as p.nombre for p in listas.proveedores"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-briefcase fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroCartera"
+                        class="form-control select-filtro"
+                        ng-model="filtroCartera"
+                        ng-options="p.id as p.nombre for p in listas.carteras"
+                        ng-change="traerParametrizacion()"
+                        readonly
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tags fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroCampania"
+                        class="form-control select-filtro"
+                        ng-model="filtroCampania"
+                        ng-options="p.id as p.nombre for p in listas.campanias"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tags fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroProducto"
+                        class="form-control select-filtro"
+                        ng-model="filtroProducto"
+                        ng-options="p.id as p.nombre for p in listas.productos"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+            </div>
+        </div>
+        <!--#region FILTROS APLICADOS-->
+        <div style="display: flex; width: 100%;">
+            <div ng-show="filtrosAplicados.tiempo.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.lote.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.lote.titulo}}
+                    <li ng-click="quitarFiltro('lote')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.proveedor.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.proveedor.titulo}}
+                    <li ng-click="quitarFiltro('proveedor')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.cartera.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.cartera.titulo}}
+                    <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.campania.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.campania.titulo}}
+                    <li ng-click="quitarFiltro('campania')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.producto.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.producto.titulo}}
+                    <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" style="padding-right: 8px;">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--<div style="display: flex; margin-top: 18px; width: 100%; justify-content: center; align-items: center; vertical-align: middle;">
+            <div class="progress" style="width: 99%;" title="Porcentaje completado">
+                <div
+                    class="progress-bar"
+                    role="progressbar"
+                    aria-valuenow="{{dataGraficos.porcentajeAvance}}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    ng-style="anchoBarra"
+                >
+                    {{dataGraficos.porcentajeAvance}}%
+                </div>
+            </div>            
+        </div>-->
+        <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-top: 12px; padding-bottom: 12px; position: sticky; top: 0; background-color: white; z-index: 8;">
+            <span class="titulo-pantalla" style="flex: 1; text-align: center; ">{{titulo}}</span>
+            <div style="display: flex;">
+                <i class="fa fa-fw fa-refresh fa-15x" title="Actualizar datos ahora" ng-click="actualizarTabula()"></i>
+                <select
+                    title="Actualizar automáticamente"
+                    id="tiempoAct"
+                    class="form-control input-sm select-filtro"
+                    ng-model="tiempoActualizar"
+                    ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                    ng-change="setTiempoActualizar()"
+                ></select>
+            </div>
+        </div>
+        <!--#region GRAFICOS-->
+        <div style="display: flex; justify-content: end; align-items: center; vertical-align: middle; padding-right: 12px;" ng-show="permisos.soyDesarrollo">
+            <div class="checkbox">
+                <label>
+                    <input style="accent-color: #3e3e3e;" type="checkbox" ng-model="mostrarDesarrollo">
+                    Vista desarrollo
+                </label>
+            </div>
+        </div>
+        <!--seccion desarrollo-->
+        <div class="titulo-seccion" ng-if="permisos.soyDesarrollo && mostrarDesarrollo && !sinGestion">
+            <h2>Operaci&oacute;n proveedor</h2>
+        </div>
+        <div style="display: flex; flex-direction: column;  margin-top: 18px; position: relative;" ng-if="permisos.soyDesarrollo && mostrarDesarrollo">
+            <div style="display: flex; width: 100%;">
+                <div style="width: 100%; margin-top: 18px;" class="contenedor-cuadros-2" ng-show="!sinGestion">
+                    <div class="contenedor-totales-2" title="{{c[3]}}" ng-repeat="c in cuadrosLlamadas">
+                        <div style="text-align: left;" ng-show="!cargandoGraficos">
+                            <b>
+                                <small>{{c[0] | textoExtenso:17}}</small>
+                            </b>
+                        </div>
+                        <span
+                            ng-style="{color:c[4]}"
+                            style="padding-top: 4px;"
+                            class="numero"
+                            ng-show="!cargandoGraficos"
+                        >
+                            <large>{{c[1]}}</large>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+                <!--<div style="width: 35%;" class="contenedor-grafico">
+                    <nvd3 style="width: 100%;" options="opcionesTotalGeneral" data="dataGraficoTotalGeneral"></nvd3>
+                </div>-->
+            </div>
+            <div style="display: flex; width: 100%; position: relative;" ng-show="!sinGestion">
+                <div style="width: 100%; position: relative;" class="contenedor-grafico">
+                    <div style="position: absolute; left: 10; top: 10;" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+                        <p ng-repeat="c in concurrencias" class="badge">
+                            {{c.nombre}}: {{c.valor}} concurrencias
+                        </p>
+                    </div>
+                    <nvd3 style="width: 100%;" options="opcionesLineaLlamadas" data="dataGraficoLineaLlamada"></nvd3>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; width: 100%; position: relative;">
+                <div class="list-group" style="width: 100%; margin: 6px;">
+                    <label ng-click="verAlertasJambonz=!verAlertasJambonz" class="como-link">
+                        Alertas Jambonz&nbsp;
+                        <span class="badge" title="Total de alertas hoy">{{totalAlertasJambonz}}</span>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verAlertasJambonz && alertasJambonz.length>0" title="Ver últimas 5 alertas de hoy"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verAlertasJambonz && alertasJambonz.length>0" title="Ocultar detalle de alertas"></li>
+                    </label>
+                    <div ng-repeat="a in alertasJambonz" class="contenedor-alerta" ng-show="verAlertasJambonz">
+                        <span href="#" class="list-group-item">
+                            {{a.fechaLocal}} - {{a.message}} &nbsp;
+                            <li class="fa fw fa-chevron-up" ng-show="a.mostrar" ng-click="a.mostrar=!a.mostrar"></li>
+                            <li class="fa fw fa-chevron-down" ng-show="!a.mostrar" ng-click="a.mostrar=!a.mostrar"></li>
+                        </span>
+                        <pre ng-show="a.mostrar">
+                            {{a | json}}
+                        </pre>
+                    </div>
+                </div>
+                <div class="list-group" style="width: 100%; margin: 6px;">
+                    <label ng-click="verLogGenera=!verLogGenera" class="como-link">
+                        Servicio Genera Llamadas LINK&nbsp;
+                        <small ng-if="logGenera.length > 0">{{logGenera[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogGenera && logGenera.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogGenera && logGenera.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogGenera">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logGenera track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group" style="width: 100%; margin: 6px;">
+                    <label ng-click="verLogActualiza=!verLogActualiza" class="como-link">
+                        Servicio Actualiza Llamadas LINK&nbsp;
+                        <small ng-if="logActualiza.length > 0">{{logActualiza[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogActualiza && logActualiza.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogActualiza && logActualiza.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogActualiza">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logActualiza track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group" style="width: 100%; margin: 6px;">
+                    <label ng-click="verLogTipifica=!verLogTipifica" class="como-link">
+                        Servicio Tipifica Llamadas LINK&nbsp;
+                        <small ng-if="logTipifica.length > 0">{{logTipifica[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogTipifica && logTipifica.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogTipifica && logTipifica.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogTipifica">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logTipifica track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!--#region SIN GESTION-->
+        <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle; padding: 48px;" ng-show="sinGestion">
+            <h3>Esperando asignación para gestionar</h3>
+            <br>
+            <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+        </div>
+        <!--#endregion-->
+        <!--seccion resultado gestion-->
+        <div class="titulo-seccion" ng-if="permisos.soySupervisor && !sinGestion">
+            <h2>Resultado de gesti&oacute;n</h2>
+        </div>
+        <div style="display: flex; position: relative; margin-top: 18px; padding-left: 20px; justify-content: start; vertical-align: middle; align-items: center;" ng-if="permisos.soySupervisor && !sinGestion">
+            <!--<div class="texto-resultado">
+                <span>
+                    Total:
+                    <b>{{dataGraficos.totalMeta[0]}}</b>
+                    ({{dataGraficos.totalMeta[1]}})
+                </span>
+                &nbsp;->&nbsp;
+                <span>
+                    Contactado:&nbsp;
+                    <b>{{dataGraficos.totalContactado[0]}}</b>
+                    ({{dataGraficos.totalContactado[1]}} - {{dataGraficos.totalContactado[2]}})
+                </span>
+            </div>
+            &nbsp;&nbsp;-->
+            <span ng-repeat="c in dataGraficos.campanias">
+                &nbsp;
+                <span class="badge">
+                    {{c}}
+                </span>
+            </span>
+        </div>
+        <div style="margin-top: 12px; display: flex; flex-direction: row;  position: relative;" ng-if="permisos.soySupervisor && !sinGestion">
+            <!--<div class="contenedor-cuadros-31">
+                <div>
+                    <div class="contenedor-totales-3" style="width:486px; flex-direction:row;">
+                        <div title="{{dataGraficos.cuadrosIndicadores.contactoDirecto[1]}}" class="contenedor-contacto-directo">
+                            <div style="text-align: left;" ng-show="!cargandoGraficos">
+                                <b>
+                                    <small>{{dataGraficos.cuadrosIndicadores.contactoDirecto[0] | textoExtenso:24}}&nbsp;({{dataGraficos.cuadrosIndicadores.contactoDirecto[5]}})</small>
+                                </b>
+                            </div>
+                            <span
+                                style="padding-top: 4px;"
+                                class="numero"
+                                ng-show="!cargandoGraficos"
+                                ng-style="{color:dataGraficos.cuadrosIndicadores.contactoDirecto[4]}"
+                            >
+                                <large>{{dataGraficos.cuadrosIndicadores.contactoDirecto[3]}}</large>
+                                <br>
+                                <small>{{dataGraficos.cuadrosIndicadores.contactoDirecto[2]}}&nbsp;deudas</small>
+                            </span>
+                            <div ng-show="cargandoGraficos">
+                                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                            </div>
+                        </div>
+                        <div>
+                            <li ng-style="{color:dataGraficos.cuadrosIndicadores.contactoDirecto[4]}" class="fa fa-fw fa-chevron-right fa-2x"></li>
+                        </div>
+                        <div title="{{dataGraficos.cuadrosIndicadores.compromisosPago[1]}}" class="contenedor-contacto-directo">
+                            <div style="text-align: left;" ng-show="!cargandoGraficos">
+                                <b>
+                                    <small>{{dataGraficos.cuadrosIndicadores.compromisosPago[0] | textoExtenso:24}}&nbsp;({{dataGraficos.cuadrosIndicadores.compromisosPago[5]}})</small>
+                                </b>
+                            </div>
+                            <span
+                                style="padding-top: 4px;"
+                                class="numero"
+                                ng-show="!cargandoGraficos"
+                                ng-style="{color:dataGraficos.cuadrosIndicadores.compromisosPago[4]}"
+                            >
+                                <large>{{dataGraficos.cuadrosIndicadores.compromisosPago[3]}}</large>
+                                <br>
+                                <small>{{dataGraficos.cuadrosIndicadores.compromisosPago[2]}}&nbsp;deudas</small>
+                            </span>
+                            <div ng-show="cargandoGraficos">
+                                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-3">
+                    <div class="contenedor-totales-3" title="{{dataGraficos.cuadrosIndicadores.contactoIndirecto[1]}}">
+                        <div style="text-align: left;" ng-show="!cargandoGraficos">
+                            <b>
+                                <small>{{dataGraficos.cuadrosIndicadores.contactoIndirecto[0] | textoExtenso:24}}&nbsp;({{dataGraficos.cuadrosIndicadores.contactoIndirecto[5]}})</small>
+                            </b>
+                        </div>
+                        <span
+                            style="padding-top: 4px;"
+                            class="numero"
+                            ng-show="!cargandoGraficos"
+                            ng-style="{color:dataGraficos.cuadrosIndicadores.contactoIndirecto[4]}"
+                        >
+                            <large>{{dataGraficos.cuadrosIndicadores.contactoIndirecto[3]}}</large>
+                            <br>
+                            <small>{{dataGraficos.cuadrosIndicadores.contactoIndirecto[2]}}&nbsp;deudas</small>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                    <div class="contenedor-totales-3" title="{{dataGraficos.cuadrosIndicadores.sinContacto[1]}}">
+                        <div style="text-align: left;" ng-show="!cargandoGraficos">
+                            <b>
+                                <small>{{dataGraficos.cuadrosIndicadores.sinContacto[0] | textoExtenso:24}}&nbsp;({{dataGraficos.cuadrosIndicadores.sinContacto[5]}})</small>
+                            </b>
+                        </div>
+                        <span
+                            style="padding-top: 4px;"
+                            class="numero"
+                            ng-show="!cargandoGraficos"
+                            ng-style="{color:dataGraficos.cuadrosIndicadores.sinContacto[4]}"
+                        >
+                            <large>{{dataGraficos.cuadrosIndicadores.sinContacto[3]}}</large>
+                            <br>
+                            <small>{{dataGraficos.cuadrosIndicadores.sinContacto[2]}}&nbsp;deudas</small>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>-->
+            <div style="display: flex; flex-direction: column; width: 25%; justify-content: center; align-items: center; vertical-align: middle; position: relative;">
+                <div ng-repeat="cuadro in dataTotalesGestion.cuadros" class="contenedor-totales" style="width: 240px; height: 90px; margin: 12px;">
+                    <div style="text-align: left;" ng-show="!cargandoTotales">
+                        <b>
+                            <small>{{cuadro[0]}}</small>
+                        </b>
+                    </div>
+                    <span style="padding-top: 4px; position: relative; width: 100%;" class="numero" ng-show="!cargandoTotales">
+                        <large>{{cuadro[1]}}</large>
+                        <p class="subtitulo-cuadro">{{cuadro[3]}}</p>
+                        <div style="display: flex; position: absolute; right: 0; bottom: 0;">
+                            <div
+                                ng-repeat="c in cuadro[4]"
+                                ng-style="{'background-color': c[0]}"
+                                title="{{c[1]}}"
+                                style="width: 10px; height: 6px;"
+                            ></div>
+                        </div>
+                    </span>
+                    <div ng-show="cargandoTotales">
+                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico" style="margin-left: 12px; width: 75%; display: flex; flex-direction: row; justify-content: center; align-items: center; vertical-align: middle;">
+                <nvd3 style="width: 100%;" options="opcionesTipificacion" data="dataGraficos.dataGraficoTipificaciones"></nvd3>
+            </div>
+        </div>
+        <!--seccion operaciones-->
+        <div class="titulo-seccion" ng-if="!sinGestion">
+            <h2>Gesti&oacute;n de llamadas</h2>
+        </div>
+        <div style="display: flex; margin-top: 38px; " ng-show="!sinGestion">
+            <div style="width: 30%; display: flex; flex-direction: row; justify-content: center; align-items: center; vertical-align: middle;">
+                <div style="width: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle;">
+                    <svg id="gaugeProgreso"></svg>
+                    <span style="color: #686552; padding-top: 8px;">
+                        <b>Progreso</b>
+                    </span>
+                </div>
+                <div style="width: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle;">
+                    <svg id="gaugeExito"></svg>
+                    <span style="color: #686552; padding-top: 8px;">
+                        <b>Atendido</b>
+                    </span>
+                </div>
+            </div>
+            <div class="contenedor-cuadros">
+                <div ng-repeat="cuadro in dataGraficos.cuadrosTotales" class="contenedor-totales">
+                    <div style="text-align: left;" ng-show="!cargandoGraficos">
+                        <b>
+                            <small>{{cuadro[0] | textoExtenso:14}}</small>
+                        </b>
+                    </div>
+                    <span
+                        ng-style="{color:cuadro[4]}"
+                        style="padding-top: 4px;"
+                        class="numero"
+                        ng-show="!cargandoGraficos"
+                    >
+                        <large>{{cuadro[1]}}</large>
+                        <!--<br ng-if="cuadro[5]!==undefined && cuadro[5]!==''">
+                        <small ng-if="cuadro[5]!==undefined && cuadro[5]!==''" class="pequenio">
+                            <b>{{cuadro[5]}}</b>
+                        </small>-->
+                        <p class="subtitulo-cuadro" style="font-size: 10px; ">{{cuadro[3]}}</p>
+                    </span>
+                    <div ng-show="cargandoGraficos">
+                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column;  margin-top: 18px; position: relative;" ng-if="!sinGestion">
+            <div style="display: flex; width: 100%; position: relative;">
+                <div class="contenedor-grafico" style="width: 100%; position: relative;">
+                    <div style="position: absolute; left: 10; top: 10; display: flex; flex-direction: column;">
+                        <p class="badge" style="text-align: start;">
+                            {{duracionOperacion}}
+                        </p>
+                        <p class="badge" style="text-align: start;">{{mensajeProcesando}}</p>
+                    </div>
+                    <li class="fa fa-fw fa-question-circle-o" title="{{promedioLlamadas}}" style="position: absolute; top: 5; right: 5;"></li>
+                    <nvd3 style="width: 100%;" options="opcionesLinea" data="dataGraficoDia"></nvd3>
+                </div>
+            </div>
+            <div style="display: flex; width: 100%; position: relative;" ng-if="permisos.soyDesarrollo">
+                <div class="contenedor-grafico" style="width: 100%; position: relative;">
+                    <nvd3 style="width: 100%;" options="opcionesBarras" data="dataGraficoTop"></nvd3>
+                </div>
+            </div>
+            <div style="display: flex; width: 100%;">
+                <div style="width: 27%;" class="contenedor-grafico">
+                    <nvd3 style="width: 100%;" options="opcionesPie" data="dataGraficos.dataGraficoProgramadasEstado"></nvd3>
+                </div>
+                <div style="width: 27%;" class="contenedor-grafico">
+                    <nvd3 style="width: 100%;" options="opcionesSentimiento" data="dataGraficos.dataGraficoSentimientos"></nvd3>
+                </div>
+                <div style="width: 46%;" class="contenedor-grafico">
+                    <nvd3 style="width: 100%;" options="opcionesFinalizacion" data="dataGraficos.dataGraficoFinalizacion"></nvd3>
+                </div>
+            </div>
+        </div>
+        <!--#endregion-->
+    </div>
+    <!--#region TABULA LLAMADAS-->
+    <div style="width: 100%;" ng-show="!sinGestion">
+        <div style="margin: 6px; display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <label name="tituloDetalle" class="como-link" ng-click="mostrar()">
+                Detalle de llamadas
+                <li class="fa fw fa-chevron-up" title="Ocultar detalle" ng-show="mostrarTabulaDetalle"></li>
+                <li class="fa fw fa-chevron-down" title="Mostrar detalle de cada llamada" ng-show="!mostrarTabulaDetalle"></li>
+            </label>
+        </div>
+        <div id="tabulaDetalle">
+            <table
+                ng-show="mostrarTabulaDetalle"
+                tamanio-inicial="20"
+                tabula="llamadasProgramadas"
+                observa-y-recarga="recargarTabula"
+                url="../canalesMasivos/cmReporteAgenteVirtualActivacionCtrl.php?act=cargarTabula&filtroLote={{filtroLote}}&filtroCartera={{filtroCartera}}&filtroCampania={{filtroCampania}}&filtroProducto={{filtroProducto}}&filtroProveedor={{filtroProveedor}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}"
+                post-carga="cargoTabula(filas, extra)"
+            >
+                <tr>
+                    <th>&nbsp;</th>
+                    <th
+                        ng-if="permisos.soyDesarrollo && mostrarDesarrollo"
+                        tabula-encabezado="av_proveedor"
+                        titulo="Proveedor"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_estadoEnvio"
+                        titulo="Estado"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_fecha"
+                        titulo="Fecha asignación"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_fechaGeneraLlamada"
+                        titulo="Fecha inicio"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_fechaFinLlamada"
+                        titulo="Fecha fin"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_telefono"
+                        titulo="Número"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_cedula"
+                        titulo="Cédula"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_nombre"
+                        titulo="Nombre"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_producto"
+                        titulo="Producto"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <!--<th
+                    tabula-encabezado="av_lote"
+                    titulo="Fecha<br>Programación"
+                    tipo="timestamp"
+                    ordenar
+                    filtrar
+                ></th>-->
+                    <th
+                        tabula-encabezado="av_carteraNombre"
+                        titulo="Cartera"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_campaniaNombre"
+                        titulo="Campaña"
+                        ordenar
+                        filtrar
+                    ></th>
+                </tr>
+                <tr ng-repeat="(index, item) in tabulas['llamadasProgramadas'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+                    <td align="center" style="vertical-align: middle;">
+                        <div>
+                            <li
+                                class="fa fa-search-plus fa-fw"
+                                title="Detalle"
+                                mde-click="mostrarDetalle(pos, item)"
+                                ng-show="item.av_estadoEnvio==='ATENDIDA' || item.av_estadoEnvio==='NO ATENDIDA' || item.av_estadoEnvio==='MARCAR LUEGO' || item.av_estadoEnvio==='ERROR GENERAR LLAMADA'"
+                            ></li>
+                            <li
+                                class="fa fa-search-plus fa-fw fa-grey"
+                                title="Detalle"
+                                ng-show="item.av_estadoEnvio==='EN PROGRESO' || item.av_estadoEnvio==='PENDIENTE' || item.av_estadoEnvio==='INICIADA'"
+                                style="cursor: not-allowed;"
+                            ></li>
+                            <li
+                                title="Reintentar llamada"
+                                class="fa fa-fw fa-volume-control-phone"
+                                ng-click="generarLlamada(item)"
+                                ng-if="permisos.soyDesarrollo && mostrarDesarrollo && (item.av_estadoEnvio==='ERROR GENERAR LLAMADA' || item.av_estadoEnvio==='NO ATENDIDA' || item.av_estadoEnvio==='MARCAR LUEGO')"
+                            ></li>
+                        </div>
+                    </td>
+                    <td style="vertical-align: middle;" ng-if="permisos.soyDesarrollo && mostrarDesarrollo">{{item.av_proveedor}}</td>
+                    <td style="vertical-align: middle;" title="{{((item.av_estadoEnvio==='NO ATENDIDA' || item.av_estadoEnvio==='ERROR GENERAR LLAMADA' || item.av_estadoEnvio==='MARCAR LUEGO' || item.av_estadoEnvio==='DESPROGRAMADA' || item.av_estadoEnvio==='DESPROGRAMADA AUTOMATICA') ? (item.av_error!=='' ? item.av_error : 'Desprogramada') : '')}} {{(item.av_reintentos > 0 ? '(reintentos ' + (item.av_reintentos-1) + ')' : '')}}">
+                        <small>{{item.av_estadoEnvio}}</small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>{{item.av_fecha | fecha:"d/m/y H:i:s"}}</small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>
+                            {{item.av_fechaGeneraLlamada!==undefined && item.av_fechaGeneraLlamada > 0 ?
+                    (item.av_fechaGeneraLlamada | fecha:"d/m/y H:i:s") : ""}}
+                        </small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>
+                            {{item.av_fechaFinLlamada!==undefined && item.av_fechaFinLlamada > 0 ?
+                    (item.av_fechaFinLlamada | fecha:"d/m/y H:i:s") : ""}}
+                            <br>
+                            {{item.av_duracionSegundos}}
+                        </small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>{{item.av_telefono}}</small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>{{item.av_cedula}}</small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>{{item.av_nombre}}</small>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <small>{{item.av_producto}}</small>
+                    </td>
+                    <!--<td style="vertical-align: middle;">{{item.av_lote | fecha:"d/m/Y H:i"}}</td>-->
+                    <td style="vertical-align: middle;">
+                        <small>{{item.av_carteraNombre}}</small>
+                    </td>
+                    <td title="{{item.av_campaniaNombre}}" style="vertical-align: middle;">
+                        <small>{{item.av_campaniaNombre | textoExtenso:26}}</small>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <button class="btn btn-primary" ng-click="actualizarTabula()">
+                            Actualizar
+                        </button>
+                    </td>
+                    <td colspan="8" align="center">
+                        <tabula-paginador dataset="tabulas['llamadasProgramadas']" maxbotones="5"></tabula-paginador>
+                    </td>
+                    <td colspan="2" align="center">
+                        <tabula-exportar dataset="tabulas['llamadasProgramadas']"></tabula-exportar>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!--#endregion-->
+    <!--#region MODAL DETALLE LLAMADA-->
+    <modal-popup
+        titulo="{{verDetalle.titulo}}"
+        evento="{{verDetalle.evento}}"
+        icono="fa fa-file-audio-o fa-fw"
+        width="800"
+        abrir="verDetalle.activo"
+        style="color: black;"
+    >
+        <!--<span class="badge">{{verDetalle.detalle.duracionSegundos}}</span>-->
+        <div class="form-group" ng-show="permisos.soyDesarrollo" style="display: flex; justify-content: end; align-items: center; vertical-align: middle;">
+            <div class="checkbox">
+                <label>
+                    <input style="accent-color: #3e3e3e;" type="checkbox" ng-model="mostrarDesarrollo">
+                    Vista desarrollo
+                </label>
+            </div>
+        </div>
+        <div style="display: flex;">
+            <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; width: 50%;">
+                <audio controls autoplay ng-if="verDetalle.detalle.audio!==undefined && verDetalle.detalle.audio!==''">
+                    <source ng-src="{{verDetalle.detalle.audio}}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <span class="badge" ng-if="verDetalle.detalle.audio===undefined || verDetalle.detalle.audio===''" style="margin-top: 12px; margin-bottom: 12px;">Sin audio registrado</span>
+            </div>
+            <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" style="display: flex; justify-content: center; align-items: center; vertical-align: middle; width: 50%;">
+                <a href="{{verDetalle.detalle.archivoJson}}" target="_blank">Archivo detalle proveedor</a>
+            </div>
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo" style="padding-top: 4px;">
+            <label for="elid">
+                ID proveedor
+            </label>
+            <br>
+            <a ng-show="verDetalle.detalle.eliminadoProveedor==='NO'" href="https://dashboard.retellai.com/callHistory?history={{verDetalle.detalle.id}}" target="_blank">{{verDetalle.detalle.id}}</a>
+            <input
+                ng-show="verDetalle.detalle.eliminadoProveedor==='SI'"
+                type="text"
+                class="form-control"
+                id="elid"
+                ng-model="verDetalle.detalle.id"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="resumen">
+                Tel&eacute;fono origen
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="costo"
+                ng-model="verDetalle.detalle.telefonoOrigen"
+                readonly
+                style="width: 150px;"
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="resumen">
+                Costo proveedor
+            </label>
+            <div class="input-group">
+                <div class="input-group-addon">$</div>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="costo"
+                    ng-model="verDetalle.detalle.costo"
+                    readonly
+                    style="width: 100px;"
+                >
+            </div>
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="tokesn">
+                Tokens LLM utilizados
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="tokesn"
+                ng-model="verDetalle.detalle.tokens"
+                readonly
+                style="width: 100px;"
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="reintentos">
+                N&uacute;mero de reintentos
+            </label>
+            <div style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+                <input
+                    type="text"
+                    class="form-control"
+                    id="reintentos"
+                    ng-model="verDetalle.detalle.reintentos"
+                    readonly
+                    style="width: 100px;"
+                >
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarReintentos && verDetalle.detalle.reintentosDetalle.length > 0" ng-click="verDetalle.detalle.mostrarReintentos=!verDetalle.detalle.mostrarReintentos"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarReintentos && verDetalle.detalle.reintentosDetalle.length > 0" ng-click="verDetalle.detalle.mostrarReintentos=!verDetalle.detalle.mostrarReintentos"></li>
+            </div>
+        </div>
+        <div ng-show="verDetalle.detalle.mostrarReintentos">
+            <ul class="list-group">
+                <li class="list-group-item" ng-repeat="(x, i) in verDetalle.detalle.reintentosDetalle">
+                    <small ng-show="x==0">
+                        (Llamada original)
+                        <br>
+                    </small>
+                    <b>{{i.fecha | fecha:"d/m/Y H:i:s"}}</b>
+                    &nbsp;|&nbsp;Respuesta: {{i.error}}&nbsp;|&nbsp;Estado registrado:&nbsp;{{i.estado}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group" ng-show="verDetalle.detalle.proveedor==='RETELL'">
+            <label for="resumen">
+                Resumen
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="resumen"
+                ng-model="verDetalle.detalle.resumen"
+                readonly
+                title="{{verDetalle.detalle.tengoTraduccion ? verDetalle.detalle.resumenOriginal : ''}}"
+            ></textarea>
+        </div>
+        <div class="form-group">
+            <label for="exito">
+                El agente piensa que tuvo exito
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="exito"
+                value="{{verDetalle.detalle.analisisExito}}"
+                readonly
+                style="width: 200px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="sentimiento">
+                Sentimiento
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="sentimiento"
+                ng-model="verDetalle.detalle.sentimiento"
+                readonly
+                style="width: 200px;"
+            >
+        </div>
+        <div class="form-group" ng-if="verDetalle.detalle.error!==null && verDetalle.detalle.error!==''">
+            <label for="error">
+                Mensaje error
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="error"
+                ng-model="verDetalle.detalle.error"
+                readonly
+                style="color:red;"
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="calllog">
+                Log
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="calllog"
+                ng-model="verDetalle.detalle.callLog"
+                readonly
+            ></textarea>
+        </div>
+        <div class="form-group">
+            <label for="fechaLlamada">
+                Fecha agente inicia la llamada
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaLlamada"
+                value="{{(verDetalle.detalle.fechaInicio / 1000) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group" ng-show="verDetalle.detalle.fechaInicio!==verDetalle.detalle.fechaContesta">
+            <label for="fechaContesta">
+                Fecha usuario contesta
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaContesta"
+                value="{{(verDetalle.detalle.fechaContesta / 1000) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaFinLlamada">
+                Fecha finaliza la llamada
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaFinLlamada"
+                value="{{(verDetalle.detalle.fechaFin / 1000) | fecha:'d/m/Y H:i:s'}}"
+                ng-show="verDetalle.detalle.fechaFin!==''"
+                readonly
+                style="width: 160px;"
+            >
+            <input
+                type="text"
+                class="form-control"
+                id="fechaFinLlamada"
+                value=""
+                ng-show="verDetalle.detalle.fechaFin===''"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="duracion">
+                Duraci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="duracion"
+                value="{{verDetalle.detalle.duracionSegundos}}"
+                readonly
+                style="width: 80px;"
+            >
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="error">
+                Transcripci&oacute;n
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarTranscripcion" ng-click="verDetalle.detalle.mostrarTranscripcion=!verDetalle.detalle.mostrarTranscripcion"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarTranscripcion" ng-click="verDetalle.detalle.mostrarTranscripcion=!verDetalle.detalle.mostrarTranscripcion"></li>
+            </label>
+            <div ng-show="verDetalle.detalle.mostrarTranscripcion" style="border: solid 1px #ccc; border-radius: 4px; background-color: #eee;" ng-show="verDetalle.detalle.transcripcion.length > 0">
+                <div ng-repeat="item in verDetalle.detalle.transcripcion" style="width: 100%; margin-bottom: 8px; margin-top: 8px;">
+                    <div style="display: flex; " ng-class="{textoAgente: item.direccion==='agente', textoCliente: item.direccion==='cliente'}">
+                        <div style="max-width: 60%; display: flex; flex-direction: column; padding: 8px;" ng-class="{contenedorAgente: item.direccion==='agente', contenedorCliente: item.direccion==='cliente'}">
+                            <span ng-show="item.direccion==='agente'">
+                                <b>Agente virtual</b>
+                            </span>
+                            <span ng-show="item.direccion==='cliente'">
+                                <b>{{verDetalle.detalle.telefono}}</b>
+                            </span>
+                            <span style="padding-top: 4px; padding-bottom: 4px;">{{item.mensaje}}</span>
+                            <div ng-if="item.interlocutorInterrumpe && item.mensajeOriginal!==''" style="font-style: italic;">
+                                <b>Interlocutor iterrumpe, texto original:</b>
+                                <br>
+                                <span>{{item.mensajeOriginal}}</span>
+                            </div>
+                            <span ng-show="item.fechaHora!==undefined" ng-class="{horaAgente: item.direccion==='agente', horaCliente: item.direccion==='cliente'}">
+                                <small>{{item.fechaHora}}</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="verDetalle.detalle.transcripcion.length == 0">No hay transcripci&oacute;n</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="error">
+                Valores din&aacute;micos
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarDinamicos" ng-click="verDetalle.detalle.mostrarDinamicos=!verDetalle.detalle.mostrarDinamicos"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarDinamicos" ng-click="verDetalle.detalle.mostrarDinamicos=!verDetalle.detalle.mostrarDinamicos"></li>
+            </label>
+            <ul class="list-group" ng-show="verDetalle.detalle.mostrarDinamicos">
+                <li class="list-group-item" ng-repeat="(i, v) in verDetalle.detalle.datosDinamicos">
+                    <b>{{i}}</b>
+                    :&nbsp;{{v}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group">
+            <label for="finalizacion">
+                Motivo finalizaci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="finalizacion"
+                value="{{verDetalle.detalle.finalizacion}}"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="finalizacion">
+                Tipificaci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="finalizacion"
+                value="{{verDetalle.detalle.tipificacion}}"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="analisis">
+                An&aacute;lisis
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="analisis"
+                ng-model="verDetalle.detalle.analisis"
+                readonly
+            ></textarea>
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+    <wait-window activar="cargando"></wait-window>
+</div>

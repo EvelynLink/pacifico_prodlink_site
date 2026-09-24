@@ -1,0 +1,659 @@
+<div class="gen-contenedor-centrado-8608">
+    <div class="gen-contenedor-flexible-6866">
+        <!--#region FILTROS-->
+        <div class="gen-borde-gris-sencillo-7643">
+
+    <!-- IZQUIERDA: FILTROS -->
+    <div class="gen-contenido-flexible-9412">
+
+        <div class="gen-contenedor-centrado-5019">
+            &nbsp;
+            <li class="fa fa-filter fa-15x"></li>
+            &nbsp;
+        </div>
+
+        <div class="gen-canalesMasivos-1783007084-2102">
+
+            <div class="gen-centrado-flex-2399">
+                <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroTiempo" class="form-control"
+                    ng-model="filtroTiempo"
+                    ng-change="traerParametrizacion()">
+                    <option value="ini">Seleccione una opción</option>
+                    <option value="asigActual">Asignación Período Actual</option>
+                    <option value="asigAnterior">Asignación Período Anterior</option>
+                </select>
+            </div>
+
+            <div ng-show="filtroTiempo==='rango'" class="gen-contenido-centrado-7046">
+                <input id="fechaDesde" class="form-control gen-canalesMasivos-1783007084-5989" type="text"
+                    datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaDesde"
+                    ng-click="abreFechaDesde = !abreFechaDesde"
+                    ng-model="fechaDesde"
+                    placeholder="Desde"
+                    ng-change="aplicarRangoFechas()">
+            </div>
+
+            <div ng-show="filtroTiempo==='rango'" class="gen-contenido-centrado-7046">
+                <input id="fechaHasta" class="form-control gen-canalesMasivos-1783007084-5989" type="text"
+                    datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaHasta"
+                    ng-click="abreFechaHasta = !abreFechaHasta"
+                    ng-model="fechaHasta"
+                    placeholder="Hasta"
+                    ng-change="aplicarRangoFechas()">
+            </div>
+
+            <div class="gen-contenido-centrado-2381">
+                <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroCartera"
+                    class="form-control"
+                    ng-model="filtroCartera"
+                    ng-options="p.id as p.nombre for p in listas.carteras"
+                    ng-change="traerParametrizacion()"></select>
+            </div>
+
+            <div ng-if="filtroCartera!=='todo'" class="gen-contenido-centrado-2381">
+                <li class="fa fa-fw fa-tachometer fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroPeriodo"
+                    class="form-control"
+                    ng-model="listas.filtroPeriodo"
+                    ng-options="p.id as p.nombre for p in periodo"
+                    ng-change="traerParametrizacion()">
+                </select>
+            </div>
+
+            <div class="gen-contenido-centrado-2381">
+                <li class="fa fa-fw fa-random fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroCanal"
+                    class="form-control"
+                    ng-model="filtroCanal"
+                    ng-options="p.id as p.nombre for p in listas.opcionesFiltroCanal"
+                    ng-change="traerParametrizacion()">
+                </select>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- DERECHA: TITULO + BOTONES -->
+    <div class="gen-centrado-flex-1176">
+
+        <div class="gen-centrado-flexible-1919">
+            <i class="fa fa-fw fa-refresh fa-15x"
+                title="Actualizar datos ahora"
+                ng-click="traerParametrizacion()"></i>
+
+            <select title="Actualizar automáticamente"
+                id="tiempoAct"
+                class="form-control input-sm"
+                ng-model="tiempoActualizar"
+                ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                ng-change="setTiempoActualizar()"></select>
+        </div>
+
+    
+    </div>
+
+</div>
+
+
+        
+        <!--#region FILTROS APLICADOS-->
+        <div class="gen-contenedor-flexible-1573">
+            <div ng-show="filtrosAplicados.tiempo.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.cartera.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.cartera.titulo}}
+                    <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.campania.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.campania.titulo}}
+                    <li ng-click="quitarFiltro('campania')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.canal.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.canal.titulo}}
+                    <li ng-click="quitarFiltro('canal')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--#region TITULO-->
+
+        <!--#region seccion resultado general-->
+        <div class="contenedor-seccion">
+            <div layout="row">
+            <span class="titulo-pantalla gen-margen-derecho-15-1146">
+                {{titulo}}
+            </span>
+            <button ng-if="titulo && permisos.soyDesarrollo" class="btn btn-primary" ng-click="resincronizarCubo()"><lang>Resincronizar Cubo</lang></button>
+            </div>
+
+        <div id="container" class="gen-capa-base-6617">
+            <div id="wb_BackgroundFalso">
+            <div id="BackgroundFalso"></div></div>
+            <div id="wb_LogoPacifico">
+            <img src="images/PacificoLogo.png" id="LogoPacifico" alt="" width="727" height="727"></div>
+            <div id="wb_Conector_1920">
+            <img src="images/conectorA.png" id="Conector_1920" alt="" width="728" height="507"></div>
+            <div id="wb_Conector1720">
+            <img src="images/conectorB.png" id="Conector1720" alt="" width="694" height="536"></div>
+            <div id="wb_Conector1366">
+            <img src="images/conectorC.png" id="Conector1366" alt="" width="598" height="526"></div>
+            <div id="wb_Conector_1280">
+            <img src="images/conectorD.png" id="Conector_1280" alt="" width="583" height="526"></div>
+            <div id="wb_Conector1024">
+            <img src="images/conectorE.png" id="Conector1024" alt="" width="493" height="676"></div>
+            <div id="wb_Conector768">
+            <img src="images/conectorF.png" id="Conector768" alt="" width="659" height="706"></div>
+            <div id="wb_Conector480">
+            <img src="images/conectorG.png" id="Conector480" alt="" width="216" height="608"></div>
+            <div id="LayerEncabezado">
+            <div id="wb_fondo_titulo">
+            <div id="fondo_titulo"></div></div>
+            <div id="ExcelDescarga">
+            <a href="">
+            <img class="hover" alt="Descarga de archivo" title="Descarga de archivo" src="images/excelIconR.png" width="37" height="33">
+            <span><img alt="Descarga de archivo" title="Descarga de archivo" src="images/excelIcon.png" width="37" height="33"></span>
+            </a>
+            </div>
+            <div id="wb_TituloResultados">
+            <p>Resultados Generales</p></div>
+            </div>
+            <div id="CarteraAsignada">
+            <div id="wb_fondoCA">
+            <div id="fondoCA">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                 <div ng-show="cargarExcel('CARTERA ASIGNADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_Titulo_CA" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA ASIGNADA')">
+            <p>Cartera Asignada</p></div>
+            <div id="wb_ValorCA" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA ASIGNADA')">
+            <p>{{ totales.gestion[0].total }}</p></div>
+            <div id="wb_CerodeCero" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA ASIGNADA')">
+            <p>{{ totales.gestion[0].montoTotal }}</p></div>
+            <div id="wb_ValorInferiorCA" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA ASIGNADA')">
+            <p>$0.00 de $0.00</p></div>
+            <div id="wb_MenuCA" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA ASIGNADA')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCALayer', 1, 'dropup', 400);return false;"><div id="MenuCA"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCarteraNG">
+            <div id="wb_FondoCNG">
+            <div id="FondoCNG">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                <div ng-show="cargarExcel('CARTERA NO GESTIONADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_TituloCNG" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA NO GESTIONADA')">
+            <p>Cartera No Gestionada</p></div>
+            <div id="wb_ValorCNG" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA NO GESTIONADA')">
+            <p>{{ totales.gestion[2].porcentaje}}%</p></div>
+            <div id="wb_CerodeCeroCNG" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA NO GESTIONADA')">
+            <p>{{ totales.gestion[2].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCNG" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA NO GESTIONADA')">
+            <p>{{ totales.gestion[2].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.gestion[2].montoTooltip}}</md-tooltip>
+            </div>
+            <div id="wb_MenuCNG" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA NO GESTIONADA')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCNGLayer', 1, 'dropup', 400);return false;"><div id="MenuCNG"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCNGP">
+            <div id="wb_FondoCNGP">
+            <div id="FondoCNGP">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div> 
+                <div ng-show="cargarExcel('CARTERA NO GESTIONADA PAGADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>   
+            </div></div>
+            <div id="wb_TituloCNGP" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA NO GESTIONADA PAGADA')">
+            <p>Cartera No Gestionada Pagada</p></div>
+            <div id="wb_ValorCNGP" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA NO GESTIONADA PAGADA')">
+            <p>{{ totales.gestion[5].porcentaje}}%</p></div>
+            <div id="wb_CeroDeCeroCNGP" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA NO GESTIONADA PAGADA')">
+            <p>{{ totales.gestion[5].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCNGP" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA NO GESTIONADA PAGADA')">
+            <p>{{ totales.gestion[5].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.gestion[5].montoTooltip}}</md-tooltip></div>
+            <div id="wb_MenuCNGP" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA NO GESTIONADA')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuGNGPLayer', 1, 'dropup', 400);return false;"><div id="MenuCNGP"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCG">
+            <div id="wb_FondoCG">
+            <div id="FondoCG">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                <div ng-show="cargarExcel('CARTERA GESTIONADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_TituloCG" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA')">
+            <p>Cartera Gestionada</p></div>
+            <div id="wb_ValorCG" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA')">
+            <p>{{ totales.gestion[0].porcentaje}}%</p></div>
+            <div id="wb_CeroDeCeroCG" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA')">
+            <p>{{ totales.gestion[0].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCG" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA')">
+            <p>{{ totales.gestion[0].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.gestion[0].montoTooltip}}</md-tooltip></div>
+            <div id="wb_IdentiGestionada" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA')">
+            <div id="IdentiGestionada"></div></div>
+            <div id="wb_MenuCG" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGLayer', 1, 'dropup', 400);return false;"><div id="MenuCG"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCGNC">
+            <div id="wb_FonbdoCGNC">
+            <div id="FonbdoCGNC">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div> 
+                <div ng-show="cargarExcel('CARTERA GESTIONADA NO CONTACTADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>   
+            </div></div>
+            <div id="wb_TituloCGNC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA NO CONTACTADA')">
+            <p>Cartera Gestionada No Contactada</p></div>
+            <div id="wb_ValorCGNC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA NO CONTACTADA')">
+            <p>{{ totales.tipificacion[2].porcentaje}}%</p></div>
+            <div id="wb_CerodeCeroCGNC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA NO CONTACTADA')">
+            <p>{{ totales.tipificacion[2].tooltip }}</p></div>
+            <div id="wb_ValorInfeiorCGNC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA NO CONTACTADA')">
+            <p>{{ totales.tipificacion[2].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.tipificacion[2].montoTooltip}}</md-tooltip></div>
+            <div id="wb_MenuCNGC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA NO CONTACTADA')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGNCLayer', 1, 'dropup', 400);return false;"><div id="MenuCNGC"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCD">
+            <div id="wb_FondoCD">
+            <div id="FondoCD">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                <div ng-show="cargarExcel('CONTACTO DIRECTO')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div> 
+            </div></div>
+            <div id="wb_TituloCD" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO DIRECTO')">
+            <p>Contacto Directo</p></div>
+            <div id="wb_ValorCD" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO DIRECTO')">
+            <p>{{ totales.tipificacion[0].porcentaje}}%</p></div>
+            <div id="wb_CeroDeCeroCD" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO DIRECTO')">
+            <p>{{ totales.tipificacion[0].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCD" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO DIRECTO')">
+            <p>{{ totales.tipificacion[0].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.tipificacion[0].montoTooltip}}</md-tooltip></div>
+            <div id="wb_PuntoContacto" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO DIRECTO')">
+            <div id="PuntoContacto"></div></div>
+            <div id="wb_MenuCD" ng-show=" !cargandoGraficos">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCDLayer', 1, 'dropup', 400);return false;"><div id="MenuCD"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCI">
+            <div id="wb_FondoCI">
+            <div id="FondoCI">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                <div ng-show="cargarExcel('CONTACTO INDIRECTO')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_TituloCI" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO INDIRECTO')">
+            <p>Contacto Indirecto</p></div>
+            <div id="wb_ValorCI" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO INDIRECTO')">
+            <p>{{ totales.tipificacion[1].porcentaje}}%</p></div>
+            <div id="wb_CeroDeCeroCI" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO INDIRECTO')">
+            <p>{{ totales.tipificacion[1].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCI" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO INDIRECTO')">
+            <p>{{ totales.tipificacion[1].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.tipificacion[1].montoTooltip}}</md-tooltip></div>
+            <div id="wb_MenuCI" ng-show=" !cargandoGraficos && !cargarExcel('CONTACTO INDIRECTO')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCILayer', 1, 'dropup', 400);return false;"><div id="MenuCI"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCGP">
+            <div id="wb_FondoCGP">
+            <div id="FondoCGP">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                <div ng-show="cargarExcel('CARTERA GESTIONADA PAGADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_TituloCGP" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA PAGADA')">
+            <p>Cartera Gestionada Pagada</p></div>
+            <div id="wb_ValorCGP" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA GESTIONADA PAGADA')">
+            <p>{{ totales.gestion[4].porcentaje}}%</p></div>
+            <div id="wb_CeroDeCeroCGP" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA GESTIONADA PAGADA')">
+            <p>{{ totales.gestion[4].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCGP" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA GESTIONADA PAGADA')">
+            <p>{{ totales.gestion[4].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.gestion[4].montoTooltip}}</md-tooltip></div>
+            <div id="wb_MenuCGP" ng-show=" !cargandoGraficos  && !cargarExcel('CARTERA GESTIONADA PAGADA')">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGPLayer', 1, 'dropup', 400);return false;"><div id="MenuCGP"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="LayerCGC">
+            <div id="wb_FondoCGC">
+            <div id="FondoCGC">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                <div ng-show="cargarExcel('CARTERA GESTIONADA CONTACTADA')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_TituloCGC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA CONTACTADA')">
+            <p>Cartera Gestionada Contactada</p></div>
+            <div id="wb_ValorCGC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA CONTACTADA')">
+            <p>{{ totales.gestion[1].porcentaje}}%</p></div>
+            <div id="wb_CeroDeCeroCGC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA CONTACTADA')">
+            <p>{{ totales.gestion[1].tooltip }}</p></div>
+            <div id="wb_ValorInferior" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA CONTACTADA')">
+            <p>{{ totales.gestion[1].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.gestion[1].montoTooltip}}</md-tooltip></div>
+            <div id="wb_MenuCGC" ng-show=" !cargandoGraficos && !cargarExcel('CARTERA GESTIONADA CONTACTADA')"> 
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGCLayer', 1, 'dropup', 400);return false;"><div id="MenuCGC"><i class="fa fa-bars"></i></div></a></div>
+            </div>
+            <div id="wb_Icono_Home">
+            <img src="images/HomePacifico.png" id="Icono_Home" alt="" width="40" height="40"></div>
+            <div id="wb_dollarCGP">
+            <img src="images/DollarSignPacifico.png" id="dollarCGP" alt="" width="30" height="30"></div>
+            <div id="wb_DollarCGNP">
+            <img src="images/DollarSignPacifico.png" id="DollarCGNP" alt="" width="30" height="30"></div>
+            <div id="MenuCGLayer">
+            <div id="wb_CerrarMenuCG">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGLayer', 0, 'dropup', 400);return false;"><div id="CerrarMenuCG"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCG">
+            <div id="GrafCG"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA GESTIONADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCG">
+            <div id="DownloadCG"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA GESTIONADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuCALayer">
+            <div id="wb_CerrarCA">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCALayer', 0, 'dropup', 400);return false;"><div id="CerrarCA"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_DownloadCA">
+            <div id="DownloadCA"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA ASIGNADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            <div id="wb_GrafCA">
+            <div id="GrafCA"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA ASIGNADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            </div>
+            <div id="MenuCNGLayer">
+            <div id="wb_CerrarCNGM">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCNGLayer', 0, 'dropup', 400);return false;"><div id="CerrarCNGM"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCNG">
+            <div id="GrafCNG"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA NO GESTIONADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCNG">
+            <div id="DownloadCNG"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA NO GESTIONADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuCGNCLayer">
+            <div id="wb_CerrarCGNCMenu">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGNCLayer', 0, 'dropup', 400);return false;"><div id="CerrarCGNCMenu"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCGNC">
+            <div id="GrafCGNC"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA GESTIONADA NO CONTACTADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCGNC">
+            <div id="DownloadCGNC"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA GESTIONADA NO CONTACTADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuCGCLayer">
+            <div id="wb_CerrarCGC">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGCLayer', 0, 'dropup', 400);return false;"><div id="CerrarCGC"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCGC">
+            <div id="GrafCGC"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA GESTIONADA CONTACTADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCGC">
+            <div id="DownloadCGC"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA GESTIONADA CONTACTADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuCGPLayer">
+            <div id="wb_CerrarCGP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCGPLayer', 0, 'dropup', 400);return false;"><div id="CerrarCGP"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCGP">
+            <div id="GrafCGP"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA GESTIONADA PAGADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCGP">
+            <div id="DownloadCGP"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA GESTIONADA PAGADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuGNGPLayer">
+            <div id="wb_CerrarCNGP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuGNGPLayer', 0, 'dropup', 400);return false;"><div id="CerrarCNGP"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCNGP">
+            <div id="GrafCNGP"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CARTERA NO GESTIONADA PAGADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCNGP">
+            <div id="DownloadCNGP"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CARTERA NO GESTIONADA PAGADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuCDLayer">
+            <div id="wb_CerrarCD">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCDLayer', 0, 'dropup', 400);return false;"><div id="CerrarCD"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCD">
+            <div id="GrafCD"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CONTACTO DIRECTO')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCD">
+            <div id="DownloadCD"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CONTACTO DIRECTO')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="MenuCILayer">
+            <div id="wb_CerrarCI">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCILayer', 0, 'dropup', 400);return false;"><div id="CerrarCI"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCI">
+            <div id="GrafCI"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('CONTACTO INDIRECTO')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCI">
+            <div id="DownloadCI"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('CONTACTO INDIRECTO')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="LayerFinal">
+            <div id="wb_FondoCompromiso">
+            <div id="FondoCompromiso">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                 <div ng-show="cargarExcel('COMPROMISO PAGO')" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                        <span class="gen-texto-titulo-9516">Generando <br>Excel...</span>
+                </div>
+            </div></div>
+            <div id="wb_TituloCompromiso" ng-show=" !cargandoGraficos && !cargarExcel('COMPROMISO PAGO')">
+            <p>Compromiso de pago</p></div>
+            <div id="wb_ValorCompromiso" ng-show=" !cargandoGraficos && !cargarExcel('COMPROMISO PAGO')">
+            <p>{{ totales.gestion[3].porcentaje}}%</p></div>
+            <div id="wb_CerodeCeroCompromiso" ng-show=" !cargandoGraficos && !cargarExcel('COMPROMISO PAGO')">
+            <p>{{ totales.gestion[3].tooltip }}</p></div>
+            <div id="wb_ValorInferiorCompromiso" ng-show=" !cargandoGraficos && !cargarExcel('COMPROMISO PAGO')">
+            <p>{{ totales.gestion[3].monto }}</p>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">{{totales.gestion[3].montoTooltip}}</md-tooltip></div>
+            <div id="wb_PuntoCompromiso" ng-show=" !cargandoGraficos && !cargarExcel('COMPROMISO PAGO')">
+            <div id="PuntoCompromiso"></div></div>
+            <div id="wb_FondoIntensidad">
+            <div id="FondoIntensidad">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+                
+            </div></div>
+            <div id="wb_TitlIntensidad" ng-show=" !cargandoGraficos">
+            <p>Intensidad</p></div>
+            <div id="wb_Valor_Intensidad" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidad[0].total }}</p></div>
+            <div id="wb_AgenteTXT" ng-show=" !cargandoGraficos">
+            <p>Agente virtual:</p></div>
+            <div id="wb_WhatsappTXT" ng-show=" !cargandoGraficos">
+            <p>Whatsapp:</p></div>
+            <div id="wb_CorreoTXT" ng-show=" !cargandoGraficos">
+            <p>Correo:</p></div>
+            <div id="wb_AgenteValor" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidad[0].tooltip[0]}} </p></div>
+            <div id="wb_WhatsValor" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidad[0].tooltip[1]}}</p></div>
+            <div id="wb_CorreoValor" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidad[0].tooltip[2]}}</p></div>
+            <div id="wb_PuntoIntensidadNotas" ng-show=" !cargandoGraficos">
+            <div id="PuntoIntensidadNotas"></div></div>
+            <div id="wb_FondoIntensidadPagada">
+            <div id="FondoIntensidadPagada">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+            </div></div>
+            <div id="wb_TitlIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>Intensidad Cartera Pagada</p></div>
+            <div id="wb_ValorIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraPagada[0].total}}</p></div>
+            <div id="wb_AgenteTitlIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>Agente virtual:</p></div>
+            <div id="wb_WhatIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>Whatsapp:</p></div>
+            <div id="wb_CorreoIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>Correo:</p></div>
+            <div id="wb_AgenteValorintensiPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraPagada[0].tooltip[0]}}</p></div>
+            <div id="wb_WhatsValorIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraPagada[0].tooltip[2]}}</p></div>
+            <div id="wb_CorreoValorIntensiPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraPagada[0].tooltip[1]}}</p></div>
+            <div id="wb_FondoIntenNoPagada">
+            <div id="FondoIntenNoPagada">
+                <div ng-show="cargandoGraficos" class="gen-contenedor-centrado-3221">
+                        <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+                </div>
+            </div></div>
+            <div id="wb_TitlIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>Intensidad Cartera No Pagada</p></div>
+            <div id="wb_ValorIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraNoPagada[0].total}}</p></div>
+            <div id="wb_AgenteIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>Agente virtual:</p></div>
+            <div id="wb_ValorAgIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraNoPagada[0].tooltip[0]}}</p></div>
+            <div id="wb_WhatsaIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>Whatsapp:</p></div>
+            <div id="wb_ValorWAIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraNoPagada[0].tooltip[2]}}</p></div>
+            <div id="wb_CorreoIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>Correo:</p></div>
+            <div id="wb_ValCorreoIntenNoPagada" ng-show=" !cargandoGraficos">
+            <p>{{ totales.intensidadCarteraNoPagada[0].tooltip[1]}}</p></div>
+            <div id="wb_MenuCompromiso">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCPLayer', 1, 'dropup', 400);return false;"><div id="MenuCompromiso"><i class="fa fa-bars"></i></div></a></div>
+            <div id="MenuCPLayer">
+            <div id="wb_CerrarCP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuCPLayer', 0, 'dropup', 400);return false;"><div id="CerrarCP"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafCp">
+            <div id="GrafCp"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('COMPROMISO PAGO')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadCP">
+            <div id="DownloadCP"><i class="fa fa-sign-in" ng-click="descargarReporteExcel('COMPROMISO PAGO')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Descargar Reporte Excel</md-tooltip></div></div>
+            </div>
+            <div id="wb_MenuInten">
+            <a href="#" onclick="ShowObjectWithEffect('MenuIntensidadLayer', 1, 'dropup', 400);return false;"><div id="MenuInten"><i class="fa fa-bars"></i></div></a></div>
+            <div id="MenuIntensidadLayer">
+            <div id="wb_CerrarIntensi">
+            <a href="#" onclick="ShowObjectWithEffect('MenuIntensidadLayer', 0, 'dropup', 400);return false;"><div id="CerrarIntensi"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafIntensi">
+            <div id="GrafIntensi"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('INTENSIDAD')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadIntensi">
+            <div id="DownloadIntensi" class="gen-oculto-totalmente-6723"><i class="fa fa-sign-in"></i></div></div>
+            </div>
+            <div id="wb_MenuInCP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuIntensiCPLayer', 1, 'dropup', 400);return false;"><div id="MenuInCP"><i class="fa fa-bars"></i></div></a></div>
+            <div id="wb_MenuInCNP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuIntCNPLayer', 1, 'dropup', 400);return false;"><div id="MenuInCNP"><i class="fa fa-bars"></i></div></a></div>
+            <div id="MenuIntensiCPLayer">
+            <div id="wb_CerrarICP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuIntensiCPLayer', 0, 'dropup', 400);return false;"><div id="CerrarICP"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafICP">
+            <div id="GrafICP"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('INTENSIDAD PAGADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadICP">
+            <div id="DownloadICP" class="gen-oculto-totalmente-6723"><i class="fa fa-sign-in"></i></div></div>
+            </div>
+            <div id="MenuIntCNPLayer">
+            <div id="wb_CerrarICNP">
+            <a href="#" onclick="ShowObjectWithEffect('MenuIntCNPLayer', 0, 'dropup', 400);return false;"><div id="CerrarICNP"><i class="fa fa-times-circle-o"></i></div></a></div>
+            <div id="wb_GrafICNP">
+            <div id="GrafICNP"><i class="fa fa-line-chart" ng-click="mostrarModalGraficos('INTENSIDAD NO PAGADA')"></i>
+            <md-tooltip md-direction="bottom" class="gen-texto-pequeno-6450">Ver Gráfica</md-tooltip></div></div>
+            <div id="wb_DownloadICNP">
+            <div id="DownloadICNP" class="gen-oculto-totalmente-6723"><i class="fa fa-sign-in"></i></div></div>
+            </div>
+            </div>
+            <div id="wb_Pie_de_pagina">
+            <div id="Pie_de_pagina"></div></div>
+        </div>
+        <!--#endregion-->
+        
+     
+        <div class="gen-alto-fijo-6598"></div>
+    </div>
+</div>
+
+  
+
+
+
+<modal-popup titulo="{{tipoCartera}}" evento="{{modalGraficos.evento}}" icono="fa fa-line-chart fa-fw"
+    width="1000" abrir="modalGraficos.activo" class="gen-canalesMasivos-1781099115-7252">
+
+    <div layout="row" layout-wrap class="gen-contenedor-ancho-1646">
+
+    <div class="contenedor-grafico gen-contenedor-principal-9904"
+     ng-repeat="serie in graficos.lineaLlamadas track by $index"
+     flex="{{getFlex()}}">
+
+    <li class="fa fa-fw fa-question-circle-o gen-posicion-fija-arriba-7898" title="{{serie.key}}"></li>
+
+    <nvd3  
+        options="opcionesPorSerie[$index]" 
+        data="[serie]">
+    </nvd3>
+
+</div>
+
+</div>
+
+</modal-popup>

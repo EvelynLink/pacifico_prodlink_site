@@ -1,0 +1,391 @@
+<style>
+    .divPrincipal {
+        position: relative; 
+        padding: 0;
+        margin: 0;
+        height: 100%;
+    }
+
+    .divSecundario {
+        position: absolute;
+        top: 8%;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 10;
+        width: 70%;
+        height: 90vh;
+        overflow-y: auto;
+        border-radius: 10px;
+    }
+
+    .divSecundarioModal {
+        position: absolute;
+        top: 10%;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 15;
+        width: 70%;
+        height: 80vh;
+        overflow-y: auto;
+        border-radius: 10px;
+    }
+
+    .divSecundarioModalFondo {
+        background-color: black;
+        opacity: 0.7;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 14;
+        width: 100%;
+        height: 100%;
+    }
+
+    .divSecundarioFondo {
+        background-color: black;
+        opacity: 0.7;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 9;
+        width: 100%;
+        height: 100%;
+    }
+
+    .sliderNormal{
+        background-color: #2f6f9f ;
+    }
+
+    .hint {
+        /* Position the hint */
+        position: absolute;
+        left: 2px;
+        right: auto;
+        bottom: 7px;
+        /* Copy styles from ng-messages */
+        font-size: 12px;
+        line-height: 14px;
+        transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+        /* Set our own color */
+        color: grey;
+    }
+
+    table tr th {
+        font-size: small;
+        text-align: center !important;
+        color: #000 !important;
+    }
+
+    table tr td {
+        font-size: smaller;
+        /*text-align: center !important;*/
+    }
+
+    thead tr th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #f6f6f6;
+    }
+
+    .cabeceraSubtable thead tr th{
+        background-color: #000000 !important;
+        color: white !important;
+    }
+
+</style>
+
+<div ng-init="cargarFuentes()"  class="divPrincipal">
+    <div class="p-1 mb-2 mt-0 panel-heading" layout="row" layout-align="space-between center" style="background-color: #f8f8fb ; border-color: #E8E8E8;">
+        <div class="pl-4">
+            <h4 style="color: #000"> <b> <i class="fa fa-cogs fa-fw"></i>Configuración Fechas </b> </h4>
+        </div>
+
+        <div class="pr-4">
+            <button ng-click="nuevaConfiguracion()" type="button" class="btn btn-success" style=" font-size: medium;"> 
+                Nuevo Registro
+            </button>  
+        </div>
+    </div>
+
+    <!-- class="container"  layout="row"-->
+    <div class="container-fluid" > 
+        <md-content>
+            <md-tabs md-border-bottom md-dynamic-height md-selected="0">
+                <md-tab label="Activas">
+                    <table observa-y-recarga='tabuCampanias' tabula="periodosActivos" tamanio-inicial="10" 
+                           url="../canalesMasivos/cmFechasPeriodoCtrl.php?act=listaPeriodosActivos">           
+                    <tr>
+                            <th width="20%" tabula-encabezado="cartera" titulo="Cartera" ordenar></th>
+                            <th width="10%" tabula-encabezado="periodo" titulo="Período" ordenar filtrar tipo="range"></th>
+                            <th width="10%" tabula-encabezado="fecha" titulo="Fecha Inicio" ordenar filtrar tipo="timestamp"></th>
+                            <th width="10%" tabula-encabezado="fechaFin" titulo="Fecha Fin" ordenar filtrar tipo="timestamp"></th>
+                            <th width="10%" tabula-encabezado="" titulo="Fecha Carga"></th>
+                            <th width="20%" tabula-encabezado="usuarioCreacion" titulo="Usuario"></th>
+                            <th width="15%" tabula-encabezado="fechaCreacion" titulo="Fecha Creación"></th>
+                            <th width="10%" tabula-encabezado="acciones" titulo="Acciones"></th>
+                    </tr>
+
+                        <tr ng-repeat="x in tabulas['periodosActivos'].filas track by $index" >
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: left;">
+                                <span ng-if="indexEdit !== $index">
+                                    {{ getNombreCartera(x.cartera) }}
+                                </span>
+
+                                <md-select ng-if="indexEdit === $index"
+                                        ng-model="registroEditar.cartera"
+                                        placeholder="Seleccione cartera"
+                                        ng-change="cambioCartera(registroEditar.cartera)">
+                                    <md-option ng-repeat="c in carterasActivas" ng-value="c.id">
+                                        {{ c.nombre }}
+                                    </md-option>
+                                </md-select>
+                            </td>
+
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <span ng-if="indexEdit !== $index">
+                                    {{ x.periodo}}
+                                </span>
+
+                                <md-select ng-if="indexEdit === $index"
+                                        ng-model="registroEditar.periodo"
+                                        placeholder="Seleccione período">
+                                    <md-option ng-repeat="p in periodosFiltrados" ng-value="p">
+                                        {{ p }}
+                                    </md-option>
+                                </md-select>
+                            </td>
+
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                                    <span ng-if="indexEdit !== $index" class="pr-3">{{ x.fecha * 1000 | date:'yyyy-MM-dd' }}</span>
+                                    <span ng-if="indexEdit === $index" class="pr-3">{{ registroEditar.fecha | date:'yyyy-MM-dd' }}</span>
+
+                                    <i ng-if="indexEdit === $index" ng-model="registroEditar.fecha"
+                                       ng-click="abreFechaV = !abreFechaV"
+                                       ng-focus="focusEditarFecha('fecha')"
+                                       class="fa fa-calendar"
+                                       datepicker-popup="yyyy-MM-dd"
+                                       is-open="abreFechaV">
+                                        <md-tooltip md-direction="top"> Cambiar fecha </md-tooltip>
+                                    </i>
+                                </div>
+                            </td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                                    <span ng-if="indexEdit !== $index" class="pr-3">{{ x.fechaFin * 1000 | date:'yyyy-MM-dd' }}</span>
+                                    <span ng-if="indexEdit === $index" class="pr-3">{{ registroEditar.fechaFin | date:'yyyy-MM-dd' }}</span>
+
+                                    <i ng-if="indexEdit === $index" ng-model="registroEditar.fechaFin"
+                                       ng-click="abreFechaV = !abreFechaV"
+                                       ng-focus="focusEditarFecha('fechaFin')"
+                                       class="fa fa-calendar"
+                                       datepicker-popup="yyyy-MM-dd"
+                                       is-open="abreFechaV">
+                                        <md-tooltip md-direction="top"> Cambiar fecha </md-tooltip>
+                                    </i>
+                                </div>
+                            </td>
+                            
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaCarga | fecha:'Y-m-d'}}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.usuarioCreacion}}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaCreacion ? (x.fechaCreacion * 1000 | date:'yyyy-MM-dd HH:mm:ss') : ''  }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div ng-if="indexEdit === $index" class="p-0 m-0" layout="row" layout-align="space-around center">
+                                    <md-button class="p-0 m-0" ng-click="guardarEdicionRegistro(x)" aria-label="edita campania">
+                                        <i class="fa fa-save fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Guardar </md-tooltip>
+                                    </md-button>
+                                    
+                                    <md-button class="p-0 m-0" ng-click="cancelarCambioFecha()" aria-label="edita campania">
+                                        <i class="fa fa-times-circle-o fa-red fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Cancelar </md-tooltip>
+                                    </md-button>
+                                </div>
+                                <div ng-if="indexEdit !== $index" class="p-0 m-0" layout="row" layout-align="space-around center">
+                                    
+                                    <md-button ng-click="editarRegistro($index, x)"  
+                                               class="p-0 m-0" aria-label="editar fechas">
+                                        <i class="fa fa-edit fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Editar </md-tooltip>
+                                    </md-button>
+                                    <md-button class="p-0 m-0" ng-click="cambiarEstadoRegistro(x,0)" aria-label="inactiva campania">
+                                        <i class="fa fa-circle fa-green fa-fw"></i>
+                                        <md-tooltip md-direction="top"> <lang>Inactivar</lang>? </md-tooltip>
+                                    </md-button>
+                                    
+                    </div>
+                </td>
+            </tr>          
+            <tr>
+                <td colspan="6">
+                    <div layout="row" layout-padding>                        
+                                    <div style="width: 100%;" > <tabula-paginador dataset="tabulas['periodosActivos']" maxbotones="3" no-cambiar-tamanio></tabula-paginador></div>
+                    </div>
+
+                </td>
+            </tr>            
+            </table>
+                </md-tab>
+                
+                <md-tab label="Inactivas">
+                    <table observa-y-recarga='tabuCampanias' tabula="periodosInactivos" tamanio-inicial="10" 
+                           url="../canalesMasivos/cmFechasPeriodoCtrl.php?act=listaPeriodosInactivos">           
+                        <tr>
+                            <th width="20%" tabula-encabezado="cartera" titulo="Cartera" ordenar></th>
+                            <th width="10%" tabula-encabezado="periodo" titulo="Período" ordenar filtrar tipo="range"></th>
+                            <th width="10%" tabula-encabezado="fecha" titulo="Fecha Inicio" ordenar filtrar tipo="timestamp"></th>
+                            <th width="10%" tabula-encabezado="fechaFin" titulo="Fecha Fin" ordenar filtrar tipo="timestamp"></th>
+                            <th width="10%" tabula-encabezado="fechaCarga" titulo="Fecha Carga"></th>
+                            <th width="20%" tabula-encabezado="usuarioCreacion" titulo="Usuario"></th>
+                            <th width="15%" tabula-encabezado="fechaCreacion" titulo="Fecha Creación"></th>
+                            <th width="10%" tabula-encabezado="acciones" titulo="Acciones"></th>
+                        </tr>
+
+                        
+
+                        <tr ng-repeat="x in tabulas['periodosInactivos'].filas track by $index" >
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: left;">{{ getNombreCartera(x.cartera)}}</td> 
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.periodo }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fecha | fecha:'Y-m-d' }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaFin | fecha:'Y-m-d' }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaCarga | fecha:'Y-m-d'}}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.usuarioCreacion}}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaCreacion ? (x.fechaCreacion * 1000 | date:'yyyy-MM-dd HH:mm:ss') : ''  }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div class="p-0 m-0" layout="row" layout-align="space-around center">
+                                    <md-button class="p-0 m-0" ng-click="cambiarEstadoRegistro(x,1)" aria-label="inactiva campania">
+                                        <i class="fa fa-circle fa-red fa-fw"></i>
+                                        <md-tooltip md-direction="top"> <lang>Activar</lang>? </md-tooltip>
+                                    </md-button>
+                                </div>
+                            </td>
+                        </tr>          
+                        <tr>
+                            <td colspan="6">
+                                <div layout="row" layout-padding>                        
+                                    <div style="width: 100%;" > <tabula-paginador dataset="tabulas['periodosInactivos']" maxbotones="3" no-cambiar-tamanio></tabula-paginador></div>
+                                </div>
+                            </td>
+                        </tr>            
+                    </table>
+                </md-tab>
+
+            </md-tabs>
+        </md-content>
+    </div>
+</div>
+
+<!-- Ventana emergente ingresar o modificar un registro -->
+<div ng-show="verNuevaCampania" class="divSecundarioFondo"></div>  
+<div ng-show="verNuevaCampania" class="divSecundario">
+    <div layout="column">
+        <!-- Datos generales de la campaña definida -->
+        <div id="pantallaNuevoRegistro" class="h-50" layout="column" layout-align="space-between" style="background-color: white;">
+            <div class="p-0 mb-2" layout="row" layout-align="center center" style="background-color: #2f6f9f;">
+                <div class="col-sm-3" style="color: white;">
+                </div>
+                <div class="col-sm-6" align="center">
+                    <h5 style="color: white;"><i class="fa fa-info-circle fa-inverse fa-fw"></i> <b> INGRESAR NUEVO </b></h5>
+                </div>
+                <div class="col-sm-3"></div>
+            </div>
+            <!-- Nueva organizacion de cabecera-->
+            <div id="datosGenerales" class="m-0 pb-2" layout="row" layout-align="space-around center">
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="center center">
+                    <div class="col-sm-3 text-left"><p class="m-0 p-0"> <b> Cartera *</b> </p></div>                                        
+                    <div class="col-sm-9 m-0 p-1">
+                        <md-select  placeholder="Seleccione una cartera" class="m-0 p-0"                                                        
+                                   ng-model="campania.carteraId"
+                                   ng-change="cambioCartera(campania.carteraId)">
+                            <md-option ng-value="c.id" ng-repeat="c in carterasActivas track by c.id">{{c.nombre}}</md-option>
+                        </md-select>
+                        
+                    </div>
+                </div>
+
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="start center">
+                    <div class="col-sm-4 text-right"><p class="m-0 p-0"> <b> Fecha Inicio *</b> </p></div>
+                    <div class="col-sm-6 m-0 p-1" align="left">
+                        <input  ng-click="initInicio()" 
+                               ng-model="campania.fechaInicio"
+                               datepicker-popup="yyyy-MM-dd"
+                               id="input_inicio"
+                               type="text"
+                               name="input_inicio" 
+                               is-open="booFechaInicialDisponible"
+                               placeholder="Fecha Inicio">
+
+                    </div>
+                   
+                </div>
+            </div>
+
+            <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="center center">
+                    <div class="col-sm-3 text-left"><p class="m-0 p-0"> <b> Período *</b> </p></div>
+                    <div class="col-sm-9 m-0 p-1">
+                        <md-select  placeholder="Seleccione un periodo" class="m-0 p-0"                                                        
+                                   ng-model="campania.periodo">
+                            <md-option ng-value="p" ng-repeat="p in periodosFiltrados track by $index"> {{p}}</md-option>
+                        </md-select>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="start center">
+                    <div class="col-sm-4 text-right"><p class="m-0 p-0"> <b> Fecha Fin *</b> </p></div>
+                    <div class="col-sm-6 m-0 p-1" align="left">
+                        <input ng-click="initFin()"
+                               ng-model="campania.fechaFin"
+                               datepicker-popup="yyyy-MM-dd" 
+                               id="input_fin"
+                               is-open="booFechaFinalDisponible" 
+                               type="text" 
+                               name="input_fin" 
+                               placeholder="Fecha Fin ">     
+                               
+
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Linea de separacion entre cabecera y condiciones --> 
+        <div style="background-color: #2f6f9f; height: 5px;"></div>
+
+
+        <div class="p-2" layout="row" layout-align="center center" style="background-color: white;">
+            
+
+            <button ng-click="guardar()"
+                    class="btn btn-success">
+                <lang>Guardar</lang>
+            </button>
+
+            <button 
+                    ng-click="cerrarConfiguracion()"
+                    class="btn btn-danger ml-3">
+                <lang>Salir</lang>
+            </button>
+
+           
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window> 
+<!-- _FIN_DE_ARCHIVO -->

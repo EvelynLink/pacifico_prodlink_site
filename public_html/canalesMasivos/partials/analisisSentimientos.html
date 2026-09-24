@@ -1,0 +1,267 @@
+
+<style type="text/css">
+    .listCheck .colorCheckBT{
+        padding:3px 9px;
+    }
+    .btn-sm.btn {
+        padding: 5px 5px;
+    }
+</style>
+
+<div ng-cloak="Cargando..." ng-init="traerCarteras()">
+    <!--<h3><lang>Definición de Variables</lang></h3>-->
+
+
+    <div class="panel-config cabecera" layout="row" layout-align="start center" >
+        <div flex="25" layout-padding>
+            <div class="miEncabezado" style="text-align: center;">
+                <i class="fa fa-sellsy fa-fw"></i><lang> Análisis de Sentimientos </lang>
+            </div>
+        </div>
+        <span class="bordeEn"></span>
+        <div flex="70"></div>
+    </div>
+
+
+    <div style="padding:10px">
+        <table observa-y-recarga='tabuVariable' tabula="variable" url="../canalesMasivos/analisisSentimientosCtrl.php?act=obtieneVariables" class="table " border="1" tamanio-inicial='10' post-carga="traducirEstadoVariable(filas)">
+            <tr>
+                <th tabula-encabezado="asCartera" titulo="<lang>Cartera</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="asCampania" titulo="<lang>Campaña</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="asCanal" titulo="<lang>Canal</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="asFechaIni" titulo="<lang>Fecha Inicio</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="asFechaFin" titulo="<lang>Fecha Fin</lang>" filtrar ordenar></th>
+
+                <th tabula-encabezado="asEstado" titulo="<lang>Estado</lang>" ></th>
+                <th><lang>Acciones</lang></th>
+            </tr>
+
+            <tr ng-repeat-start="analisisSentimientos in tabulas['variable'].filas" ng-show="!analisisSentimientos.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                <td>{{analisisSentimientos.asCartera}}</td>
+                <td valign="middle">{{analisisSentimientos.asCampania}}</td>
+                <td valign="middle">{{analisisSentimientos.asCanal}}</td>
+                <td valign="middle">{{analisisSentimientos.asFechaIni|fecha:'Y-m-d'}}</td>
+                <td valign="middle">{{analisisSentimientos.asFechaFin|fecha:'Y-m-d'}}</td>
+
+                <td> <md-switch ng-disabled="!analisisSentimientos.editame" ng-model="analisisSentimientos.asEstado" aria-label="Disabled active switch" ></md-switch></td>
+            <td align="center">
+            <nobr>
+
+                <button  ng-disabled="" class="btn btn-primary btn-sm" ng-click="listaConfiguraciones3n(analisisSentimientos)"><i class="fa fa-cog" tooltip-placement='bottom' tooltip='<lang>Configurar</lang>'></i></button>
+                <button  ng-class="{disabled:!analisisSentimientos.asEstado}" class="btn btn-primary btn-sm" ng-click="listaConfiguraciones4n(analisisSentimientos, tabulas['variable'].filas)"><i class="fa fa-bar-chart" tooltip-placement='bottom' tooltip='<lang>Analizar</lang>'></i></button>
+                <button  ng-disabled="!analisisSentimientos.asEstado" class="btn btn-primary btn-sm" ng-click="eliminaDef(analisisSentimientos, tabulas['variable'].filas)"><i class="fa fa-trash-o " tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i></button>
+
+            </nobr>
+            </td>	
+            </tr>
+
+            <tr ng-form="subformulario" ng-show="tabulas['variable'].extra.write && analisisSentimientos.editame" ng-init="inicializaItemVar(analisisSentimientos)" ng-class-odd="'odd'" ng-class-even="'even'">	
+                <!--                <td class="cCeleste">    
+                                    <input  class='form-control' type='text' ng-model="analisisSentimientos.copy.asCartera" required/>
+                                    <div class="alert alert-error" ng-show="analisisSentimientos.copy.errores.asCartera">{{analisisSentimientos.copy.errores.asCartera}}</div>
+                                </td>
+                -->
+            </tr>
+
+            <tr ng-repeat-end ng-show="tabulas['variable'].extra.write && subformulario.$invalid">
+                <td colspan='3'>
+                    <!--    
+                    <div class="alert alert-success ng-scope">
+                  <lang>Complete el formulario para guardarlo</lang>
+                    </div>
+                    -->
+                </td>
+            </tr>
+
+            <tr>
+                <!--                 
+                <td align="center" colspan='1' ng-if="tabulas['variable'].extra.write">                
+                <button ng-show="verBtnVar" class="btn btn-primary" ng-click="preparaNuevoGrupo(tabulas['variable'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Agregar nuevo</lang></button></td>           
+                <td colspan='1'>
+                -->
+                <td align="center" colspan='1' ng-if="tabulas['variable'].extra.write">
+                    <button ng-show="verBtnVar" class="btn btn-primary" ng-click="listaConfiguraciones3n(tabulas['variable'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Nuevo</lang></button></td>
+                <td colspan='8'>
+
+            <tabula-paginador dataset="tabulas['variable']" maxbotones="4" no-cambiar-tamanio></tabula-paginador>
+            </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+<!-------------------------------acciones editar---------------------------------------------->
+
+<div class="modal-backdrop fade in" style="z-index:900;background:white;opacity:1;" ng-show="listaConf" ng-cloak="Cargando..."></div>
+<div style="position:absolute;left:0px;top:0px;width:100%;z-index:900;padding-top:44px;" ng-show="listaConf" ng-cloak="Cargando...">
+
+    <div flex="99" class="panel-config gris" layout="row" layout-align="start center">
+        <div  layout-padding>
+            <div class="miEncabezado" style="text-align: center;">
+                <a href="javascript:void(0);" ng-click="deslistaConfig3n()"><lang>Analisis de Sentimientos</lang></a> 
+                <span ng-click="deslistaConfig3n()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                    <i class="fa fa-chevron-left fa-fw fa-green"></i>{{analisisSentimientos.asCampania}}
+                </span>
+            </div>
+        </div>
+        <span class="bordeEn"></span>        
+    </div>
+
+    <div class="panel-body">
+
+        <table> 
+            <td   class="border-left-title" style="width:30%;">
+                <table width="40" class="table"  >
+
+                    <tr>
+                        <td>Cartera</td>
+                        <td>
+                            <table width="100%">
+                                <tr>
+                                    <td><h5><lang>  </lang></h5></td>
+                                    <td>
+                                        <select class='form-control' ng-model="analisisSentimientos.copy.asCartera" style="width:200px;" />
+                                <option ng-repeat="gr in tdatocartera" value="{{gr}}" ng-selected="analisisSentimientos.copy.asCartera == gr.cobCartera_nombre">{{gr.cobCartera_nombre}}</option>
+                                </select> 
+
+                        </td>
+                    </tr>
+                </table>
+                <br>
+            </td>
+            </tr>
+
+            <tr>
+                <td>Campaña</td>
+                <td class="cCeleste">    
+                    <input  class='form-control' type='text' ng-model="analisisSentimientos.copy.asCampania" required/>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Canal</td>
+                <td>
+                    <table width="100%">
+                        <tr>
+                            <td><h5><lang>  </lang></h5></td>
+                            <td>
+
+                                <select class='form-control' ng-model="analisisSentimientos.copy.asCanal" style="width:200px;" />
+                        <option ng-repeat="gr in tdatocanal" value="{{gr.nombre}}" ng-selected="analisisSentimientos.copy.asCanal == gr.nombre">{{gr.nombre}}</option>
+                        </select> 
+
+                </td>
+            </tr>
+        </table>
+        <br>
+        </td>
+        </tr>
+
+        <tr>
+            <td><h5><lang>Fecha Inicio</lang></h5></td>
+            <td class="cCeleste" style="height:100%">   
+        <timestamp-editor timestamp="analisisSentimientos.copy.asFechaIni"  ng-model="analisisSentimientos.copy.asFechaIni"  formato="yyyy-MM-dd"></timestamp-editor>
+        </td>
+        </tr>
+        <tr>
+            <td><h5><lang>Fecha Fin</lang></h5></td>
+            <td class="cCeleste" style="height:100%">    
+        <timestamp-editor timestamp="analisisSentimientos.copy.asFechaFin" ng-model="analisisSentimientos.copy.asFechaFin" formato="yyyy-MM-dd"></timestamp-editor>
+        </td>
+        </tr>
+
+        <tr>
+            <td><h5><lang>Estado</lang></h5></td>
+            <td>
+        <md-switch ng-disabled="" ng-model="analisisSentimientos.copy.asEstado" aria-label="Disabled active switch" ng-change="onChangeTramoSaldo(analisisSentimientos, analisisSentimientos.copy.asEstado)"></md-switch>
+        </td>
+        </tr>
+
+        <tr>
+            <td><h5><lang> </lang></h5></td>
+            <td>
+                <!--                    <uploader   url='../canalesMasivos/BoletinesCtrl.php' file-class="btn btn-default" subir="subirArchivosBoletin" tabula-ver="reporteArchivosBoletin" ver="verArchivoBoletin" eliminar="eliminarArchivoBoletin" al-cerrar="asignarDireccionArchivoBoletin(objFile,pr)" id-relacionado="pr.copy.boc_id" upload-away etiqueta="Cargar" icono="fa fa-upload fa-lg fa-green"></uploader>
+                -->
+                <div flex="33" class="panel panel-default"> 
+                    <div class="panel-heading" aling="center">Vista previa </div>
+                    <div class="panel-body">
+                        <img ng-if="analisisSentimientos.asEstado"  width="100%" src="../canalesMasivos/img/analisissentimientos.jpg"/>
+                    </div>      
+                </div>  
+
+            </td>
+        </tr>
+
+        <tr>
+            <td><h5><lang>Descripción</lang></h5></td>
+            <td>
+                <textarea class="form-control" ng-model="analisisSentimientos.copy.asDescripcion" cols="50" rows="5"></textarea>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" align="center">
+                <br>
+                <button class="btn btn-success" ng-disabled="" ng-click="guardaDef(analisisSentimientos)"><lang>Guardar</lang></button>
+                <button class="btn btn-warning" ng-disabled="" ng-click="reinicializaItem(analisisSentimientos, tabulas['variable'].filas)"><lang>Cancelar</lang></button>
+            </td>
+        </tr>
+
+        <tr ng-repeat-end ng-show="tabulas['variable'].extra.write && subformulario.$invalid">
+            <td colspan='3'>
+                <div class="alert alert-success ng-scope">
+                    <lang>Complete el formulario para guardarlo</lang>
+                </div>
+
+            </td>
+        </tr>
+        </table>
+
+        </td>
+
+
+        <td  class="border-left-title" style="width:30%;">
+            <table> 
+
+            </table>  
+        </td>
+        </table>      
+
+
+    </div>
+
+</div>   
+
+
+
+<!----------------------------------------analisis------------------------->
+
+<div class="modal-backdrop fade in" style="z-index:900;background:white;opacity:1;" ng-show="listaConf4" ng-cloak="Cargando..."></div>
+<div style="position:absolute;left:0px;top:0px;width:100%;z-index:900;padding-top:44px;" ng-if="listaConf4" ng-cloak="Cargando...">
+
+
+    <div flex="99" class="panel-config gris" layout="row" layout-align="start center">
+        <div  layout-padding>
+            <div class="miEncabezado" style="text-align: center;">
+                <a href="javascript:void(0);" ng-click="deslistaConfig4n()"><lang>Analisis de Sentimientos</lang></a> 
+                <span ng-click="deslistaConfig4n()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                    <i class="fa fa-chevron-left fa-fw fa-green"></i>{{detM3.asCampania}}
+                </span>
+            </div>
+        </div>
+        <span class="bordeEn"></span>        
+    </div>
+
+
+    <!--<div layout-padding layout="row">-->
+    <div ng-include src="'../comunes/loadTemplate.php?templateName=canalesMasivos/partials/GraficosAnalisisSentimientos.html'" ng-controller="GraficosAnalisisSentimientos" ></div>
+
+    <!--</div> -->
+
+
+</div>   
+
+
+
+<!-- //_FIN_DE_ARCHIVO -->

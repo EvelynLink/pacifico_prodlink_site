@@ -1,0 +1,638 @@
+/* =========================================================================
+   cmDashboardGestionesVentas.css
+========================================================================= */
+
+.gv-root, .gv-root *{
+    box-sizing: border-box;
+}
+
+.gv-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #f4f5f7;
+}
+
+.gv-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 97vw;
+}
+
+/* =========================
+   FILTROS
+========================= */
+
+.gv-filtros-bar{
+    width: 100%;
+    display: flex;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gv-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gv-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gv-filtro-content{
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+.gv-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+    flex-shrink: 0;
+}
+
+.gv-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+    flex-shrink: 0;
+}
+
+.gv-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    width: 170px;
+}
+
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 160px !important;
+}
+
+.gv-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gv-refresh-block{
+    display: flex;
+    align-items: center;
+}
+
+/* =========================
+   FILTROS APLICADOS
+========================= */
+
+.gv-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.gv-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gv-badge-item{
+    padding-right: 8px;
+}
+
+.gv-btn-ver-datos{
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gv-btn-ver-datos-icon{
+    opacity: 0.9;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gv-titulo-span{
+    margin-right: 15px;
+}
+
+/* =========================
+   DASHBOARD KPI
+========================= */
+
+.gv-kpi-dashboard{
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    width: 100%;
+    gap: 16px;
+}
+
+.gv-kpi-row{
+    display: flex;
+    width: 100%;
+    gap: 16px;
+}
+
+.gv-card{
+    flex: 1;
+    min-width: 0; 
+    background: #fff;
+    padding: 14px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    height: 340px; 
+}
+
+.gv-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gv-loading-icon{
+    color: #666;
+}
+
+/* Header comun a todas las tarjetas: titulo + icono info + boton(es) */
+.gv-card-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid rgba(0,0,0,0.08);
+}
+
+.gv-card-header-title{
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+}
+
+.gv-card-header-title .fa-info-circle{
+    font-size: 14px;
+    color: #9aa0a6;
+    cursor: help;
+}
+
+.gv-header-actions{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.gv-btn-detalle,
+.gv-btn-filtrar{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    background: #fff;
+}
+
+.gv-btn-detalle{
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+.gv-btn-detalle:hover{
+    background: #EAF4FE;
+}
+
+.gv-btn-filtrar{
+    border: 1px solid #cbd0d6;
+    color: #5f6368;
+}
+
+.gv-btn-filtrar:hover{
+    background: #f2f3f5;
+}
+
+/* KPI 1: Gauge */
+
+.gv-gauge-row{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.gv-gauge-chart-wrap{
+    flex: 0 0 42%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gv-chart-gauge{
+    height: 230px;
+    width: 100%;
+}
+
+.gv-kpi-detail{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gv-kpi-detail-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 4px;
+}
+
+.gv-kpi-detail-item + .gv-kpi-detail-item{
+    border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+.gv-kpi-detail-icon{
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.gv-kpi-detail-text{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.gv-kpi-detail-label{
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.gv-kpi-detail-value{
+    font-size: 13px;
+    color: #7d8590;
+}
+
+.gv-ic-mr{
+    margin-right: 6px;
+}
+
+.gv-c-blue{
+    color: #2196F3;
+}
+
+.gv-c-green{
+    color: #4CAF50;
+}
+
+.gv-c-red{
+    color: #F44336;
+}
+
+.gv-kpi-icon-blue{
+    background: #2196F3;
+}
+
+.gv-kpi-icon-green{
+    background: #4CAF50;
+}
+
+.gv-kpi-icon-red{
+    background: #F44336;
+}
+
+/* KPI 2: Pie */
+
+.gv-pie-row{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.gv-pie-chart-wrap{
+    flex: 0 0 40%;
+    min-width: 0;
+}
+
+.gv-chart-pie{
+    height: 260px;
+    width: 100%;
+}
+
+.gv-pie-legend{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.gv-pie-legend-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.gv-pie-legend-item span{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gv-pie-legend-green{
+    border-color: #4FAF5A;
+    color: #3c8c46;
+    background: #F2FAF3;
+}
+
+.gv-pie-legend-yellow{
+    border-color: #F2D36A;
+    color: #a4842a;
+    background: #FFFBEF;
+}
+
+.gv-pie-legend-orange{
+    border-color: #F5A04C;
+    color: #b56d22;
+    background: #FFF6EE;
+}
+
+.gv-pie-legend-red{
+    border-color: #E05A5A;
+    color: #c13c3c;
+    background: #FDF0F0;
+}
+
+.gv-fw600{
+    font-weight: 600;
+}
+
+/* KPI 3: Efectividad Comercial */
+
+.gv-efectividad-box{
+    display: flex;
+    align-items: stretch;
+    justify-content: space-evenly;
+    background: #EFF6FE;
+    border-radius: 8px;
+    padding: 18px 8px;
+    margin-bottom: 18px;
+}
+
+.gv-efectividad-stat{
+    text-align: center;
+    padding: 0 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gv-efectividad-stat + .gv-efectividad-stat{
+    border-left: 1px dashed #c7d3e0;
+}
+
+.gv-efectividad-stat-value{
+    font-size: 22px;
+    font-weight: 700;
+    color: #2196F3;
+}
+
+.gv-efectividad-stat-label{
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.gv-efectividad-stats-row{
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+}
+
+.gv-efectividad-item{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+}
+
+.gv-efectividad-item + .gv-efectividad-item{
+    border-left: 1px dashed #d5d9de;
+}
+
+.gv-efectividad-item-icon{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    color: #fff;
+}
+
+.gv-bg-gestionados{ background: #7C6FDB; }
+.gv-bg-contactados{ background: #2196F3; }
+.gv-bg-interesados{ background: #F2C94C; }
+.gv-bg-efectivos{ background: #4FAF5A; }
+
+.gv-efectividad-item-value{
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.gv-efectividad-item-label{
+    font-size: 12px;
+    color: #8a8f98;
+    text-align: center;
+}
+
+/* =========================
+   FILA INFERIOR
+========================= */
+
+.gv-lower-row{
+    display: flex;
+    gap: 16px;
+    width: 85%;
+    margin: 0 auto;
+}
+
+.gv-barras-col{
+    flex: 1;
+    min-width: 0;
+}
+
+.gv-barras-card{
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 14px;
+    width: 100%;
+    height: 340px;
+    position: relative;
+}
+
+.gv-chart-barras{
+    height: 280px;
+}
+
+.gv-intensidad-col{
+    flex: 1;
+    min-width: 0;
+}
+
+.gv-intensidad-card{
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 14px;
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.gv-intensidad-body{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.gv-canal-card{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+.gv-canal-icon{
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.gv-c-whatsapp{
+    color: #25D366;
+}
+
+.gv-c-correo{
+    color: #2196F3;
+}
+
+.gv-canal-text{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gv-canal-title{
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.gv-canal-subtitle{
+    font-size: 12px;
+    color: #8a8f98;
+}
+
+.gv-canal-value{
+    font-size: 20px; 
+    font-weight: 700;
+    color: #333;
+    flex-shrink: 0;
+}
+
+/* =========================
+   MODAL "VER DATOS"
+========================= */
+
+.gv-modal-color{
+    color: black;
+}
+
+.gv-td-center{
+    vertical-align: middle;
+    text-align: center;
+}

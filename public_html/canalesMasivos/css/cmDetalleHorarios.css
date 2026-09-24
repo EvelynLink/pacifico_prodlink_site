@@ -1,0 +1,411 @@
+/* =========================================================================
+   cmDetalleHorarios.css
+
+   NOTA: esta pantalla se carga en una ruta independiente del dashboard
+   principal, por lo que cmDashboardGestionesVentas.css no llega a
+   aplicarse aquí automáticamente. Por eso se repiten abajo las clases
+   base (.gv-root, .gv-container, .gv-filtros-bar, etc.) igual que en
+   las otras 3 pantallas de detalle.
+========================================================================= */
+
+.gv-root, .gv-root *{
+    box-sizing: border-box;
+}
+
+.gv-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #f4f5f7;
+}
+
+.gv-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* =========================
+   FILTROS (igual al resto de pantallas)
+========================= */
+
+.gv-filtros-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gv-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gv-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gv-filtro-content{
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+.gv-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+    flex-shrink: 0;
+}
+
+.gv-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+    flex-shrink: 0;
+}
+
+.gv-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    width: 170px;
+}
+
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 170px;
+}
+
+.gv-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gv-btn-volver{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cbd0d6;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6368;
+    background: #fff;
+    white-space: nowrap;
+}
+
+.gv-btn-volver:hover{
+    background: #f2f3f5;
+}
+
+/* =========================
+   FILTROS APLICADOS (badges)
+========================= */
+
+.gv-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.gv-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gv-badge-item{
+    padding-right: 8px;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gv-titulo-span{
+    margin-right: 15px;
+}
+
+.gv-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gv-loading-icon{
+    color: #666;
+}
+
+/* =========================================================================
+   ESPECIFICO DE ESTA PANTALLA DE DETALLE
+========================================================================= */
+
+/* KPI resumen: 4 tarjetas */
+.gv-detalle-kpi-row{
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.gv-detalle-kpi-card{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 20px 18px;
+}
+
+.gv-detalle-kpi-icon{
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    color: #fff;
+}
+
+.gv-kpi-icon-intentos{ background: #7C6FDB; }
+.gv-kpi-icon-contactos{ background: #2196F3; }
+.gv-kpi-icon-franja{ background: #F2C94C; }
+.gv-kpi-icon-promedio{ background: #4FAF5A; }
+
+.gv-c-texto-intentos{ color: #5b4fc4; }
+.gv-c-texto-contactos{ color: #1976d2; }
+.gv-c-texto-franja{ color: #a4842a; }
+.gv-c-texto-promedio{ color: #3c8c46; }
+
+.gv-detalle-kpi-text{
+    min-width: 0;
+}
+
+.gv-detalle-kpi-label{
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.gv-detalle-kpi-value{
+    font-size: 26px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.25;
+}
+
+.gv-detalle-kpi-value-chica{
+    font-size: 19px;
+    white-space: nowrap;
+}
+
+.gv-detalle-kpi-sub{
+    font-size: 13px;
+    color: #8a8f98;
+}
+
+/* Tarjeta con sub-pestañas + tabla */
+.gv-detalle-tabs-card{
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 16px !important;
+    overflow: hidden;
+}
+
+.gv-detalle-lista-header{
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 14px;
+}
+
+.gv-detalle-subtabs-bar{
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.gv-detalle-subtab{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #8a8f98;
+    background: #f4f5f7;
+    border-radius: 999px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.gv-detalle-subtab-activo{
+    color: #5b4fc4;
+    background: #EFECFB;
+}
+
+.gv-detalle-subtab-pendiente{
+    opacity: 0.65;
+}
+
+/* Tabla */
+.gv-detalle-tabla-wrap{
+    width: 100%;
+    overflow: hidden;
+    padding: 0 2px;
+}
+
+.gv-detalle-tabla-wrap table{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none !important;
+}
+
+.gv-detalle-tabla-wrap table th,
+.gv-detalle-tabla-wrap table td{
+    height: 46px;
+    box-sizing: border-box;
+    padding: 4px 10px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.gv-detalle-tabla-wrap table th{
+    font-size: 12px;
+    color: #5f6368;
+    border: none;
+    border-bottom: 2px solid #e3e6ea;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.gv-detalle-tabla-wrap table td{
+    font-size: 13px;
+    color: #333;
+}
+
+.gv-td-horario{
+    font-weight: 600;
+}
+
+.gv-dot{
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.gv-dot-horario{
+    background: #4FAF5A;
+}
+
+.gv-barra-porcentaje-wrap{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.gv-barra-porcentaje-fondo{
+    flex: 1;
+    min-width: 0;
+    height: 8px;
+    border-radius: 999px;
+    background: #edeef2;
+    overflow: hidden;
+}
+
+.gv-barra-porcentaje-relleno{
+    height: 100%;
+    border-radius: 999px;
+    /* Color por defecto de respaldo; el color real (igual al gráfico
+       de barras del dashboard principal, por umbral de %) se aplica
+       inline vía ng-style desde el controlador. */
+    background: #4FAF5A;
+}
+
+.gv-barra-porcentaje-texto{
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    width: 52px;
+    text-align: right;
+}
+
+.gv-td-variacion-pendiente{
+    color: #c1c5cc;
+    text-align: center;
+}
+
+.gv-variacion{
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.gv-variacion-up{
+    color: #2E7D46;
+}
+
+.gv-variacion-down{
+    color: #C0392B;
+}
+
+.gv-variacion-igual{
+    color: #8a8f98;
+}

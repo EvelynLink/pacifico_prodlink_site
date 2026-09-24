@@ -1,0 +1,74 @@
+<table class="ng-scope" cellpadding="20" ng-if="autorizado === '1'" width="80%" align="center">
+    <tr>
+	<td>
+            <h3><lang>Des-suscribir</lang></h3>
+            <div  class="panel panel-success">
+		<div class="panel-heading">
+		    <i class="fa fa-star-o fa-fw"></i>
+		    <lang>Suscripciones Actuales</lang> 
+		</div>
+                <div class="panel-body">
+                    <table>
+                        <tr>
+                            <td><h5><lang>Email</lang></h5></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td>{{sus.email}}</td>
+                        </tr>
+                        <tr ng-if="sus.nombre">
+                            <td><h5><lang>Nombre</lang></h5></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td>{{sus.nombre}}</td>
+                        </tr>
+                        <tr ng-if="sus.identificacion">
+                            <td><h5><lang>Identificación</lang></h5></td>
+                            <td>&nbsp;&nbsp;</td>
+                            <td>{{sus.identificacion}}</td>
+                        </tr>
+                    </table>
+                    <br>
+                    <table width="50%" tabula="Suscripciones" url="../boletines/SuscripcionesWebCtrl.php?act=reporteSuscripciones&id={{correoId}}" campo="" tamanio-inicial="15">
+                            <tr>
+                                <td colspan="5">
+                                    <table width="100%">
+                                        <tr>
+                                           <td align="center" style="border:0px;">
+                                                <tabula-paginador dataset="tabulas['Suscripciones']" maxbotones="5"></tabula-paginador>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th tabula-encabezado="bca_nombre" titulo="<lang>Categoría</lang>" ordenar filtrar></th>
+                                <th tabula-encabezado="bjr_nombre" titulo="<lang>Grupo</lang>" ordenar filtrar></th>
+                                <th tabula-encabezado="bjr_nombre" titulo="<lang>Suscripción</lang>" ordenar filtrar></th>
+                                <th></th>
+                            </tr>
+                            <tr ng-repeat="ct in tabulas['Suscripciones'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                <td>{{ct.bca_nombre}}</td>
+                                <td><span ng-if="ct.bjr_padreId === '0'">{{ct.bjr_nombre}}</span></td>
+                                <td><span ng-if="ct.bjr_padreId !== '0'">{{ct.bjr_nombre}}</span></td>
+                                <td align="center">
+                                    <table>
+                                        <tr>
+                                            <td style="border:0px;"><a ng-click="eliminarSuscripcion(ct,tabulas['Suscripciones'].filas)" tooltip-placement="bottom" tooltip="<lang>Cancelar suscripción</lang>" class="fa fa-times-circle-o fa-green fa-fw" style="text-decoration: none;"></a></td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                    </table>
+                </div>
+            </div>
+	</td>
+    </tr>
+</table>
+<br>
+<div class="alert alert-warning" align="center" ng-if="autorizado !== '1'">
+    <br>
+    {{autorizado}}
+    <br>
+    <br>
+</div>
+
+
+<!-- _FIN_DE_ARCHIVO -->

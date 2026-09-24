@@ -1,0 +1,143 @@
+<div layout="row">
+    <!-- Panel de opciones--->
+    <div layout="column" class="conten-panel content-menuL">
+        <ul class="menuModuloIntranet menuAzul" >                                 
+            <li><a class="menuIco" ng-click="panel.activo=!panel.activo;"><i class="fa fa-bars fa-fw"></i></a></li>
+            <li ng-if="permisoAdministrador"><a ng-class="{'menuLateral':panel.activo,'menuSmall':!panel.activo}" ng-click="irConfiguracion()"><md-tooltip ng-if="!panel.activo" md-direction="right"><lang>CONFIGURACIÓN</lang></md-tooltip><md-icon class="fa fa-wrench fa-fw"></md-icon><br/> <small><lang>CONFIGURACIÓN</lang></small></a></li>
+            <li><a ng-class="{'menuLateral':panel.activo,'menuSmall':!panel.activo}" ng-click="irEnviar()"><md-tooltip ng-if="!panel.activo" md-direction="right"><lang>ENVÍO DE BOLETINES</lang></md-tooltip><md-icon class="fa fa-envelope fa-fw"></md-icon><br/> <small><lang>ENVÍO DE BOLETINES</lang></small></a></li>
+            <li><a ng-class="{'menuLateral':panel.activo,'menuSmall':!panel.activo}" ng-click="irSuscripcion()"><md-tooltip ng-if="!panel.activo" md-direction="right"><lang>SUSCRIPCIÓN A BOLETINES</lang></md-tooltip><md-icon class="fa fa-handshake-o fa-fw"></md-icon><br/> <small><lang>SUSCRIPCIÓN A BOLETINES</lang></small></a></li>
+            <li><a ng-class="{'menuLateral':panel.activo,'menuSmall':!panel.activo}" ng-click="irLimpieza()"><md-tooltip ng-if="!panel.activo" md-direction="right"><lang>LIMPIEZA DE SUSCRIPCIONES</lang></md-tooltip><md-icon class="fa fa-signing fa-fw"></md-icon><br/> <small><lang>LIMPIEZA DE SUSCRIPCIONES</lang></small></a></li>
+            <li><a ng-class="{'menuLateral':panel.activo,'menuSmall':!panel.activo}" ng-click="irCategorias()"><md-tooltip ng-if="!panel.activo" md-direction="right"><lang>CATEGORIAS DE SUSCRIPCIÓN</lang></md-tooltip><md-icon class="fa fa-tags fa-fw"></md-icon><br/> <small><lang>CATEGORIAS DE SUSCRIPCIÓN</lang></small></a></li>
+        </ul>       
+    </div>
+    <!-- Inicio -->
+    <div layout-padding layout="column" ng-if="ruta.tipo==='z'" flex align="left" class="contenedorGris">
+        <div layout="row" layout-wrap layout-padding  layout-align="left start">
+            <div flex="50" layout="column">
+                <accordion class="backAccordion" ng-if="permisoAdministrador">
+                    <div class="md-whiteframe-3dp md-Wframe-blanco">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" layout="row" layout-align="start center" layout-padding>
+                                <a class="panel-title" ng-click="irConfiguracion()" layout="row" layout-align="start center" style="cursor: pointer;text-decoration: none;">
+                                    <div class="panel-title"><i class="fa fa-wrench fa-fw fa-2x"></i></div>
+                                    <div><h4 class="panel-title"><lang>CONFIGURACION</lang></h4></div>
+                                </a>
+                            </div>
+                        </div>  
+                        <div class="panel-body">
+                            <ul class="menuModuloIntranet lista">
+                                <li><i class="fa fa-check fa-fw"></i>Personaliza configuración de envío de boletines</li>
+                                <li><i class="fa fa-check fa-fw"></i>Personaliza configuración de contactos</li>
+                                <li><i class="fa fa-check fa-fw"></i>Personaliza configuración de suscripción a boletines</li>
+                            </ul>
+                        </div>                                                         
+                    </div>
+                </accordion>
+                <accordion class="backAccordion">
+                    <div class="md-whiteframe-3dp md-Wframe-blanco">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" layout="row" layout-align="start center" layout-padding>
+                                <a class="panel-title" ng-click="irEnviar()" layout="row" layout-align="start center" style="cursor: pointer;text-decoration: none;">
+                                    <div class="panel-title"><i class="fa fa-envelope fa-fw fa-2x"></i></div>
+                                    <div><h4 class="panel-title"><lang>ENVÍO DE BOLETINES</lang></h4></div>
+                                </a>
+                            </div>
+                        </div>  
+                        <div class="panel-body">
+                            <ul class="menuModuloIntranet lista">
+                                <li><i class="fa fa-check fa-fw"></i>Crear Boletín por medio de editor de contenidos o ingresando ruta externa a HTML.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Editar Boletín y vista previa de contenidos.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Eliminar Boletín.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Selección de grupos de envío.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Envío manual de boletines para pruebas.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Envío de boletines por lista personalizada.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Envío programado de boletines.</li>
+                            </ul>
+                        </div>                                                         
+                    </div>
+                </accordion>
+                <accordion class="backAccordion">
+                    <div class="md-whiteframe-3dp md-Wframe-blanco">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" layout="row" layout-align="start center" layout-padding>
+                                <a class="panel-title" ng-click="irSuscripcion()" layout="row" layout-align="start center" style="cursor: pointer;text-decoration: none;">
+                                    <div class="panel-title"><i class="fa fa fa-handshake-o fa-fw fa-2x"></i></div>
+                                    <div><h4 class="panel-title"><lang>SUSCRIPCIÓN A BOLETINES</lang></h4></div>
+                                </a>
+                            </div>
+                        </div>  
+                        <div class="panel-body">
+                            <ul class="menuModuloIntranet lista">
+                                <li><i class="fa fa-check fa-fw"></i>Carga manual de correos electrónicos a listas de suscripción</li>
+                                <li><i class="fa fa-check fa-fw"></i>Carga masiva de correos electrónicos a listas de suscripción</li>
+                            </ul>
+                        </div>                                                         
+                    </div>
+                </accordion>
+            </div>
+            <div flex="50" layout="column">
+                <accordion class="backAccordion">
+                    <div class="md-whiteframe-3dp md-Wframe-blanco">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" layout="row" layout-align="start center" layout-padding>
+                                <a class="panel-title" ng-click="irLimpieza()" layout="row" layout-align="start center" style="cursor: pointer;text-decoration: none;">
+                                    <div class="panel-title"><i class="fa fa-signing fa-fw fa-2x"></i></div>
+                                    <div><h4 class="panel-title"><lang>LIMPIEZA DE SUSCRIPCIONES</lang></h4></div>
+                                </a>
+                            </div>
+                        </div>  
+                        <div class="panel-body">
+                            <ul class="menuModuloIntranet lista">
+                                <li><i class="fa fa-check fa-fw"></i>Búsqueda de suscripciones por correo electrónico</li>
+                                <li><i class="fa fa-check fa-fw"></i>Búsqueda de suscripciones por grupos y categorías</li>
+                                <li><i class="fa fa-check fa-fw"></i>Eliminación de suscripciones</li>
+                                <li><i class="fa fa-check fa-fw"></i>Eliminación de de-suscripciones</li>
+                            </ul>
+                        </div>                                                         
+                    </div>
+                </accordion>
+                <accordion class="backAccordion">
+                    <div class="md-whiteframe-3dp md-Wframe-blanco">
+                        <div class="panel panel-default">
+                            <div class="panel-heading" layout="row" layout-align="start center" layout-padding>
+                                <a class="panel-title" ng-click="irCategorias()" layout="row" layout-align="start center" style="cursor: pointer;text-decoration: none;">
+                                    <div class="panel-title"><i class="fa fa-tags fa-fw fa-2x"></i></div>
+                                    <div><h4 class="panel-title"><lang>CATEGORIAS DE SUSCRIPCIÓN</lang></h4></div>
+                                </a>
+                            </div>
+                        </div>  
+                        <div class="panel-body">
+                            <ul class="menuModuloIntranet lista">
+                                <li><i class="fa fa-check fa-fw"></i>Creación, edición y eliminación de categorias de suscripción.</li>
+                                <li><i class="fa fa-check fa-fw"></i>Creación, edición y eliminación de listas de suscripción.</li>
+                            </ul>
+                        </div>                                                         
+                    </div>
+                </accordion>
+            </div>
+        </div>
+    </div>
+    <!-- Envío de Boletines -->
+    <div layout="column" style="padding-left: 10px;" ng-if="ruta.tipo==='e'" flex>
+        <div ng-include="'template/boletines/partials/BoletinesSeleccion.html'" ng-controller="BoletinesEnvio"></div>
+    </div>
+    <!-- Categorias y grupos de suscripcion -->
+    <div layout="column" ng-if="ruta.tipo==='c'" flex>
+        <div ng-include src="'template/boletines/partials/BoletinesCategorias.html'" ng-controller="BoletinesEnvio"></div>
+    </div>
+    <!-- Suscripciones -->
+    <div layout="column" ng-if="ruta.tipo==='s'" flex>
+        <div ng-include src="'template/boletines/partials/BoletinesAsociacion.html'" ng-controller="BoletinesSuscripcion"></div>
+    </div>
+    <!-- Limpieza de suscripciones -->
+    <div layout-padding ng-if="ruta.tipo==='l'" flex>
+        <div ng-include src="'template/boletines/partials/BoletinesSuscripcionLimpieza.html'" ng-controller="BoletinesSuscripcion"></div>
+    </div>
+    <!-- Configuracion -->
+    <div layout-padding ng-if="ruta.tipo==='f'" flex>
+        <div ng-include src="'template/boletines/partials/BoletinesConfiguracion.html'" ng-controller="BoletinesSuscripcion"></div>
+    </div>
+</div>
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- //_FIN_DE_ARCHIVO -->

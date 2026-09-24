@@ -1,0 +1,374 @@
+<div class="gv-root">
+    <div class="gv-container">
+
+        <!--#region FILTROS-->
+        <div class="gv-filtros-bar">
+
+            <!-- IZQUIERDA: FILTROS -->
+            <div class="gv-filtros-izq">
+
+                <div class="gv-filtro-icon">
+                    &nbsp;
+                    <li class="fa fa-filter fa-15x"></li>
+                    &nbsp;
+                </div>
+
+                <div class="gv-filtro-content">
+
+                    <div class="gv-filtro-item">
+                        <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                        <input id="fechaDesde" class="form-control gv-input-fecha" type="text"
+                            datepicker-popup="dd/MM/yyyy"
+                            is-open="abreFechaDesde"
+                            ng-click="abreFechaDesde = !abreFechaDesde"
+                            ng-model="fechaDesde"
+                            placeholder="Desde"
+                            ng-change="aplicarRangoFechas()">
+                    </div>
+
+                    <div class="gv-filtro-item">
+                        <input id="fechaHasta" class="form-control  gv-input-fecha" type="text"
+                            datepicker-popup="dd/MM/yyyy"
+                            is-open="abreFechaHasta"
+                            ng-click="abreFechaHasta = !abreFechaHasta"
+                            ng-model="fechaHasta"
+                            placeholder="Hasta"
+                            ng-change="aplicarRangoFechas()">
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                        <select ng-disabled="cargando" id="filtroCartera"
+                            class="form-control "
+                            ng-model="filtroCartera"
+                            ng-options="p.id as p.nombre for p in listas.carteras"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-tags fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroProducto"
+                            class="form-control "
+                            ng-model="filtroProducto"
+                            ng-options="p.id as p.nombre for p in listas.productos"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-random fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroCanal"
+                            class="form-control "
+                            ng-model="filtroCanal"
+                            ng-change="validarFiltros()">
+                            <option value="todo">Todos los canales</option>
+                            <option value="AV">AV</option>
+                            <option value="WHATSAPP">WHATSAPP</option>
+                            <option value="EMAIL">EMAIL</option>
+                        </select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-calendar fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroFechaCarga"
+                            class="form-control "
+                            ng-model="filtroFechaCarga"
+                            ng-options="p.id as p.nombre for p in listas.fechasCarga"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- DERECHA: VOLVER -->
+            <div class="gv-filtros-derecha">
+                <button type="button" class="btn gv-btn-volver" ng-click="volver()">
+                    <i class="fa fa-arrow-left"></i>
+                    Atr&aacute;s
+                </button>
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region FILTROS APLICADOS-->
+        <div class="gv-filtros-aplicados">
+
+            <div class="gv-badges-izq">
+                <div ng-show="filtrosAplicados.tiempo.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.tiempo.titulo}}
+                        <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.cartera.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.cartera.titulo}}
+                        <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.producto.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.producto.titulo}}
+                        <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.canal.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.canal.titulo}}
+                        <li ng-click="quitarFiltro('canal')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.fechaCarga.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.fechaCarga.titulo}}
+                        <li ng-click="quitarFiltro('fechaCarga')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="cuantosAplicados>1" class="gv-badge-item">
+                    <span class="badge" ng-click="quitarFiltro('todo')">
+                        {{filtrosAplicados.todo.titulo}}
+                        <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region TITULO-->
+        <div class="contenedor-seccion">
+
+            <div layout="row">
+                <span class="titulo-pantalla gv-titulo-span">
+                    Detalle &middot; KPI de Efectividad Comercial
+                </span>
+            </div>
+
+            <!-- KPI RESUMEN: 4 TARJETAS -->
+            <div class="gv-detalle-kpi-row gv-detalle-kpi-row-4">
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-gestionados">
+                        <i class="fa fa-check-square-o"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-gestionados">Gestionados</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.gestionados || 0 }} gestiones</div>
+                        <div class="gv-detalle-kpi-sub">{{ totales.gestionadosClientes || 0 }} clientes</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-contactados">
+                        <i class="fa fa-phone"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-contactados">Contactados</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.contactados || 0 }} gestiones</div>
+                        <div class="gv-detalle-kpi-sub">{{ totales.contactadosClientes || 0 }} clientes</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-interesados">
+                        <i class="fa fa-star"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-interesados">Interesados</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.interesados || 0 }} gestiones</div>
+                        <div class="gv-detalle-kpi-sub">{{ totales.interesadosClientes || 0 }} clientes</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-efectivos">
+                        <i class="fa fa-check"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-efectivos">Efectivos</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.efectivos || 0 }} gestiones</div>
+                        <div class="gv-detalle-kpi-sub">{{ totales.efectivosClientes || 0 }} clientes</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TARJETA: PESTAÑAS + TABLA -->
+            <div class="gv-detalle-tabs-card">
+
+                <div ng-show="cargando" class="gv-loading-overlay">
+                    <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                </div>
+
+                <!-- BARRA DE PESTAÑAS -->
+                <div class="gv-detalle-tabs-bar">
+                    <div class="gv-detalle-tab"
+                        ng-repeat="tab in tabs"
+                        ng-class="{ 'gv-detalle-tab-activo': tabActivo.key === tab.key, 'gv-detalle-tab-gestionados': tab.key === 'gestionados', 'gv-detalle-tab-contactados': tab.key === 'contactados', 'gv-detalle-tab-interesados': tab.key === 'interesados', 'gv-detalle-tab-efectivos': tab.key === 'efectivos' }"
+                        ng-click="cambiarTab(tab)">
+                        <i class="fa" ng-class="tab.icono"></i>
+                        {{ tab.label }}
+                    </div>
+                </div>
+
+                <!-- CAPTION + BUSCADOR -->
+                <div class="gv-detalle-tabs-subbar">
+                    <div class="gv-detalle-tabs-caption">
+                        Mostrando clientes <b>{{ tabActivo.caption }}</b>
+                    </div>
+
+                    <div class="gv-detalle-subbar-derecha">
+
+                        <div class="gv-detalle-buscador gv-detalle-buscador-tabs">
+                            <i class="fa fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Buscar cliente..."
+                                ng-model="busqueda"
+                                ng-model-options="{ debounce: 400 }"
+                                ng-change="buscarCliente()">
+                        </div>
+
+                        <button type="button" class="gv-btn-exportar" ng-click="exportarExcel()" ng-disabled="exportandoExcel">
+                            <i class="fa" ng-class="exportandoExcel ? 'fa-spinner fa-spin' : 'fa-file-excel-o'"></i>
+                            {{ exportandoExcel ? 'Generando...' : 'Exportar' }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLA UNICA (9 columnas, igual que Contactabilidad: las 4 pestañas salen todas de cuGestionVentas) -->
+                <div class="gv-detalle-tabla-wrap">
+                    <table tabula="listaEfectividad" ng-if="mostrarTabla" tamanio-inicial="10"
+                        url="../canalesMasivos/cmDashboardGestionesVentasCtrl.php?act={{actActual}}&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}&filtroCanal={{filtroCanal}}&filtroFechaCarga={{filtroFechaCarga}}&buscarCliente={{busqueda}}">
+                        <!-- Ancho por atributo width en el th (igual que cmDetalleIntensidad): la
+                             directiva descarta el style, pero respeta este atributo. Suman 100%. -->
+                        <tr>
+                            <th width="5%" align="center">Detalle</th>
+                            <th width="9%" tabula-encabezado="operacion" titulo="Operaci&oacute;n" ordenar filtrar></th>
+                            <th width="12%" tabula-encabezado="nombreCliente" titulo="Nombre Cliente" ordenar filtrar></th>
+                            <th width="11%" tabula-encabezado="telefono" titulo="N&uacute;mero Telef&oacute;nico" ordenar filtrar></th>
+                            <th width="13%" tabula-encabezado="correo" titulo="Email" ordenar filtrar></th>
+                            <th width="11%" tabula-encabezado="campania" titulo="Campa&ntilde;a" ordenar filtrar></th>
+                            <th width="11%" tabula-encabezado="fechaMostrar" titulo="Fecha Gesti&oacute;n" tipo="timestamp" ordenar filtrar></th>
+                            <th width="11%" tabula-encabezado="tipificacion" titulo="Tipificaci&oacute;n 1" ordenar filtrar></th>
+                            <th width="11%" tabula-encabezado="mejorGestion" titulo="Tipificaci&oacute;n 2" ordenar filtrar></th>
+                            <!-- Sin filtro por ahora (tabula no soporta select); solo ordenar. -->
+                            <th width="6%" tabula-encabezado="leido" titulo="Le&iacute;do" ordenar></th>
+                        </tr>
+                        <tr ng-repeat="x in tabulas['listaEfectividad'].filas track by $index">
+                            <td class="p-1 m-0" align="center">
+                                <li class="fa fa-file-audio-o fa-fw gv-icono-audio" title="Audio y transcripci&oacute;n" ng-click="mostrarDetalleLlamada(x)" ng-show="x.avId && x.canal === 'TELEFONICA'"></li>
+                                <li class="fa fa-whatsapp fa-fw gv-icono-whatsapp" title="Transcripci&oacute;n del chat" ng-click="mostrarDetalleWhatsapp(x)" ng-show="x.avId && x.canal === 'WHATSAPP'"></li>
+                                <li class="fa fa-envelope-o fa-fw gv-icono-correo" title="Detalle del correo" ng-click="mostrarDetalleCorreo(x)" ng-show="x.avId && x.canal === 'EMAIL'"></li>
+                            </td>
+                            <td class="p-1 m-0">{{ x.operacion }}</td>
+                            <td class="p-1 m-0">{{ x.nombreCliente }}</td>
+                            <td class="p-1 m-0">{{ x.telefono }}</td>
+                            <td class="p-1 m-0">{{ x.correo }}</td>
+                            <td class="p-1 m-0">{{ x.campania }}</td>
+                            <td class="p-1 m-0">{{ x.fechaMostrar ? (x.fechaMostrar * 1000 | date:'dd/MM/yyyy HH:mm') : '' }}</td>
+                            <td class="p-1 m-0">{{ x.tipificacion }}</td>
+                            <td class="p-1 m-0">{{ x.mejorGestion }}</td>
+                            <td class="p-1 m-0">
+                                <span class="badge gv-badge-leido" ng-if="x.canal === 'EMAIL' && x.leido">Le&iacute;do</span>
+                                <span class="badge gv-badge-no-leido" ng-if="x.canal === 'EMAIL' && !x.leido">No le&iacute;do</span>
+                                <span ng-if="x.canal !== 'EMAIL'">-</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="gv-td-paginador" colspan="10" align="center">
+                                <div class="gv-paginador-scale">
+                                    <tabula-paginador dataset="tabulas['listaEfectividad']" maxbotones="3"></tabula-paginador>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region MODAL AUDIO Y TRANSCRIPCION-->
+        <modal-popup
+            titulo="Audio y Transcripci&oacute;n - {{verDetalleLlamada.nombreCliente}}"
+            icono="fa fa-file-audio-o fa-fw"
+            width="700"
+            abrir="verDetalleLlamada.activo"
+        >
+            <div class="gv-audio-modal-player">
+                <audio controls autoplay ng-if="verDetalleLlamada.detalle.audio">
+                    <source ng-src="{{verDetalleLlamada.detalle.audio}}" type="audio/mpeg">
+                    Su navegador no soporta audio.
+                </audio>
+                <span class="badge" ng-if="!verDetalleLlamada.detalle.audio">Sin audio registrado</span>
+            </div>
+            <div
+                ng-repeat="item in verDetalleLlamada.detalle.transcripcion"
+                class="gv-transcripcion-item"
+                ng-class="{'gv-transcripcion-agente': item.direccion==='agente', 'gv-transcripcion-cliente': item.direccion==='cliente'}"
+            >
+                <div class="gv-transcripcion-burbuja">
+                    <b ng-show="item.direccion==='agente'">Agente virtual</b>
+                    <b ng-show="item.direccion==='cliente'">{{verDetalleLlamada.detalle.telefono}}</b>
+                    <div>{{item.mensaje}}</div>
+                    <span class="gv-transcripcion-hora" ng-show="item.fechaHora">{{item.fechaHora}}</span>
+                </div>
+            </div>
+            <div class="gv-sin-transcripcion" ng-show="!verDetalleLlamada.detalle.transcripcion || verDetalleLlamada.detalle.transcripcion.length === 0">
+                No hay transcripci&oacute;n
+            </div>
+        </modal-popup>
+        <!--#endregion-->
+
+        <!--#region MODAL TRANSCRIPCION WHATSAPP-->
+        <modal-popup
+            titulo="Transcripci&oacute;n del chat - {{verDetalleWhatsapp.nombreCliente}}"
+            icono="fa fa-whatsapp fa-fw"
+            width="700"
+            abrir="verDetalleWhatsapp.activo"
+        >
+            <div
+                ng-repeat="item in verDetalleWhatsapp.detalle.transcripcion"
+                class="gv-transcripcion-item"
+                ng-class="{'gv-transcripcion-agente': item.direccion==='agente', 'gv-transcripcion-cliente': item.direccion==='cliente'}"
+            >
+                <div class="gv-transcripcion-burbuja">
+                    <b ng-show="item.direccion==='agente'">Agente virtual</b>
+                    <b ng-show="item.direccion==='cliente'">{{verDetalleWhatsapp.detalle.telefono}}</b>
+                    <div>{{item.mensaje}}</div>
+                    <span class="gv-transcripcion-hora" ng-show="item.fechaHora">{{item.fechaHora}}</span>
+                </div>
+            </div>
+            <div class="gv-sin-transcripcion" ng-show="!verDetalleWhatsapp.detalle.transcripcion || verDetalleWhatsapp.detalle.transcripcion.length === 0">
+                No hay transcripci&oacute;n
+            </div>
+        </modal-popup>
+        <!--#endregion-->
+
+        <!--#region MODAL DETALLE CORREO-->
+        <modal-popup
+            titulo="Detalle del correo - {{verDetalleCorreo.nombreCliente}}"
+            icono="fa fa-envelope-o fa-fw"
+            width="700"
+            abrir="verDetalleCorreo.activo"
+        >
+            <div class="gv-correo-destinatario" ng-show="verDetalleCorreo.detalle.destinatario">
+                <b>Para:</b> {{verDetalleCorreo.detalle.destinatario}}
+            </div>
+            <div class="gv-correo-asunto" ng-show="verDetalleCorreo.detalle.asunto">
+                <b>Asunto:</b> {{verDetalleCorreo.detalle.asunto}}
+            </div>
+            <div class="gv-correo-cuerpo" ng-bind-html="verDetalleCorreo.detalle.html" ng-show="verDetalleCorreo.detalle.html"></div>
+            <div class="gv-sin-transcripcion" ng-show="!verDetalleCorreo.detalle.html">
+                No hay detalle del correo
+            </div>
+        </modal-popup>
+        <!--#endregion-->
+
+    </div>
+</div>

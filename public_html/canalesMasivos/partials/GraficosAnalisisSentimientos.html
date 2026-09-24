@@ -1,0 +1,111 @@
+<style>
+    .chartDetail{
+        padding-bottom:15px; 
+    }
+    .chartDetail svg.nvd3-svg{
+        display: block;
+        height: auto;
+        min-height:300px;
+        /*width: 95%;*/        
+    }
+    .chartDetaila svg{
+        min-height: 114px;
+        /*display: block;
+        height: auto;
+        min-height:100px;*/
+        /*width: 95%;*/     
+    }
+    .chartDetail .nvd3 text{
+        font: 400 10px Arial,sans-serif;   
+    }
+    .panel-default{
+        margin-right:15px;
+    }
+    .sinMargen.panel-default{
+        margin-right:0;
+    }
+    .calidadIco{
+        font-size: 35px
+    }
+
+</style>
+<div style="padding:30px;" ng-init="cargarDatos()">
+    <div layout="row" layout-align="space-between start">
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Polaridad
+            </div>    
+            <div class="chartDetail panel-body"> 
+                <div layout="row" layout-align="start start">
+                    <div flex>
+                        <svg id="gaugePositivo" width="90%" ></svg>
+                        <br/><li class="fa fa-thumbs-o-up fa-fw fa-15x" style="color:green;"> Positivo ({{totalPositivos}})</li>
+                    </div>
+                    <div flex>
+                        <svg id="gaugeNegativo" width="90%" ></svg>
+                        <br/><li class="fa fa-thumbs-o-down fa-fw fa-15x" style="color:red;"> Negativo  ({{totalNegativos}})</li>
+                    </div>
+                    <div flex>
+                        <svg id="gaugeNeutral" width="90%" ></svg>
+                        <br/><li class="fa fa-adjust fa-fw fa-15x" style="color:gray;"> Neutral  ({{totalNeutral}})</li>
+                    </div>
+                </div>
+                <!--<nvd3 options="optionsPieGeneral" config="configPieGeneral" data="dataPieGeneral"></nvd3>-->
+            </div>
+        </div>
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Polaridad por género
+            </div>
+            <div class="chartDetail panel-body" >  
+                <div layout="row" layout-align="start start">
+                    <div flex="50">
+                        <nvd3 options="optionsPieGeneralMujeres" data="dataPieGeneralMujeres"></nvd3>
+                    </div>
+                    <div flex="50">
+                        <nvd3 options="optionsPieGeneralHombres" data="dataPieGeneralHombres"></nvd3>
+                    </div>
+                </div>
+                
+            </div>
+        </div>        
+    </div>
+    <div layout="row" layout-align="space-between start">
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Fuente de datos
+            </div>       
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsFuenteDatos" data="dataFuenteDatos">
+            </div>
+        </div>
+        <div flex="50" class="panel panel-default ">
+            <div class="panel-heading">
+                Por edad
+            </div>
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsEdad" data="dataEdad"></nvd3>
+            </div>
+        </div>   
+    </div>    
+    <div layout="row" layout-align="space-between start">
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Fechas
+            </div>       
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsFecha" data="dataFecha"></nvd3>
+            </div>
+        </div>
+        <div flex="50" class="panel panel-default ">
+            <div class="panel-heading">
+                Ubicación
+            </div>
+            <div class="chartDetail panel-body" >  
+                <div ng-bind-html="imagenMapa">
+                </div>
+            </div>
+        </div>   
+    </div>    
+</div>
+<wait-window activar="procesando"></wait-window>

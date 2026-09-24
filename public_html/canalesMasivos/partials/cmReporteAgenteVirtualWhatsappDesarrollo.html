@@ -1,0 +1,76 @@
+<style>
+    .titulo {
+        background-color: #f8f8fb;
+        font-size: 14px;
+        padding-left: 8px;
+        padding-bottom: 4px;
+        padding-top: 4px;
+    }
+    .titulo-pagina {
+        padding-top: 6px;
+        padding-bottom: 6px;
+        background-color: #f8f8fb;
+        border-bottom: solid 1px #e7e7e7;
+        font-size: 18px;
+        font-weight: bold;
+        width: 100%
+    }
+</style>
+<div style="display: flex; flex-direction: column; align-items: center; vertical-align: middle; justify-content: center; width: 99vw; height: 100%; padding: 8px;">
+    <div class="titulo miEncabezado titulo-pagina" style="margin-bottom: 12px;">Interacciones WhatsApp</div>
+    <!--#region TABULA-->
+    <div style="width: 100%;">
+        <table
+            tamanio-inicial="20"
+            tabula="logWs"
+            observa-y-recarga="recargarTabula"
+            url="../canalesMasivos/cmReporteAgenteVirtualWhatsappCtrl.php?act=cargarTabula"
+            post-carga="cargoTabula(filas, extra)"
+        >
+            <tr>
+                <td align="center">
+                    <button class="btn btn-primary" ng-click="actualizarTabula()" title="Actualizar tábula">
+                        Actualizar
+                    </button>
+                </td>
+                <td align="left">
+                    <strong>
+                        &Uacute;ltima ejecuci&oacute;n servicio de respuesta: {{ultimaEjecucion}}
+                    </strong>
+                </td>
+            </tr>
+            <tr>
+                <th
+                    tabula-encabezado="fecha"
+                    titulo="Fecha"
+                    tipo="timestamp"
+                    ordenar
+                    filtrar
+                ></th>
+                <th tabula-encabezado="traza" titulo="Detalle"></th>
+            </tr>
+            <tr ng-repeat="(index, item) in tabulas['logWs'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+                <td style="vertical-align: middle;">{{item.fecha | fecha:"d/m/Y H:i:s"}}</td>
+                <td style="vertical-align: middle;">
+                    <ul style="list-style-type: square;">
+                        <li ng-repeat="t in item.traza track by $index">
+                            {{t}}
+                        </li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td align="center">
+                    <button class="btn btn-primary" ng-click="actualizarTabula()" title="Actualizar tábula">
+                        Actualizar
+                    </button>
+                </td>
+                <td align="center">
+                    <tabula-paginador dataset="tabulas['logWs']" maxbotones="5"></tabula-paginador>
+                </td>
+            </tr>
+        </table>
+        <!--#endregion-->
+        <wait-window activar="cargando"></wait-window>
+    </div>
+</div>

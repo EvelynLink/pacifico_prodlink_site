@@ -1,0 +1,431 @@
+.gv-root, .gv-root *{
+    box-sizing: border-box;
+}
+
+.gv-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #f4f5f7;
+}
+
+.gv-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* =========================
+   FILTROS (igual al dashboard principal)
+========================= */
+
+.gv-filtros-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gv-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gv-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gv-filtro-content{
+    padding: 12px;
+    display: flex;
+}
+
+.gv-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+}
+
+.gv-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+}
+
+.gv-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    width: 170px;
+}
+
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 170px;
+}
+
+.gv-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gv-btn-volver{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cbd0d6;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6368;
+    background: #fff;
+    white-space: nowrap;
+}
+
+.gv-btn-volver:hover{
+    background: #f2f3f5;
+}
+
+/* =========================
+   FILTROS APLICADOS (badges)
+========================= */
+
+.gv-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.gv-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gv-badge-item{
+    padding-right: 8px;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gv-titulo-span{
+    margin-right: 15px;
+}
+
+.gv-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gv-loading-icon{
+    color: #666;
+}
+
+.gv-kpi-icon-blue{ background: #2196F3; }
+.gv-kpi-icon-green{ background: #4CAF50; }
+.gv-kpi-icon-red{ background: #F44336; }
+
+.gv-td-center{
+    vertical-align: middle;
+    text-align: center;
+}
+
+.gv-detalle-kpi-row{
+    position: relative;
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.gv-detalle-kpi-card{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 35px; 
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 24px 20px;
+}
+
+.gv-detalle-kpi-icon{
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #fff;
+}
+
+.gv-detalle-kpi-text{
+    min-width: 0;
+}
+
+.gv-detalle-kpi-label{
+    font-size: 15px;
+    font-weight: 600;
+    color: #5f6368;
+}
+
+.gv-detalle-kpi-value{
+    font-size: 26px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.25;
+}
+
+.gv-detalle-kpi-sub{
+    font-size: 13px;
+    color: #8a8f98;
+}
+
+/* 3 columnas de listas */
+.gv-detalle-listas-row{
+    display: flex;
+    gap: 16px;
+    width: 100%;
+}
+
+.gv-detalle-lista-col{
+    flex: 1;
+    min-width: 0;
+}
+
+.gv-detalle-lista-card{
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.gv-detalle-tabla-wrap{
+    width: 100%;
+    overflow: hidden;
+    padding: 0 2px;
+}
+
+.gv-detalle-lista-card table{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none !important;
+}
+
+.gv-detalle-lista-card table th,
+.gv-detalle-lista-card table td{
+    height: 40px;
+    box-sizing: border-box;
+    padding: 4px 8px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.gv-detalle-lista-card table th{
+    font-size: 12px;
+    color: #5f6368;
+    border: none;
+    border-bottom: 2px solid #e3e6ea;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.gv-detalle-lista-card table td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.gv-detalle-lista-card table td.gv-td-paginador{
+    border-bottom: none;
+    padding: 10px 0 0 0;
+}
+
+.gv-paginador-scale{
+    transform: scale(0.90) !important; 
+    transform-origin: center top;
+}
+
+.gv-detalle-lista-header{
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+/* Fila con buscador chico + botón exportar lado a lado */
+.gv-detalle-buscador-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.gv-detalle-buscador-row .gv-detalle-buscador{
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.gv-detalle-buscador-chica{
+    max-width: 345px;
+}
+
+/* Botón "Exportar" (Excel) de cada lista de detalle */
+.gv-btn-exportar{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px !important;
+    border: none;
+    border-radius: 16px !important;
+    background-color: #1d6f42;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.gv-btn-exportar:hover{
+    background-color: #16572f;
+}
+
+.gv-btn-exportar:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.gv-detalle-buscador{
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.gv-detalle-buscador i{
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa0a6;
+    font-size: 13px;
+}
+
+.gv-detalle-buscador input{
+    padding-left: 30px;
+    font-size: 13px;
+    border-radius: 999px;
+}
+
+.gv-td-cliente{
+    text-align: center;
+    font-size: 13px;
+}
+
+.gv-td-cliente-inner{
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.gv-td-cliente-inner .gv-dot{
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.gv-td-cliente-texto{
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gv-dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.gv-dot-blue{ background: #2196F3; }
+.gv-dot-green{ background: #4CAF50; }
+.gv-dot-red{ background: #F44336; }
+
+.gv-badge-estado{
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.gv-badge-gestionado{
+    background: #E8F6EA;
+    color: #3c8c46;
+}
+
+.gv-badge-sinGestion{
+    background: #FDEFEF;
+    color: #c13c3c;
+}

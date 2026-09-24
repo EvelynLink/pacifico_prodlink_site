@@ -1,0 +1,1045 @@
+<style>
+    .divPrincipal {
+        position: relative; 
+        padding: 0;
+        margin: 0;
+        height: 100%;
+    }
+
+    .divSecundario {
+        position: absolute;
+        top: 8%;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 10;
+        width: 70%;
+        height: 90vh;
+        overflow-y: auto;
+        border-radius: 10px;
+    }
+
+    .divSecundarioModal {
+        position: absolute;
+        top: 10%;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 15;
+        width: 70%;
+        height: 80vh;
+        overflow-y: auto;
+        border-radius: 10px;
+    }
+
+    .divSecundarioModalFondo {
+        background-color: black;
+        opacity: 0.7;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 14;
+        width: 100%;
+        height: 100%;
+    }
+
+    .divSecundarioFondo {
+        background-color: black;
+        opacity: 0.7;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        z-index: 9;
+        width: 100%;
+        height: 100%;
+    }
+
+    .sliderNormal{
+        background-color: #2f6f9f ;
+    }
+
+    .hint {
+        /* Position the hint */
+        position: absolute;
+        left: 2px;
+        right: auto;
+        bottom: 7px;
+        /* Copy styles from ng-messages */
+        font-size: 12px;
+        line-height: 14px;
+        transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+        /* Set our own color */
+        color: grey;
+    }
+
+    table tr th {
+        font-size: small;
+        text-align: center !important;
+        color: #000 !important;
+    }
+
+    table tr td {
+        font-size: smaller;
+        /*text-align: center !important;*/
+    }
+
+    thead tr th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #f6f6f6;
+    }
+
+    .cabeceraSubtable thead tr th{
+        background-color: #000000 !important;
+        color: white !important;
+    }
+
+</style>
+
+<div ng-init="cargarFuentes()"  class="divPrincipal">
+
+    <div class="p-1 mb-2 mt-0 panel-heading" layout="row" layout-align="space-between center" style="background-color: #f8f8fb ; border-color: #E8E8E8;">
+        <div class="pl-4">
+            <h4 style="color: #000"> <b> <i class="fa fa-cogs fa-fw"></i> <lang> Definir Campañas </lang> </b> </h4>
+        </div>
+
+        <div class="pr-4">
+            <button ng-click="nuevaConfiguracion()" type="button" class="btn btn-success" style=" font-size: medium;"> 
+                <lang>Nueva Campaña</lang>  
+            </button>  
+        </div>
+    </div>
+
+    <!-- class="container"  layout="row"-->
+    <div class="container-fluid" > 
+        <md-content>
+            <md-tabs md-border-bottom md-dynamic-height md-selected="0">
+                <md-tab label="Activas">
+                    <table observa-y-recarga='tabuCampanias' tabula="campaniasActivas" tamanio-inicial="10" 
+                           url="../fabricaCredito/fcParamCampaniasNuevaCtrl.php?act=listaCampaniasActivas">           
+            <tr>
+                            <th width="25%" tabula-encabezado="nombre" titulo="<b> <lang>Nombre de la Campaña</lang> </b>"></th>
+                            <th width="15%" tabula-encabezado="fechaCreacion" titulo=" <b> <lang>Fecha Creación</lang> </b>"></th>
+                <th width="15%" tabula-encabezado="fechaInicio" titulo="<b> <lang>Fecha de Inicio</lang> </b>"></th>
+                <th width="15%" tabula-encabezado="fechaFinComercial" titulo="<b> <lang>Fecha Fin</lang> </b>"></th>
+                            <th width="20%" tabula-encabezado="usuarioCreacion" titulo="<b> <lang>Responsable</lang> </b>"></th>
+                <th width="10%" tabula-encabezado="acciones" titulo="<b> <lang>Acciones</lang> </b>"></th>
+            </tr>
+
+                        <tr ng-repeat="x in tabulas['campaniasActivas'].filas track by $index" >
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: left;">{{ x.nombre}}</td>    
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <span class="mr-2" ng-if="x.hasOwnProperty('fechaModificacion')">
+                                    <i class="fa fa-info-circle fa-green fa-fw">
+                                        <md-tooltip md-direction="top"> Modificado el: {{ x.fechaModificacion | fecha:'Y-m-d' }} </md-tooltip>
+                                    </i>
+                                </span>
+                                <span>{{ x.fechaCreacion | fecha:'Y-m-d' }} {{ x.horaCreacion }}</span>
+                            </td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                                    <span ng-if="indexFecha !== $index" class="pr-3">{{ x.fechaInicioComercial | fecha:'Y-m-d' }}</span>
+                                    <span ng-if="indexFecha === $index" class="pr-3">{{ campaniaEditar.fechaInicioComercial | fecha:'Y-m-d' }}</span>
+
+                                    <i ng-if="indexFecha === $index" ng-model="cambioFecha.fechaAux"
+                                       ng-click="abreFechaV = !abreFechaV"
+                                       ng-focus="focusEditarFecha('fechaInicioComercial')"
+                                       class="fa fa-calendar"
+                                       datepicker-popup="yyyy-MM-dd"
+                                       min-date="fechaMin"
+                                       is-open="abreFechaV">
+                                        <md-tooltip md-direction="top"> Cambiar fecha </md-tooltip>
+                                    </i>
+
+                                </div>
+                            </td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                                    <span ng-if="indexFecha !== $index" class="pr-3">{{ x.fechaFinComercial | fecha:'Y-m-d' }}</span>
+                                    <span ng-if="indexFecha === $index" class="pr-3">{{ campaniaEditar.fechaFinComercial | fecha:'Y-m-d' }}</span>
+
+                                    <i ng-if="indexFecha === $index" ng-model="cambioFecha.fechaAux"
+                                       ng-click="abreFechaV = !abreFechaV"
+                                       ng-focus="focusEditarFecha('fechaFinComercial')"
+                                       class="fa fa-calendar"
+                                       datepicker-popup="yyyy-MM-dd"
+                                       min-date="fechaMin"
+                                       is-open="abreFechaV">
+                                        <md-tooltip md-direction="top"> Cambiar fecha </md-tooltip>
+                                    </i>
+                                </div>
+                            </td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.usuarioCreacion}}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div ng-if="indexFecha === $index" class="p-0 m-0" layout="row" layout-align="space-around center">
+                                    <md-button class="p-0 m-0" ng-click="guardarEdicionFechas(x)" aria-label="edita campania">
+                                        <i class="fa fa-save fa-fw"></i>
+                                        <md-tooltip md-direction="top"> <lang> Guardar </lang> </md-tooltip>
+                                    </md-button>
+                                    
+                                    <md-button class="p-0 m-0" ng-click="cancelarCambioFecha()" aria-label="edita campania">
+                                        <i class="fa fa-times-circle-o fa-red fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Cancelar </md-tooltip>
+                                    </md-button>
+                                </div>
+                                <div ng-if="indexFecha !== $index" class="p-0 m-0" layout="row" layout-align="space-around center">
+                        <md-button class="p-0 m-0" ng-click="verConfiguracionCampania(x)" aria-label="edita campania">
+                            <i class="fa fa-eye fa-green fa-fw"></i>
+                            <md-tooltip md-direction="top"> <lang> Ver detalle </lang> </md-tooltip>
+                        </md-button>
+                        <md-button class="p-0 m-0" ng-click="duplicarCampania(x, 'duplicar')" aria-label="duplicar campania">
+                            <i class="fa fa-copy fa-fw"></i>
+                                        <md-tooltip md-direction="top"> <lang> Duplicar campaña </lang> </md-tooltip>
+                        </md-button>
+                                    <md-button class="p-0 m-0" ng-click="showConfirmEliminar($event, x, 'eliminar')" aria-label="elimina campania">
+                                        <i class="fa fa-trash fa-red fa-fw"></i>
+                            <md-tooltip md-direction="top"> <lang> Eliminar </lang> </md-tooltip>
+                        </md-button> 
+                                    <md-button ng-if="validarBotonesFecha()" ng-click="editarFecha($index, x)"  
+                                               class="p-0 m-0" aria-label="editar fechas">
+                                        <i class="fa fa-edit fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Editar </md-tooltip>
+                                    </md-button>
+                                    <md-button class="p-0 m-0" ng-click="showConfirmEliminar($event, x, 'inactivar')" aria-label="inactiva campania">
+                                        <i class="fa fa-circle fa-green fa-fw"></i>
+                                        <md-tooltip md-direction="top"> <lang>Inactivar</lang>? </md-tooltip>
+                                    </md-button>
+                                    
+                    </div>
+                </td>
+            </tr>          
+            <tr>
+                <td colspan="6">
+                    <div layout="row" layout-padding>                        
+                                    <div style="width: 100%;" > <tabula-paginador dataset="tabulas['campaniasActivas']" maxbotones="3" no-cambiar-tamanio></tabula-paginador></div>
+                    </div>
+
+                </td>
+            </tr>            
+        </table>
+                </md-tab>
+                
+                <md-tab label="Inactivas">
+                    <table observa-y-recarga='tabuCampanias' tabula="campaniasInactivas" tamanio-inicial="10" 
+                           url="../fabricaCredito/fcParamCampaniasNuevaCtrl.php?act=listaCampaniasInactivas">           
+                        <tr>
+                            <th width="25%" tabula-encabezado="nombre" titulo="<b> <lang>Nombre de la Campaña</lang> </b>"></th>
+                            <th width="15%" tabula-encabezado="fechaCreacion" titulo=" <b> <lang>Fecha Creación</lang> </b>"></th>
+                            <th width="15%" tabula-encabezado="fechaInicio" titulo="<b> <lang>Fecha de Inicio</lang> </b>"></th>
+                            <th width="15%" tabula-encabezado="fechaFinComercial" titulo="<b> <lang>Fecha Fin</lang> </b>"></th>
+                            <th width="20%" tabula-encabezado="usuarioCreacion" titulo="<b> <lang>Responsable</lang> </b>"></th>
+                            <th width="10%" tabula-encabezado="acciones" titulo="<b> <lang>Acciones</lang> </b>"></th>
+                        </tr>
+
+                        <tr ng-repeat="x in tabulas['campaniasInactivas'].filas track by $index" >
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: left;">{{ x.nombre}}</td>    
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaCreacion | fecha:'Y-m-d' }} {{ x.horaCreacion }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaInicioComercial | fecha:'Y-m-d' }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.fechaFinComercial | fecha:'Y-m-d' }}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">{{ x.usuarioCreacion}}</td>
+                            <td class="p-1 m-0" style="vertical-align: middle; text-align: center;">
+                                <div class="p-0 m-0" layout="row" layout-align="space-around center">
+                                    <md-button class="p-0 m-0" ng-click="showConfirmEliminar($event, x, 'activar')" aria-label="inactiva campania">
+                                        <i class="fa fa-circle fa-red fa-fw"></i>
+                                        <md-tooltip md-direction="top"> <lang>Activar</lang>? </md-tooltip>
+                                    </md-button>
+    </div>
+                            </td>
+                        </tr>          
+                        <tr>
+                            <td colspan="6">
+                                <div layout="row" layout-padding>                        
+                                    <div style="width: 100%;" > <tabula-paginador dataset="tabulas['campaniasInactivas']" maxbotones="3" no-cambiar-tamanio></tabula-paginador></div>
+</div>
+                            </td>
+                        </tr>            
+                    </table>
+                </md-tab>
+            </md-tabs>
+        </md-content>
+    </div>
+</div>
+
+<!-- Ventana emergente ingresar o modificar una campaña -->
+<div ng-show="verNuevaCampania" class="divSecundarioFondo"></div>  
+<div ng-show="verNuevaCampania" class="divSecundario">
+    <div layout="column">
+        <!-- Datos generales de la campaña definida -->
+        <div id="pantallaCampania" class="h-50" layout="column" layout-align="space-between" style="background-color: white;">
+            <div class="p-0 mb-2" layout="row" layout-align="center center" style="background-color: #2f6f9f;">
+                <div class="col-sm-3" style="color: white;">
+                    <span ng-if="observando"><b>Creación: </b></span>
+                    <span ng-if="observando">{{campania.fechaCreacion}} | </span>
+                    <span ng-if="observando">{{campania.horaCreacion}}</span>
+                </div>
+                <div class="col-sm-6" align="center">
+                    <h5 ng-if="campania.nombre" style="color: white;"><i class="fa fa-info-circle fa-inverse fa-fw"></i> <b> {{campania.nombre}}</b></h5>
+                    <h5 ng-if="!campania.nombre" style="color: white;"><i class="fa fa-info-circle fa-inverse fa-fw"></i> <b> <lang> INGRESE NUEVA CAMPAÑA </lang> </b></h5>
+                </div>
+                <div class="col-sm-3"></div>
+            </div>
+            <!-- Nueva organizacion de cabecera-->
+            <div id="datosGenerales" class="m-0 pb-2" layout="row" layout-align="space-around center">
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="center center">
+                    <div class="col-sm-3 text-left"><p class="m-0 p-0"> <b> Empresa *</b> </p></div>                                        
+                    <div class="col-sm-9 m-0 p-1">
+                        <md-select ng-if="!duplicando && !observando" placeholder="Seleccione una empresa" class="m-0 p-0"                                                        
+                                   ng-change="cargarOficinas(campania.wizardSelected)" 
+                                   ng-model="campania.wizardSelected">
+                            <md-option ng-value="w" ng-repeat="w in wizards track by $index">{{w}}</md-option>
+                        </md-select>
+                        <div layout="row" ng-if="duplicando || observando">
+                            <input ng-model="campania.wizardSelected"
+                                   ng-readonly="duplicando || observando"
+                                   type="text"
+                                   class="form-control"
+                                   aria-label="presentar empresa" ng-checked="true">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="start center">
+                    <div class="col-sm-4 text-right"><p class="m-0 p-0"> <b> Inicio Comercial *</b> </p></div>
+                    <div class="col-sm-6 m-0 p-1" align="left">
+                        <input ng-click="initInicio()"   
+                               ng-if="!observando"
+                               ng-model="campania.fechaInicioComercial"
+                               ng-change="comprobarFechas('inicio')"
+                               ng-disabled="campania.wizardSelected === '' || clickBotonNuevoDetalle"
+                               datepicker-popup="yyyy-MM-dd"
+                               id="input_inicio_comercial"
+                               min-date="fechaMin"
+                               is-open="booFechaInicialDisponible" 
+                               type="text"
+                               name="input_inicio_comercial" 
+                               placeholder="Fecha de Inicio Comercial">
+
+                        <input ng-model="campania.fechaInicioComercial"
+                               ng-if="observando"
+                               aria-label="fechaInicio"
+                               placeholder="Fecha de Inicio Comercial"
+                            class="form-control"
+                               type="type" name="name" readonly>
+
+                    </div>
+                    <div ng-if="verCampaniasChocan && !observando" class="col-sm-2 m-0 p-0" align="left">
+                        <button ng-click="verAdvertencia()"
+                                type="button" class="btn btn-danger p-1" style="font-size: small;">  
+                            <i class="fa fa-info-circle fa-inverse fa-fw"></i>
+                            <md-tooltip md-direction="top"> Las fechas elegidas tienen conflictos con algunas campañas (click para ver) </md-tooltip>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="center center">
+                    <div class="col-sm-3 text-left"><p class="m-0 p-0"> <b> Nombre *</b> </p></div>
+                    <div class="col-sm-9 m-0 p-1">
+                        <input ng-model="campania.nombre"
+                               ng-disabled="campania.wizardSelected === ''"
+                               ng-change="campania.nombre = campania.nombre.toUpperCase()"
+                               ng-readonly="observando"
+                               type="text" class="form-control" id="nombre" placeholder="Nombre"
+                               required>
+                        <md-progress-linear ng-if="barraProgresoNombre" md-mode="indeterminate"></md-progress-linear>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="start center">
+                    <div class="col-sm-4 text-right"><p class="m-0 p-0"> <b> Fin Comercial *</b> </p></div>
+                    <div class="col-sm-6 m-0 p-1" align="left">
+                        <input ng-click="initFin()"
+                               ng-if="!observando"
+                               ng-model="campania.fechaFinComercial"
+                               ng-change="comprobarFechas('final')"
+                               ng-disabled="campania.wizardSelected === '' || clickBotonNuevoDetalle"
+                               datepicker-popup="yyyy-MM-dd" 
+                               id="input_fin_comercial"
+                               min-date="fechaMin"
+                               is-open="booFechaFinalDisponible" 
+                               type="text" 
+                               name="input_fin_comercial" 
+                               placeholder="Fecha Fin Comercial">                        
+
+                        <input ng-model="campania.fechaFinComercial"
+                               ng-if="observando"
+                               aria-label="fechaFin"
+                               placeholder="Fecha de Fin Comercial"
+                            class="form-control"
+                               type="type" name="name" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-0 p-0" layout="row" layout-align="space-around center">
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="center center">
+                    <div class="col-sm-3 text-left"><p class="m-0 p-0"> <b> Descripción </b> </p></div>
+                    <div class="col-sm-9 m-0 p-1">
+                        <input ng-disabled="campania.wizardSelected === ''" 
+                               ng-model="campania.descripcion" 
+                               ng-readonly="observando" 
+                               placeholder="Descripción"
+                               type="text" class="form-control" id="descripcion">
+                    </div>
+                </div>
+                <div class="col-sm-6 m-0 p-0" layout="row" layout-align="start center">
+                    <div class="col-sm-4 text-right"><p class="m-0 p-0"> <b> Fin Operativo </b> </p></div>
+                    <div class="col-sm-6 m-0 p-1" align="left">
+                        <input ng-click="initFinOp()"
+                               ng-if="!observando"
+                               ng-model="campania.fechaFinOperativo"
+                               ng-change="comprobarFechas('finalOp')"
+                               ng-disabled="campania.wizardSelected === '' || clickBotonNuevoDetalle"
+                               datepicker-popup="yyyy-MM-dd" 
+                               id="input_fin_operativo" 
+                               min-date="fechaMin"
+                               is-open="booFechaFinalDisponible1" 
+                               type="text" 
+                               name="input_fin_operativo"
+                               placeholder="Fecha Fin Operativo">
+
+                        <input ng-model="campania.fechaFinOperativo"
+                               ng-if="observando"
+                               aria-label="fechaFinOp"
+                               placeholder="Fecha de Fin Operativo"
+                            class="form-control"
+                               type="type" name="name" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-0 p-0" layout="row" layout-align="space-between center">
+                <div class="col-sm-4 m-0 p-0" layout="row" layout-align="center center">
+                    <p class="m-0 pr-2"> <b> Con recurso concesionario? </b> </p>
+                    <!-- ng-change="verificarConRecurso()" -->
+                    <md-switch ng-if="!observando" 
+                               ng-model="campania.conRecursoConcesionario"
+                               ng-disabled="campania.wizardSelected === ''"
+                               class="md-primary m-0 p-0" 
+                               md-no-ink aria-label="Switch con recursos">
+                    </md-switch>
+
+                    <input ng-if="observando" 
+                           value="{{(campania.conRecursoConcesionario)? 'SI': 'NO' }}"     
+                           ng-readonly="observando" 
+                        type="text" class="w-25 form-control">
+                </div>
+                <div class="col-sm-4 m-0 p-0" layout="row" layout-align="center center">
+                    <p class="m-0 pr-2"> <b> Con opción a obsequio? </b> </p>
+                    <!--  ng-change="verificarConRecurso()" -->
+                    <md-switch ng-if="!observando" 
+                               ng-model="campania.conObsequio"
+                               ng-disabled="campania.wizardSelected === ''"
+                               class="md-primary m-0 p-0" 
+                               md-no-ink aria-label="Switch con recursos">
+                    </md-switch>
+
+                    <input ng-if="observando" 
+                           value="{{(campania.conObsequio)? 'SI': 'NO' }}"     
+                           ng-readonly="observando" 
+                           type="text" class="w-25 form-control">
+                </div>
+                <div ng-if="observando" class="col-sm-4 m-0 p-0" layout="row" layout-align="center center">
+                    <p class="m-0 pr-2"> <b> Responsable </b> </p>
+                    <input ng-model="campania.usuarioCreacion"
+                           aria-label="responsable"
+                        class="form-control"
+                           type="type" name="name" readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- Linea de separacion entre cabecera y condiciones --> 
+        <div style="background-color: #2f6f9f; height: 5px;"></div>
+
+        <!-- Condiciones de la campaña definida -->
+        <div ng-show="(!banderaNombreRepetido && campania.wizardSelected && campania.nombre) || observando || duplicando" 
+             class="h-50 pr-4 pl-4" layout="column"  layout-align="start none" style="background-color: white;">
+            <div style="background-color: white;" align="center">
+                <h5> <i class="fa fa-sliders fa-fw"></i> <b> <lang>CONFIGURACIÓN DE CAMPAÑA</lang> </b> </h5>
+            </div>
+
+            <!-- Para seleccionar la sucursal --> 
+            <div layout="column" layout-align="start none">
+                <div class="mb-0 pb-0 mt-1" style="background-color: #2f6f9f; height: 1px;"></div>
+                <div ng-if="!observando" class="w-25 p-0 m-0" align="left"> 
+                    <p class="m-0 pl-2" style="background-color: grey; color: white;"> <b> SELECCIONE LA SUCURSAL </b> </p> 
+                </div>
+                <div ng-if="observando" class="w-25 p-0 m-0" align="left"> 
+                    <p class="m-0 pl-2" style="background-color: grey; color: white;"> <b> SUCURSALES SELECCIONADAS </b> </p> 
+                </div>
+
+                <!-- Opciones de los diferentes concesionarios --> 
+                <div id="seleccionSucursales" layout="column" layout-align="start none">
+
+                    <div class="p-0 m-0" layout="row" layout-align="center center">
+                        <div ng-show="!observando" class="col-sm-4">
+                            <md-input-container class="w-100">
+                                <label>{{nivelesOficinas[0]}}</label>
+                                <md-select ng-model="lugarSelected"
+                                           ng-change="cambiaSelectOficinas()"
+                                           aria-label="Select Sucursales"
+                                           class="w-100"
+                                           multiple>
+                                    <md-optgroup ng-if="i !== 0"
+                                                 ng-click="clickGrupoSucursales(i)"
+                                                 ng-repeat="(i, item) in nivelesOficinas" label="-----------------">
+                                        <md-option ng-value="item2" ng-repeat="item2 in item track by $index">{{item2[0]}}</md-option>
+                                    </md-optgroup>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+
+                        <div class="col-sm-8">
+                            <md-card class="w-100" style="border-radius:10px">
+                                <md-card-content class="p-2" layout="column" layout-align="space-around start">
+                                    <div layout="row" layout-align="space-between center" class="m-0 p-0 w-100">
+                                        <p> <b> Seleccionados: </b> </p>
+                                        <i ng-if="objNuevoDetalle.sucursal.length > 0" 
+                                           ng-click="eliminarTodaSeleccion('sucursal')"
+                                           ng-show="!observando"
+                                           class="fa fa-close fa-red fa-fw" >
+                                            <md-tooltip md-direction="top"> Quitar todas las selecciones </md-tooltip>
+                                        </i>
+                                    </div>
+
+                                    <div style="height: 15vh; overflow-y: auto;">
+                                        <md-chips ng-model="objNuevoDetalle.sucursal" 
+                                                  md-max-chips=1
+                                                  md-on-add="borrarInputUsuario('sucursal')"
+                                                  name="items" readonly="observando">
+                                            <md-chip-template style="font-size: xx-small;">
+                                                <strong>{{$chip.nombre| uppercase}}</strong>
+                                            </md-chip-template>
+                                            <i md-chip-remove class="fa fa-close fa-red fa-fw"></i>
+                                        </md-chips>
+                                    </div>
+                                </md-card-content>
+                            </md-card>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linea de separacion --> 
+                <div class="mb-0 pb-0 mt-2" style="background-color: #2f6f9f; height: 1px;"></div>
+                <div class="w-25 p-0 m-0" align="left"> <p class="m-0 pl-2" style="background-color: grey; color: white;"> <b> CONDICIONES </b> </p> </div>
+
+                <!--  Para selecciona un tipo de campaña -->
+                <!-- ng-if="objNuevoDetalle.sucursal.length > 0" -->
+                <div id="seleccionTipos" layout="row" layout-align="space-around center">
+                    <div ng-show="!observando" class="col-sm-4">
+                        <div layout="column">
+                            <md-select ng-model="objNuevoDetalle.tipoDetalle"
+                                       ng-change="cargarValores(objNuevoDetalle.tipoDetalle.nombre)"
+                                       ng-disabled="objNuevoDetalle.sucursal.length === 0"
+                                       placeholder="Seleccione una opción" 
+                                       class="form-control">
+                                <md-option ng-value="t" 
+                                           ng-repeat="t in tipos|orderBy: t"
+                                           required>
+                                    {{t.nombre}}
+                                </md-option>
+                            </md-select>
+                            <md-progress-linear ng-if="verBarraProcesoSegNivel" md-mode="indeterminate"></md-progress-linear>
+                            <md-autocomplete
+                                ng-disabled="desactivarAutocomplete"
+                                md-selected-item="itemTipo.item"
+                                md-selected-item-change="cambiaAutocompleteTipo()"
+                                md-search-text="searchTextTipos"
+                                md-items="item in busquedaAutocompleteTipo(searchTextTipos)"
+                                md-item-text="item.nombre"
+                                md-min-length="0"
+                                md-no-cache="true"
+                                placeholder="Busqueda">
+                                <md-item-template>
+                                    <span md-highlight-text="searchTextTipos" md-highlight-flags="^i">{{item.nombre| uppercase}}</span>
+                                </md-item-template>
+                                <md-not-found>
+                                    No existe "{{searchTextTipos}}" en esta lista.
+                                </md-not-found>          
+                            </md-autocomplete>
+                        </div>
+                    </div>
+                    <div class="col-sm-8">
+                        <!--<div id="seleccionTipos" layout="column">-->
+                        <md-card class="w-100" style="border-radius:10px">
+                            <md-card-content class="p-2" layout="column" layout-align="space-around start">
+                                <div layout="row" layout-align="space-between center" class="m-0 p-0 w-100"> 
+                                    <p class="m-0 pl-2 pr-2" style="background-color: grey; color: white;"> <b> {{objNuevoDetalle.tipoDetalle.nombre}} </b> </p>
+                                    <p ng-if="objNuevoDetalle.subtipoDetalle.length > 0 && objNuevoDetalle.tipoDetalle.desglosable === 1" 
+                                       style="font-size: 11px;"> 
+                                        Para ver los productos pulse un click en cada categoría 
+                                    </p> 
+                                    <i ng-if="objNuevoDetalle.subtipoDetalle.length > 0" 
+                                       ng-click="eliminarTodaSeleccion('subtipoDetalle')"
+                                       ng-show="!observando"
+                                       class="fa fa-close fa-red fa-fw" >
+                                        <md-tooltip md-direction="top"> Quitar todas las selecciones </md-tooltip>
+                                    </i>
+                                </div>
+                                <!--<p class="pt-1"> <b> Seleccionados: </b> </p>-->
+                                <div style="height: 15vh; overflow-y: auto;">
+                                    <md-chips ng-if="!observando"
+                                              ng-model="objNuevoDetalle.subtipoDetalle"
+                                              md-max-chips=1
+                                              md-on-add="borrarInputUsuario('subtipoDetalle')"
+                                              md-on-remove="quitarTodosArticulos($chip)"
+                                              md-on-select="buscarProductos($chip)"
+                                              name="items">
+                                        <md-chip-template style="font-size: x-small;">
+                                            <strong>
+                                                <span>{{$chip.nombre | uppercase}}</span>
+                                                <span ng-if="$chip.hasOwnProperty('personalizo')"> | PERSONALIZADO </span>
+                                            </strong>
+                                        </md-chip-template>
+                                        <i md-chip-remove class="fa fa-close fa-red fa-fw"></i>
+                                    </md-chips>
+
+                                    <md-chips ng-if="observando" 
+                                              ng-model="objNuevoDetalle.subtipoDetalle"
+                                              md-max-chips=1
+                                              md-on-select="buscarProductos($chip)"
+                                              name="items">
+                                        <md-chip-template style="font-size: x-small;">
+                                            <strong>
+                                                <span>{{$chip.nombre | uppercase}}</span>
+                                                <span ng-if="$chip.hasOwnProperty('personalizo')"> | PERSONALIZADO </span>
+                                            </strong>
+                                        </md-chip-template>
+                                        <i ng-if="false" md-chip-remove class="fa fa-close fa-red fa-fw"></i>
+                                    </md-chips>
+                                </div>
+
+                                <div ng-if="subItemSelect !== ''" layout="row" layout-align="space-between center" class="m-0 p-0 w-100"> 
+                                    <p class="m-0 pl-2 pr-2" style="background-color: grey; color: white;"> <b> {{subItemSelect | uppercase}} </b> </p>
+                                    <i ng-if="auxFiltroArticulos.length > 0" 
+                                       ng-click="ocultarSubSeleccion()"
+                                       ng-show="!observando"
+                                       class="fa fa-close fa-red fa-fw" >
+                                        <md-tooltip md-direction="top"> Salir </md-tooltip>
+                                    </i>
+                                </div>
+
+                                <div ng-if="subItemSelect !== ''" style="height: 15vh; overflow-y: auto; width: 100%; background-color: #CCD1D1;">
+                                    <md-chips ng-if="!observando" 
+                                              ng-model="auxFiltroArticulos"
+                                              md-max-chips=1
+                                              md-on-add="borrarInputUsuario('auxFiltroArticulos')"
+                                              md-on-remove="quitarArticulo($chip)"
+                                              readonly="observando"
+                                              name="itemsProductos">
+                                        <md-chip-template style="font-size: x-small;">
+                                            <strong>
+                                                <!--<span ng-if="!duplicando">{{$chip.ctArticulos_nombre | uppercase}}</span> // ng-if="duplicando"--> 
+                                                <span >{{$chip.nombre | uppercase}}</span>
+                                            </strong>
+                                        </md-chip-template>
+                                        <i md-chip-remove class="fa fa-close fa-red fa-fw"></i>
+                                    </md-chips>
+
+                                    <md-chips ng-if="observando" 
+                                              ng-model="auxFiltroArticulos"
+                                              md-max-chips=1
+                                              readonly="observando"
+                                              name="itemsProductos">
+                                        <md-chip-template style="font-size: x-small;">
+                                            <span>
+                                                <strong>
+                                                    {{$chip.nombre | uppercase}}
+                                                </strong>
+                                            </span>
+                                            <md-tooltip md-direction="top"> Código: {{$chip.codigo | uppercase}} </md-tooltip>
+                                        </md-chip-template>
+                                    </md-chips>
+                                </div>
+                            </md-card-content>
+                        </md-card>          
+                    </div>
+                </div>
+
+                <!-- Linea de separación --> 
+                <!--<div class="m-0 p-0" style="background-color: #2f6f9f; height: 1px;"></div>-->
+
+                <!-- Configuración de las condiciones --> 
+                <div id="divCondicion" class="mt-2" layout="row" layout-align="center center">
+                    <div ng-if="!observando" class="col-sm-6">
+                        <div layout="column"  layout-align="start none">
+                            <div layout="row">
+                                <md-select ng-model="objCondicion.campoAfectado"
+                                           placeholder="Seleccione una condicion"
+                                           class="w-75">
+                                    <md-option ng-value="t"
+                                               ng-if="t.pertenece[0] === 1" 
+                                               ng-repeat="t in tiposDescuentos|orderBy: t">
+                                        {{t.afectacion}}
+                                    </md-option>
+                                </md-select>
+                            </div>
+                            <div layout="row">
+                                <div class="col-sm-3 m-0 p-0">
+                                    <p class="m-0 p-0"> <b> Valor </b></p>
+                                </div>
+                                <div class="col-sm-7 m-0 p-0" layout="row" layout-align="start center">
+                                    <input ng-show="objCondicion.campoAfectado.afectacion !== 'PLAZOS'"
+                                           ng-model="objCondicion.valorAsignado"
+                                           ng-change="verificarCamposCondicion('condiciones', 'divCondicion')"
+                                           ng-click="resetearInput(0)"
+                                           class="form-control w-50"
+                                           type="text" 
+                                           style=" text-align: right;"
+                                           required>
+
+                                    <div class="w-100" layout="row" layout-align="space-around center" ng-if="objCondicion.campoAfectado.afectacion === 'PLAZOS'">
+                                        <md-select ng-show="!cambiarIngresoPlazos" 
+                                                   ng-model="objCondicion.valorAsignado"
+                                                   ng-change="comprobarSeleccionPlazos(objCondicion.valorAsignado)" 
+                                                   placeholder="Meses" 
+                                                   class="form-control m-0 p-0 w-75" multiple>
+                                            <md-option ng-repeat="plazos in tiposPlazos">
+                                                {{plazos}}
+                                            </md-option>
+                                        </md-select>
+                                        <div ng-show="cambiarIngresoPlazos" class="m-0 p-0" layout="column">
+                                            <input ng-model="objCondicion.valorAsignado"
+                                                ng-change="verificarCamposCondicion('condiciones','divCondicion')"
+                                                   ng-click="resetearInput(0)"
+                                                   class="form-control w-100"
+                                                   type="text" 
+                                                   style=" text-align: right;"
+                                                   required>
+                                            <span class="m-0 p-0" style="font-size: 10px;">Ej: 13-14-15</span>
+                                        </div>
+
+                                        <md-checkbox ng-if="false" ng-model="cambiarIngresoPlazos" class="ml-2 m-0 p-0" aria-label="Ingresar plazos">
+                                            ¿Ingresar valor?
+                                        </md-checkbox>
+                                    </div>
+
+                                    <i ng-if="objCondicion.campoAfectado.tipoDato === 'PORCENTAJE'" class="fa fa-percent fa-fw"></i>
+                                    <i ng-if="objCondicion.campoAfectado.tipoDato === 'MONTO'" class="fa fa-dollar fa-fw"></i>
+                                </div>
+                                <div class="col-sm-2 m-0 p-0">
+                                    <button ng-click="guardarConfigCondicion()"
+                                            ng-disabled="objCondicion.campoAfectado === '' || !correctoValorAsignado"
+                                            type="button" 
+                                            class="btn btn-primary p-1" 
+                                            aria-label="condicion" style="font-size: xx-small;"> 
+                                        <i class="fa fa-plus fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Añadir condición </md-tooltip>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6" align="center">
+                        <table class="table table-condensed table-bordered">
+                            <thead>
+                                <tr>
+                                    <th width="10%">No.</th>
+                                    <th width="40%">Condición</th>
+                                    <th width="30%">Valor</th>
+                                    <th ng-if="!observando" width="20%">Acciones</th>
+                                </tr> 
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in arrCondiciones track by $index">
+                                    <td style="vertical-align: middle; text-align: center;">{{$index + 1}}</td>
+                                    <td style="vertical-align: middle; text-align: center;">{{item.campoAfectado.afectacion}}</td>
+                                    <td style="vertical-align: middle; text-align: right;">
+                                        {{formatearValoresArreglos(item.valorAsignado)}}
+                                        <i ng-if="item.campoAfectado.tipoDato === 'PORCENTAJE'" class="fa fa-percent fa-fw"></i>
+                                        <i ng-if="item.campoAfectado.tipoDato === 'MONTO'" class="fa fa-dollar fa-fw"></i>
+                                    </td>
+                                    <td ng-if="!observando" align="center" class="m-0 p-0" style="vertical-align: middle; text-align: center;">
+                            <md-button class="m-0 p-0" ng-click="eliminarCondicion($index)" 
+                                       aria-label="Elimina Detalle"> 
+                                <i class="fa fa-trash-o fa-red fa-fw"></i>
+                            </md-button>
+                            </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Linea de separacion --> 
+                <div class="mb-0 pb-0 mt-2" style="background-color: #2f6f9f; height: 1px;"></div>
+                <div class="w-25 p-0 m-0" align="left"> <p class="m-0 pl-2" style="background-color: grey; color: white;"> <b> BENEFICIOS </b> </p> </div>
+
+                <!-- Configuración de los beneficios --> 
+                <div id="divBeneficio" layout="row" layout-align="center center">
+                    <div ng-if="!observando" class="col-sm-6">
+                        <div layout="column"  layout-align="start none">
+                            <div layout="row">
+                                <md-select ng-model="objBeneficio.campoAfectado"
+                                           ng-change="validarSelectBeneficio()"
+                                           placeholder="Seleccione un beneficio"
+                                           class="w-75">
+                                    <md-option ng-value="t"
+                                               ng-if="t.pertenece[1] === 1" 
+                                               ng-repeat="t in tiposDescuentos|orderBy: t">
+                                        {{t.afectacion}}
+                                    </md-option>
+                                </md-select>
+                            </div>
+
+                            <div ng-if="objBeneficio.campoAfectado.tipoDato === 'MONTO'" layout="row" layout-align="space-around center">
+                                <p> <b>Afecta sobre?</b> </p> 
+                                <md-radio-group ng-model="objBeneficio.baseImponible">
+                                    <md-radio-button value="1" class="md-primary"> Base imponible </md-radio-button>
+                                    <md-radio-button value="0" class="md-primary"> Precio Total </md-radio-button>
+                                </md-radio-group>
+                            </div>
+
+                            <div layout="row">
+                                <div ng-if="objBeneficio.campoAfectado.tipoDato !== 'EXCLUYENTE'" class="col-sm-3 m-0 p-0">
+                                    <p class="m-0 p-0"> <b> Valor </b></p>
+                                </div>
+                                <div class="col-sm-7 m-0 p-0" layout="row" layout-align="start center">
+                                    <input ng-if="objBeneficio.campoAfectado.afectacion !== 'PLAZOS' && objBeneficio.campoAfectado.tipoDato !== 'EXCLUYENTE'"
+                                           ng-model="objBeneficio.valorAsignado"
+                                           ng-change="verificarCamposCondicion('beneficios', 'divBeneficio')"
+                                           ng-click="resetearInput(1)"
+                                           class="form-control w-50"
+                                           type="text" 
+                                           style=" text-align: right;"
+                                           required>
+
+                                    <md-select ng-model="objBeneficio.valorAsignado"
+                                               ng-if="objBeneficio.campoAfectado.afectacion === 'PLAZOS'"
+                                               ng-change="comprobarSeleccionPlazos(objBeneficio.valorAsignado)" 
+                                               placeholder="Seleccione una opción" 
+                                               class="form-control w-50 m-0 p-0">
+                                        <md-option ng-repeat="plazos in tiposPlazos">
+                                            {{plazos}}
+                                        </md-option>
+                                    </md-select>
+
+                                    <div ng-if="objBeneficio.campoAfectado.tipoDato === 'EXCLUYENTE'" 
+                                        class="col-sm-4 m-0 p-0" layout="row" layout-align="center center">
+                                        <p class="m-0 pr-2"> <b> Excluir </b> </p>
+                                        <md-switch  
+                                                   ng-model="objBeneficio.valorAsignado"
+                                                   ng-disabled="campania.wizardSelected === ''"
+                                                   ng-change="verificarCamposCondicion('beneficios', 'divBeneficio')"
+                                                   class="md-primary m-0 p-0" 
+                                                   md-no-ink aria-label="Switch excluyente">
+                                        </md-switch>
+                                    </div>
+
+                                    <i ng-if="objBeneficio.campoAfectado.tipoDato === 'PORCENTAJE'" class="fa fa-percent fa-fw"></i>
+                                    <i ng-if="objBeneficio.campoAfectado.tipoDato === 'MONTO'" class="fa fa-dollar fa-fw"></i>
+                                </div>
+                                <div class="col-sm-2 m-0 p-0">
+                                    <button ng-click="guardarBeneficio()"
+                                            ng-disabled="objBeneficio.campoAfectado === '' || !correctoValorAsignado"
+                                            type="button" 
+                                            class="btn btn-primary p-1" 
+                                            aria-label="condicion" style="font-size: xx-small;"> 
+                                        <i class="fa fa-plus fa-fw"></i>
+                                        <md-tooltip md-direction="top"> Añadir beneficio </md-tooltip>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6" align="center">
+                        <table class="table table-condensed table-bordered">
+                            <thead>
+                                <tr>
+                                    <th width="10%">No.</th>
+                                    <th width="40%">Beneficio</th>
+                                    <th width="30%">Valor</th>
+                                    <th ng-if="!observando" width="20%">Acciones</th>
+                                </tr> 
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in arrBeneficios track by $index">
+                                    <td style="vertical-align: middle; text-align: center;">{{$index + 1}}</td>
+                                    <td style="vertical-align: middle; text-align: center;">{{item.campoAfectado.afectacion}}</td>
+                                    <td ng-if="item.campoAfectado.tipoDato !== 'EXCLUYENTE'" style="vertical-align: middle; text-align: right;">
+                                        {{formatearValoresArreglos(item.valorAsignado)}}
+                                        <i ng-if="item.campoAfectado.tipoDato === 'PORCENTAJE'" class="fa fa-percent fa-fw"></i>
+                                        <i ng-if="item.campoAfectado.tipoDato === 'MONTO'" class="fa fa-dollar fa-fw"></i>
+                                    </td>
+                                    <td ng-if="item.campoAfectado.tipoDato === 'EXCLUYENTE'" style="vertical-align: middle; text-align: right;">
+                                        {{item.valorAsignado == true ? 'EXCLUYE' : ''}}
+                                    </td>
+                                    <td ng-if="!observando" align="center" class="m-0 p-0" style="vertical-align: middle; text-align: center;">
+                            <md-button class="m-0 p-0" ng-click="eliminarBeneficio($index)" 
+                                       aria-label="Elimina Detalle"> 
+                                <i class="fa fa-trash-o fa-red fa-fw"></i>
+                            </md-button>
+                            </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Linea de separacion --> 
+                <div class="mb-0 pb-0 mt-2" style="background-color: #2f6f9f; height: 1px;"></div>
+                <div class="w-25 p-0 m-0" align="left"> <p class="m-0 pl-2" style="background-color: grey; color: white;"> <b> OBSEQUIOS </b> </p> </div>
+
+                <!-- Configuración de los beneficios --> 
+                <div id="divObsequio" layout="row" layout-align="center center">
+                    <div ng-if="!observando" class="col-sm-6">
+
+                        <div class="pt-2" layout="row" layout-align="center center">
+                            <!-- class="m-0 p-0 w-25" -->
+                            <md-input-container>
+                                <label>Código</label>
+                                <input ng-model="objObsequio.codigo">
+                            </md-input-container>
+
+                            <md-input-container>
+                                <label>Descripción</label>
+                                <input ng-model="objObsequio.nombre">
+                            </md-input-container>
+
+                            <md-input-container>
+                                <label>Cantidad</label>
+                                <input ng-model="objObsequio.cantidad"
+                                       type="number"
+                                       min="1">
+                            </md-input-container>
+
+                            <button ng-click="agregarObsequio()"
+                                    ng-disabled="objObsequio.codigo === '' || objObsequio.nombre === '' || objObsequio.cantidad === ''"
+                                    type="button" 
+                                    class="btn btn-primary p-1 m-0" 
+                                    aria-label="beneficio" style="font-size: xx-small;"> 
+                                <i class="fa fa-plus fa-fw"></i>
+                                <md-tooltip md-direction="top"> Añadir obsequio </md-tooltip>
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <div class="col-sm-6" align="center">
+                        <table class="table table-condensed table-bordered">
+                            <thead>
+                                <tr>
+                                    <th width="30%">Código</th>
+                                    <th width="50%">Descripción</th>
+                                    <th width="10%">Cantidad</th>
+                                    <th ng-if="!observando" width="10%">Acciones</th>
+                                </tr> 
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="item in arrObsequios track by $index">
+                                    <td style="vertical-align: middle; text-align: center;">{{item.codigo}}</td>
+                                    <td style="vertical-align: middle; text-align: center;">{{item.nombre}}</td>
+                                    <td style="vertical-align: middle; text-align: center;">{{item.cantidad}}</td>
+                                    <td ng-if="!observando" align="center" class="m-0 p-0" style="vertical-align: middle; text-align: center;">
+                            <md-button class="m-0 p-0" ng-click="eliminarObsequio($index)" 
+                                       aria-label="Elimina Detalle"> 
+                                <i class="fa fa-trash-o fa-red fa-fw"></i>
+                            </md-button>
+                            </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+                                        </div>
+
+        <div class="p-2" layout="row" layout-align="center center" style="background-color: white;">
+            <button ng-if="!duplicando && !observando && !campania.conObsequio" 
+                    ng-click="guardar()"
+                    ng-disabled="objNuevoDetalle.sucursal.length === 0 ||
+                                objNuevoDetalle.subtipoDetalle.length === 0 ||
+                                arrCondiciones.length === 0 ||
+                                arrBeneficios.length === 0 ||
+                                banderaNombreRepetido ||
+                                !(campania.wizardSelected && campania.nombre)"
+                    class="btn btn-success">
+                <lang>Guardar</lang>
+            </button>
+
+            <button ng-if="!duplicando && !observando && campania.conObsequio" 
+                    ng-click="guardar()"
+                    ng-disabled="objNuevoDetalle.sucursal.length === 0 ||
+                                objNuevoDetalle.subtipoDetalle.length === 0 ||
+                                arrObsequios.length === 0 ||
+                                banderaNombreRepetido ||
+                                !(campania.wizardSelected && campania.nombre)"
+                    class="btn btn-success">
+                <lang>Guardar</lang>
+            </button>
+
+            <button ng-if="duplicando" 
+                    ng-click="guardar()"
+                    class="btn btn-success">
+                <lang>Guardar</lang>
+            </button>
+
+            <button ng-if="!duplicando || observando"
+                    ng-click="cerrarConfiguracion(1)"
+                    class="btn btn-danger ml-3">
+                <lang>Salir</lang>
+            </button>
+
+            <button ng-if="duplicando" 
+                    ng-click="cerrarConfiguracion('duplicado')"
+                    class="btn btn-danger ml-3">
+                <lang>Salir</lang>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para presentar la advertencia de campañas que tienen conflictos de fechas --> 
+<div ng-if="presentarAdvertencia" class="divSecundarioModalFondo"></div>
+<div ng-if="presentarAdvertencia" class="divSecundarioModal">
+    <!-- Presenta la advertencia de que las fechas chocan con otra campaña -->
+    <div layout="column" style="background-color: white;">
+        <div style="background-color: #2f6f9f; height: 1%;"></div>
+        <md-card style="border-radius:10px; background-color: rgb(255,102,0);">
+            <h5 class="pt-4" align="center" style="color: white;"> 
+                <i class="fa fa-warning fa-inverse fa-fw fa-shadow"></i>
+                <b> LAS FECHAS ELEGIDAS ESTÁN EN UN RANGO QUE TIENEN CONFLICTO CON LAS SIGUIENTES CAMPAÑAS </b>
+                <i class="fa fa-warning fa-inverse fa-fw fa-shadow"></i>
+            </h5>
+            <md-card-content class="p-1" layout="column" layout-align="center">
+                <div style="overflow-y: auto; height: 20vh; background-color: white;">
+                    <table class="table table-condensed table-hover">
+                        <thead>
+                            <tr>
+                                <th style=" font-size: 12px;"><b> Campaña </b></th>
+                                <th style=" font-size: 12px;"><b> Fecha Inicio Comercial </b></th>
+                                <th style=" font-size: 12px;"><b> Fecha Fin Comercial </b></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in arrCampaniasChocan">
+                                <td style=" font-size: 11px;">{{ item.nombre}}</td>
+                                <td style=" font-size: 11px;">{{ item.fechaInicio}}</td>
+                                <td style=" font-size: 11px;">{{ item.fechaFin}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </md-card-content>
+            <div class="mt-3 mb-3" layout="row" layout-align="space-around center"> 
+                <button class="btn btn-danger" ng-click="cerrarAdvertencia()"><lang>Salir</lang></button>
+            </div>
+        </md-card>
+    </div>
+</div>
+
+
+
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window> 
+<!-- _FIN_DE_ARCHIVO -->

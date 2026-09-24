@@ -1,0 +1,149 @@
+<div layout-padding>
+    <table class="ng-scope" width="100%" cellpadding="20">
+        <tr>
+            <td valign="top" class="col-xs-8 col-md-4" width="15%"  ng-show="cat.verCategoriaMenu" >
+                <table>
+                    <tr>
+                        <td>
+                            <div class="panel panel-success">
+                                <div ng-click="volverCategorias()" class="panel-heading">
+                                    <div class="panel-title">
+                                        <i class="fa fa-tags fa-lg"></i>
+                                        <lang>Categorías</lang>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="col-xs-8 col-md-4" valign="top" width="25%" ng-show="cat.verCategorias">
+                <div  class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <i class="fa fa-tags fa-fw"></i>
+                            <lang>Categorías</lang>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div>
+                            <table tabula="Categorias" url="../boletines/BoletinesCtrl.php?act=reporteCategorias" campo="" tamanio-inicial="15">
+                                <tr>
+                                    <th tabula-encabezado="cat_nombre" titulo="<lang>Nombre</lang>" ordenar filtrar ></th>
+                                    <th >&nbsp;</th>
+                                </tr>
+                                <tr ng-show="!pr.editame" ng-repeat-start="pr in tabulas['Categorias'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td width="70%">{{pr.cat_nombre}}</td>
+                                    <td>
+                                        <nobr><a ng-click="pr.editame = !pr.editame" tooltip-placement='bottom' tooltip='<lang>Editar</lang>' class="fa fa-edit fa-green fa-fw"></a>&nbsp;
+                                            <a ng-click="eliminarCategoria(pr, tabulas['Categorias'].filas)" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'><i class="fa fa-trash-o fa-red fa-fw"></i></a>&nbsp;
+                                            <a ng-click="verGrupos(pr)" tooltip-placement='bottom' tooltip='<lang>Ver grupos relacionados</lang>'><i class="fa fa-group fa-green fa-fw"></i></a>&nbsp;
+                                        </nobr>
+                                    </td>
+                                </tr>
+                                <tr ng-form="subformulariomod" ng-show="pr.editame" ng-init="inicializaItemCategorias(pr)" ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>
+                                        <input type='text' ng-model="pr.copy.cat_nombre" required/>
+                                        <div class="alert alert-error" ng-show="pr.copy.errores.cat_nombre" >{{pr.copy.errores.cat_nombre}}</div>
+                                    </td>
+                                    <td>
+                                        <nobr>
+                                            <a  ng-show="subformulariomod.$valid" ng-click="guardarCategoria(pr);" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'><i class="fa fa-check fa-green"></i></a>
+                                            <a  ng-click="pr.editame = false;reinicializaItem(pr, tabulas['Categorias'].filas)" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'><i class="fa fa-times-circle fa-red"></i></a>
+                                        </nobr>     
+                                    </td>
+                                </tr>
+                                <tr ng-repeat-end ng-show="subformulariomod.$invalid" >
+                                    <td colspan="6">
+                                        <div class="alert alert-success ng-scope"><lang>Complete el formulario para guardarlo</lang></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan='6'>
+                                        <br>
+                                        <button class="btn btn-primary" ng-click="preparaNuevoItem(tabulas['Categorias'].filas)">+ <lang>Añadir Categoría</lang></button>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td valign="top" width="70%">
+                <div class="panel panel-default" style="width:98%">
+                    <div class="panel-heading">
+                        <div class="panel-title" layout="row" layout-align="start center">
+                            <i class="fa fa-group fa-fw"></i>
+                            <lang>Grupos en la categoría</lang>
+                            <div ng-if="cat.categoriaActual">
+                                <i class="fa fa-angle-right fa-fw"></i> {{cat.categoriaActual}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="container-fluid" width="100%">
+                            <span ng-show="!cat.categoriaActual"><h6><lang>Seleccione una categoría para mostrar el detalle.</lang></h6></span>
+                            <table width="100%">
+                                <tr>
+                                    <td width="50%" valign="top">
+                                        <div ng-if="cat.categoriaMostrar > 0" class="col-xs-8 col-md-4" style="width:100%;" 
+                                             jerarquia="jcategoria" 
+                                             url="../boletines/BoletinesCtrl.php?act=jcategoria&categoriaId={{cat.categoriaMostrar}}" 
+                                             selector="seleccionaUbicacion(item,seleccionadas)" nivel-maximo="5" observa-y-recarga="cat.recargar" 
+                                             niveles-separados abrir-en="cat.cualAbrir" drag-enabled="false">
+                                            <div jerarquia-nodos ng-model="jerarquias['jcategoria']">
+                                                <li width="100%" ng-repeat="item in jerarquias['jcategoria']" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=comunes/partials/TemplateJerarquia.html'"></li>
+                                                <br>
+                                                <button class="btn btn-primary" ng-click="creaRaiz()"><lang>Añadir grupo</lang></button>
+                                                <br>
+                                                <br>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td width="50%" class="border-divide">
+                                        <div ng-if="cat.categoriaMostrar > 0">
+                                            <div id="detalleUbicacion">
+                                                <!-- EDICIÓN DE CATEGORÍAS -->
+                                                <div class="panel panel-default" ng-show="enEdicion.id">
+                                                    <div class="panel-heading">
+                                                        <table width="100%">
+                                                            <tr>
+                                                                <td width="75%" class="panel-title">{{laUltimaSeleccionada.nombre}}</td>
+                                                                <td width="20%" align="center" class="panel-title" style="padding: 0px 10px 0px 10px;"><input class="btn btn-default pull-right" name="Guardar" type="Submit" value="<lang>Save</lang>"  ng-click="guardarJerarquia(enEdicion)" ng-disabled="isSaveDisabled()"/></td>
+                                                                <td width="5%" class="panel-title border-left-title"><a style="right:0px;" class="pull-right" ng-click="cancelarEdicionJerarquia(enEdicion)" ng-disabled="isCancelDisabled()"><i class="fa fa-close fa-lg"></i></a></td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                    <div class="panel-body" style="background:#F5F5F5">
+                                                        <form action="" method="" name="userForm" >
+                                                            <label class="control-label" for="nombre"><lang>Nombre</lang></label>
+                                                            <div class="controls">
+                                                                <input size="35" type="text" style="border-radius: 5px" ng-model="enEdicion.nombre" required/>
+                                                            </div>
+                                                            <label class="control-label" for="descripcion"><lang>Descripcion</lang></label>
+                                                            <div class="controls">
+                                                                <input size="35" type="text" style="border-radius: 5px" ng-model="enEdicion.descripcion" />
+                                                            </div>
+                                                            <label class="control-label" for="activo"><lang>Público</lang></label>
+                                                            <div class="controls">
+                                                                <div class="btn-group">
+                                                                    <button type="button" class="btn btn-default colorRadioBT" ng-model="enEdicion.activo" btn-radio="'1'"><lang>Si</lang>&nbsp;</button>
+                                                                    <button type="button" class="btn btn-default colorRadioBT" ng-model="enEdicion.activo" btn-radio="'0'"><lang>No</lang></button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<!-- _FIN_DE_ARCHIVO -->

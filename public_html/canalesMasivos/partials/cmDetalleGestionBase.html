@@ -1,0 +1,368 @@
+<div class="gv-root">
+    <div class="gv-container">
+
+        <!--#region FILTROS-->
+        <div class="gv-filtros-bar">
+
+            <!-- IZQUIERDA: VOLVER + FILTROS -->
+            <div class="gv-filtros-izq">
+
+                <div class="gv-filtro-icon">
+                    &nbsp;
+                    <li class="fa fa-filter fa-15x"></li>
+                    &nbsp;
+                </div>
+
+                <div class="gv-filtro-content">
+
+                    <div class="gv-filtro-item">
+                        <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                        <input id="fechaDesde" class="form-control gv-input-fecha" type="text"
+                            datepicker-popup="dd/MM/yyyy"
+                            is-open="abreFechaDesde"
+                            ng-click="abreFechaDesde = !abreFechaDesde"
+                            ng-model="fechaDesde"
+                            placeholder="Desde"
+                            ng-change="aplicarRangoFechas()">
+                    </div>
+
+                    <div class="gv-filtro-item">
+                        <input id="fechaHasta" class="form-control  gv-input-fecha" type="text"
+                            datepicker-popup="dd/MM/yyyy"
+                            is-open="abreFechaHasta"
+                            ng-click="abreFechaHasta = !abreFechaHasta"
+                            ng-model="fechaHasta"
+                            placeholder="Hasta"
+                            ng-change="aplicarRangoFechas()">
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                        <select ng-disabled="cargando" id="filtroCartera"
+                            class="form-control "
+                            ng-model="filtroCartera"
+                            ng-options="p.id as p.nombre for p in listas.carteras"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-tags fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroProducto"
+                            class="form-control "
+                            ng-model="filtroProducto"
+                            ng-options="p.id as p.nombre for p in listas.productos"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-random fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroCanal"
+                            class="form-control "
+                            ng-model="filtroCanal"
+                            ng-change="validarFiltros()">
+                            <option value="todo">Todos los canales</option>
+                            <option value="AV">AV</option>
+                            <option value="WHATSAPP">WHATSAPP</option>
+                            <option value="EMAIL">EMAIL</option>
+                        </select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-calendar fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroFechaCarga"
+                            class="form-control "
+                            ng-model="filtroFechaCarga"
+                            ng-options="p.id as p.nombre for p in listas.fechasCarga"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- DERECHA: VOLVER -->
+            <div class="gv-filtros-derecha">
+                <button type="button" class="btn gv-btn-volver" ng-click="volver()">
+                    <i class="fa fa-arrow-left"></i>
+                    Atr&aacute;s
+                </button>
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region FILTROS APLICADOS-->
+        <div class="gv-filtros-aplicados">
+
+            <div class="gv-badges-izq">
+                <div ng-show="filtrosAplicados.tiempo.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.tiempo.titulo}}
+                        <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.cartera.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.cartera.titulo}}
+                        <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.producto.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.producto.titulo}}
+                        <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.canal.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.canal.titulo}}
+                        <li ng-click="quitarFiltro('canal')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.fechaCarga.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.fechaCarga.titulo}}
+                        <li ng-click="quitarFiltro('fechaCarga')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="cuantosAplicados>1" class="gv-badge-item">
+                    <span class="badge" ng-click="quitarFiltro('todo')">
+                        {{filtrosAplicados.todo.titulo}}
+                        <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region TITULO-->
+        <div class="contenedor-seccion">
+
+            <div layout="row">
+                <span class="titulo-pantalla gv-titulo-span">
+                    Detalle &middot; KPI de Gesti&oacute;n de Base
+                </span>
+            </div>
+
+            <!-- KPI RESUMEN -->
+            <div class="gv-detalle-kpi-row">
+
+                <div ng-show="cargandoListas" class="gv-loading-overlay">
+                    <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-blue">
+                        <i class="fa fa-database"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label">Base Asignada</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.gestion[0].total || 0 }}</div>
+                        <div class="gv-detalle-kpi-sub">clientes</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-green">
+                        <i class="fa fa-users"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label">Clientes Gestionados</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.gestion[1].total || 0 }}</div>
+                        <div class="gv-detalle-kpi-sub">clientes</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-red">
+                        <i class="fa fa-times-circle"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label">Clientes Sin Gesti&oacute;n</div>
+                        <div class="gv-detalle-kpi-value">{{ totales.gestion[2].total || 0 }}</div>
+                        <div class="gv-detalle-kpi-sub">clientes</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- 3 LISTAS -->
+            <div class="gv-detalle-listas-row">
+
+                <!-- LISTA 1: BASE ASIGNADA -->
+                <div class="gv-detalle-lista-col">
+                    <div class="gv-detalle-lista-card">
+
+                        <div ng-show="cargandoListas" class="gv-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                        </div>
+
+                        <div class="gv-detalle-lista-header">Lista base asignada</div>
+
+                        <div class="gv-detalle-buscador-row">
+                            <div class="gv-detalle-buscador gv-detalle-buscador-chica">
+                                <i class="fa fa-search"></i>
+                                <input type="text" class="form-control" placeholder="Buscar cliente..."
+                                    ng-model="busqueda.base"
+                                    ng-model-options="{ debounce: 400 }"
+                                    ng-change="buscarEnLista('base')">
+                            </div>
+                            <button type="button" class="gv-btn-exportar" ng-click="exportarExcel('listaBaseAsignada', busqueda.base)" ng-disabled="exportandoExcel['listaBaseAsignada']">
+                                <i class="fa" ng-class="exportandoExcel['listaBaseAsignada'] ? 'fa-spinner fa-spin' : 'fa-file-excel-o'"></i>
+                                {{ exportandoExcel['listaBaseAsignada'] ? 'Generando...' : 'Exportar' }}
+                            </button>
+                        </div>
+
+                        <div class="gv-detalle-tabla-wrap">
+                            <table tabula="listaBaseAsignada" ng-if="mostrarTabla.base" tamanio-inicial="10"
+                                url="../canalesMasivos/cmDashboardGestionesVentasCtrl.php?act=listaBaseAsignada&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}&filtroFechaCarga={{filtroFechaCarga}}&buscarCliente={{busqueda.base}}">
+                                <tr>
+                                    <th width="50%" tabula-encabezado="cubAV_numFactura" titulo="Cliente" ordenar></th>
+                                    <th width="50%" tabula-encabezado="cubAV_producto" titulo="Producto" ordenar></th>
+                                </tr>
+                                <tr ng-repeat="x in tabulas['listaBaseAsignada'].filas track by $index">
+                                    <td class="p-1 m-0 gv-td-cliente">
+                                        <span class="gv-td-cliente-inner">
+                                            <span class="gv-dot gv-dot-blue"></span>
+                                            <span class="gv-td-cliente-texto">{{ x.cubAV_numFactura }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="p-1 m-0">{{ x.cubAV_producto }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="gv-td-paginador" colspan="2" align="center">
+                                        <div class="gv-paginador-scale">
+                                            <tabula-paginador dataset="tabulas['listaBaseAsignada']" maxbotones="3"></tabula-paginador>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- LISTA 2: CLIENTES GESTIONADOS -->
+                <div class="gv-detalle-lista-col">
+                    <div class="gv-detalle-lista-card">
+
+                        <div ng-show="cargandoListas" class="gv-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                        </div>
+
+                        <div class="gv-detalle-lista-header">Clientes gestionados</div>
+
+                        <div class="gv-detalle-buscador-row">
+                            <div class="gv-detalle-buscador gv-detalle-buscador-chica">
+                                <i class="fa fa-search"></i>
+                                <input type="text" class="form-control" placeholder="Buscar cliente..."
+                                    ng-model="busqueda.gestionados"
+                                    ng-model-options="{ debounce: 400 }"
+                                    ng-change="buscarEnLista('gestionados')">
+                            </div>
+                            <button type="button" class="gv-btn-exportar" ng-click="exportarExcel('listaClientesGestionados', busqueda.gestionados)" ng-disabled="exportandoExcel['listaClientesGestionados']">
+                                <i class="fa" ng-class="exportandoExcel['listaClientesGestionados'] ? 'fa-spinner fa-spin' : 'fa-file-excel-o'"></i>
+                                {{ exportandoExcel['listaClientesGestionados'] ? 'Generando...' : 'Exportar' }}
+                            </button>
+                        </div>
+
+                        <div class="gv-detalle-tabla-wrap">
+                            <table tabula="listaClientesGestionados" ng-if="mostrarTabla.gestionados" tamanio-inicial="10"
+                                url="../canalesMasivos/cmDashboardGestionesVentasCtrl.php?act=listaClientesGestionados&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}&filtroCanal={{filtroCanal}}&filtroFechaCarga={{filtroFechaCarga}}&buscarCliente={{busqueda.gestionados}}">
+                                <tr>
+                                    <th width="32%" tabula-encabezado="cubAV_numFactura" titulo="Cliente" ordenar></th>
+                                    <th width="32%" tabula-encabezado="cubAV_estado" titulo="Estado"></th>
+                                    <th width="36%" tabula-encabezado="cubAV_fechaGestion" titulo="Mejor Gesti&oacute;n" ordenar></th>
+                                </tr>
+                                <tr ng-repeat="x in tabulas['listaClientesGestionados'].filas track by $index">
+                                    <td class="p-1 m-0 gv-td-cliente">
+                                        <span class="gv-td-cliente-inner">
+                                            <span class="gv-dot gv-dot-green"></span>
+                                            <span class="gv-td-cliente-texto">{{ x.cubAV_numFactura }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="p-1 m-0">
+                                        <span class="gv-badge-estado gv-badge-gestionado">Gestionado</span>
+                                    </td>
+                                    <td class="p-1 m-0">{{ x.cubAV_fechaGestion ? (x.cubAV_fechaGestion * 1000 | date:'dd/MM/yyyy HH:mm') : '' }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="gv-td-paginador" colspan="3" align="center">
+                                        <div class="gv-paginador-scale">
+                                            <tabula-paginador dataset="tabulas['listaClientesGestionados']" maxbotones="3"></tabula-paginador>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- LISTA 3: CLIENTES SIN GESTION -->
+                <div class="gv-detalle-lista-col">
+                    <div class="gv-detalle-lista-card">
+
+                        <div ng-show="cargandoListas" class="gv-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                        </div>
+
+                        <div class="gv-detalle-lista-header">Clientes sin gesti&oacute;n</div>
+
+                        <div class="gv-detalle-buscador-row">
+                            <div class="gv-detalle-buscador gv-detalle-buscador-chica">
+                                <i class="fa fa-search"></i>
+                                <input type="text" class="form-control" placeholder="Buscar cliente..."
+                                    ng-model="busqueda.sinGestion"
+                                    ng-model-options="{ debounce: 400 }"
+                                    ng-change="buscarEnLista('sinGestion')">
+                            </div>
+                            <button type="button" class="gv-btn-exportar" ng-click="exportarExcel('listaClientesSinGestion', busqueda.sinGestion)" ng-disabled="exportandoExcel['listaClientesSinGestion']">
+                                <i class="fa" ng-class="exportandoExcel['listaClientesSinGestion'] ? 'fa-spinner fa-spin' : 'fa-file-excel-o'"></i>
+                                {{ exportandoExcel['listaClientesSinGestion'] ? 'Generando...' : 'Exportar' }}
+                            </button>
+                        </div>
+
+                        <div class="gv-detalle-tabla-wrap">
+                            <table tabula="listaClientesSinGestion" ng-if="mostrarTabla.sinGestion" tamanio-inicial="10"
+                                url="../canalesMasivos/cmDashboardGestionesVentasCtrl.php?act=listaClientesSinGestion&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}&filtroCanal={{filtroCanal}}&filtroFechaCarga={{filtroFechaCarga}}&buscarCliente={{busqueda.sinGestion}}">
+                                <tr>
+                                    <th width="50%" tabula-encabezado="cubAV_numFactura" titulo="Cliente" ordenar></th>
+                                    <th width="50%" tabula-encabezado="cubAV_estado" titulo="Estado"></th>
+                                </tr>
+                                <tr ng-repeat="x in tabulas['listaClientesSinGestion'].filas track by $index">
+                                    <td class="p-1 m-0 gv-td-cliente">
+                                        <span class="gv-td-cliente-inner">
+                                            <span class="gv-dot gv-dot-red"></span>
+                                            <span class="gv-td-cliente-texto">{{ x.cubAV_numFactura }}</span>
+                                        </span>
+                                    </td>
+                                    <td class="p-1 m-0">
+                                        <span class="gv-badge-estado gv-badge-sinGestion">Sin gesti&oacute;n</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="gv-td-paginador" colspan="2" align="center">
+                                        <div class="gv-paginador-scale">
+                                            <tabula-paginador dataset="tabulas['listaClientesSinGestion']" maxbotones="3"></tabula-paginador>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+    </div>
+</div>

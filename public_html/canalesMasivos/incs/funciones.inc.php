@@ -1,0 +1,478 @@
+<?
+function newsletterInit($header="",$footer="") {
+	global $parteDeBoletin,$newsletterText,$pageText,$newsletterHeader,$newsletterFooter;
+	//newsletterMantiene(); //checkStructure()
+	require_once "../functions/checkemail.php";
+	$newsletterHeader=$header;
+	$newsletterFooter=$footer;
+	$parteDeBoletin=false;
+	$newsletterText="";
+	$pageText="";
+}
+function newsletterOn() {
+	global $parteDeBoletin,$newsletterText,$pageText,$Ancestros,$Central;
+	if(!isset($newsletterText)) {
+		newsletterInit();
+	}
+	if($Central->conPermiso("Boletines Electronicos,Administrador")) {
+		if($parteDeBoletin){
+			//do nothing
+		}else{
+			$textoHastaAqui=ob_get_contents();
+			ob_flush();
+			 $pageText.=$textoHastaAqui;
+			$parteDeBoletin=true;
+		}
+	}
+}
+function newsletterOff() {
+	global $parteDeBoletin,$newsletterText,$pageText,$Ancestros,$Central;
+	if($Central->conPermiso("Boletines Electronicos,Administrador")) {
+		if($parteDeBoletin){
+			$textoHastaAqui=ob_get_contents();
+			ob_flush();
+			$pageText.=$textoHastaAqui;
+			$newsletterText.=$textoHastaAqui;
+			$parteDeBoletin=false;
+		}else{
+			//do nothing
+		}
+	}
+}
+function newsletterAdd($texto="") {
+	global $propias,$parteDeBoletin,$newsletterText,$pageText,$Ancestros,$newsletterHeader,$newsletterFooter;
+	if($texto!=""){
+		if(!isset($newsletterText)) {
+			newsletterInit();
+		}
+		$pdb=$parteDeBoletin."Hola Mundo";
+		if($parteDeBoletin){
+			newsletterOff();
+		}
+		$newsletterText.=$texto;
+		if($pdb){
+			newsletterOn();
+		}
+	}
+}
+function newsletterAddStandardBlock(){
+	global $lang,$propias;
+	newsletterAdd("\n<br><div class='PARRAFOMAIN' style='font-size:10px;width:300px; padding:5px; background-color:#e4e6e5; color:#4F4F4F'>"
+	.$lang["ToViewCorrectly"]
+	."<br>".
+	$lang["Attached Newsletter 4"]."&nbsp;&nbsp;
+	<a href='".BASEURL."__stopNewsletter.php__'>"
+	.$lang["Unsubscribe"]."</a>");
+}
+
+function newsletterFinishLine(){
+	global $lang,$Ancestros,$newsletterHeader,$newsletterText,$newsletterFooter,$Central;
+	$aEscribir="";
+	
+	if($Central->conPermiso("Boletines Electronicos,Administrador")) {
+		if(isset($_REQUEST["newsletterAction"]) && expect_safe_html($_REQUEST["newsletterAction"])!=""){
+			if(isset($newsletterText)) {
+				if($newsletterText!=""){
+					$cnf=getConf("Boletines Electronicos");
+					eval('$db=new '.DB1.'DB();');
+					eval('$db2=new '.DB1.'DB();');
+					//todo parece bien, vamos creando un registro de envio
+					$instante=time();
+					$tituloB=strtr($Ancestros[0]->nombre, "áéíóúüñÁÉÍÓÚÜÑ", "aeiouunAEIOUUN");
+					$textoCompleto = $newsletterHeader.$newsletterText.$newsletterFooter;
+					$bitacora=" ";
+					if(expect_safe_html($_REQUEST["newsletterAction"])=="Lista"){
+					    //PRUEBA DE INSERCIÓN DEL TEXTO HTML
+					    if($db->query($db->mkSQL("SELECT boContenido_id FROM bocontenido WHERE boContenido_categoriaId=%N",
+                                                    $Ancestros[0]->id))){
+						$row = $db->fetchRow();
+						$contenidoId = $row["boContenido_id"]; 
+						$sql=$db->mkSQL("UPDATE bocontenido
+						    SET boContenido_fechaActualiza=%N,
+						    boContenido_usuarioActualiza=%N,
+						    boContenido_contenido=%Q
+						    WHERE boContenido_id=%N",
+						    $instante,$_SESSION[MID."userId"],$textoCompleto,
+						    $contenidoId);
+						$db->query($sql);
+					    }else{
+						$sql=$db->mkSQL("INSERT INTO bocontenido 
+						    (boContenido_fechaActualiza, boContenido_usuarioActualiza, 
+						    boContenido_contenido,boContenido_categoriaId,boContenido_fechaCreacion) 
+						    VALUES (%N,%N,%Q,%N,%N)",
+						    $instante,$_SESSION[MID."userId"],$textoCompleto,$Ancestros[0]->id,time());
+						$contenidoId=$db->query($sql);
+					    }
+					    echo "<script type='text/javascript'>
+							window.location='".BASEURL."boletines/Boletines.php#/PanelControl/e/".$contenidoId."'
+							</script>";
+					    
+//						//require_once "../mimeClasses/MIME.class.php";
+//						require_once("../alerts/classes/class.alEvent.php");
+//						$destinatarios=array();
+//						$grupos="__ Envío manual __";
+//						//divide la lista enviada por líneas
+//						$nlc=explode("\n",expect_safe_html($_REQUEST["newsletterCorreos"]));
+//						foreach($nlc as $corr){
+//							$cc=explode(" ",$corr);
+//							$nom="";
+//							$cor="";
+//							foreach($cc as $ccc){
+//								if(trim($ccc)!=""){
+//									if(validate_email(trim($ccc))) {
+//										$cor=trim($ccc);
+//									}else{
+//										$nom.=trim($ccc)." ";
+//									}
+//								}
+//							}
+//							if($cor!=""){
+//								if(validate_email($cor)){
+//									$destinatarios[]=array($cor,$nom);
+//                                                                             
+//                                                                        
+//                                                                        
+//                                                                         
+//								}else{
+//									$bitacora.="Email no es válido: ".$nom." ".$cor."\n";
+//								}
+//							}else{
+//								$bitacora.="Email no es válido: ".$nom." ".$cor."\n";
+//							}
+//						}
+//						$titulo="["
+//						.$lang["EL SITIO"]
+//						."] ".$tituloB;
+                                                
+//						for($iii=0;$iii<$cnf["Numero de mails por bloque"][0];$iii++){
+//							$dat=array_pop($destinatarios);
+//							$email=trim($dat[0]);
+//							$nom=trim($dat[1]);
+//                                                        
+//                                                        $cadena=$textoCompleto;
+//                                                        $maximo = strlen($cadena);
+//                                                        $cadena_comienzo = "__";
+//                                                        $cadena_fin = "__.";
+//                                                        $total = strpos($cadena,$cadena_comienzo);
+//                                                        $total2 = strpos($cadena,$cadena_fin);
+//                                                        $total3 = ($maximo - $total2-3);
+//                                                        $final ='/'. str_replace(array(".","?","/"),array("\\.","\\?","\\/"),substr ($cadena,$total,-$total3)).'/' ;
+//
+//                                                        $final1 =  urlencode(substr ($cadena,$total+2,-$total3-3)) ;
+//                                                        $meLeter=preg_replace($final, BASEURL. "/boletines/emailControler.php?act=redirect&email=".  md5($email)."&link=".urlencode($final1), $textoCompleto);
+//							$miTexto=str_replace("__stopNewsletter.php__","../boletines/editNewsletter.php?m=".$email."&n=".md5($email),$meLeter);
+//                                                        //Envia email V2							
+//							if($email!=""){
+//								$alEv=new alEvent();
+//								$howmany=$alEv->send_alert(array(
+//									"family"=>"Boletines Electronicos",
+//									"name"=>"Mailings - funciones",
+//									"explanation"=>"Envio de los mailings de Mr Books.",
+//									"subject"=>$titulo,
+//									"to"=>$nom." <".$email.">",
+//									"from"=>$lang["EL SITIO"]." <".$cnf["Email de origen"][0].">",
+//									"text"=>$miTexto,
+//									"html"=>$miTexto,
+//								));
+//								if ($howmany > 0){
+//									$aEscribir.=$lang["Mail enviado"].": ".$nom." ".$email."\n";
+//								}else{
+//									$aEscribir.=$lang["MailCouldNot"]
+//									." ".$nom." ".$email."\n";
+//								}	
+//							}
+//						}
+					}
+//					if(expect_safe_html($_REQUEST["newsletterAction"])=="Todos"){
+//						$grupos="";
+//						$destinatarios=" ";
+//						//procesa la lista de correos
+//						$todosLosEnvios=array();
+//						$num_rows=$db->query("SELECT * FROM gruposcorreo");
+//						while ($row=$db->fetchRow()){
+//							if(isset($_REQUEST["newsletterGruposDeCorreo$row[gruposcorreo_id]"]) && $_REQUEST["newsletterGruposDeCorreo$row[gruposcorreo_id]"]==$row["gruposcorreo_id"]){
+//								$grupos.=$row["gruposcorreo_nombre"]."__-__";
+//								$num_rows2=$db2->query($db2->mkSQL("SELECT * 
+//								FROM correos,correoxgrupos,gruposcorreo 
+//								WHERE correoxgrupos_correoId=correos_id
+//								AND correoxgrupos_grupoId=gruposcorreo_id
+//								AND gruposcorreo_id=%N
+//								AND correos_email<>''",$row["gruposcorreo_id"]));
+//								$newMax=(string)((int)ini_get("max_execution_time")+10*$num_rows2);
+//								ini_set("max_execution_time",$newMax);
+//								while($row2=$db2->fetchRow()){
+//									if(validate_email($row2["correos_email"])) {
+//										$val=$row2["correos_nombre"]."ëëë".$row2["correos_email"];
+//										array_push($todosLosEnvios,$val);
+//									}else{
+//										$bitacora.=$lang["Email no es válido"]
+//										.": ".$row2["correos_nombre"]." ".$row2["correos_email"]."\n";
+//									}
+//								}
+//							}
+//						}
+//						sort($todosLosEnvios);
+//						$todosLosEnvios=array_unique($todosLosEnvios);
+//						foreach($todosLosEnvios as $ttllee){
+//							$tle=explode("ëëë",$ttllee);
+//							$destinatarios.=$tle[1]."__-__".$tle[0]."\n";
+//						}
+//						//ahora sí cree el registro
+//						$nuevoId=$db->query($db->mkSQL("INSERT INTO corenvios (
+//						corenvios_instante,corenvios_titulo,corenvios_texto,corenvios_grupos,
+//						corenvios_enviadoPor,corenvios_listo
+//						) VALUES (%N,%Q,%Q,
+//						%Q,%N,%Q)",
+//						$instante,$tituloB,$textoCompleto,
+//						$grupos,$_SESSION[MID."userId"],0));
+//						$fp=fopen($cnf["Directorio de bitacoras"][0]."bitacora_".$nuevoId,"w");
+//						if(!fwrite($fp, $bitacora)){
+//							echo "<script type='text/javascript'>
+//							alert('"
+//							.$lang["ERROR: No pude guardar la bitácora del boletín"]
+//							."');
+//							</script>";
+//						}
+//						fclose($fp);
+//						$fp=fopen($cnf["Directorio de bitacoras"][0]."pendientes_".$nuevoId,"w");
+//						if(!fwrite($fp, $destinatarios)){
+//							echo "<script type='text/javascript'>
+//							alert('"
+//							.$lang["ERROR GRAVE: No pude guardar la lista de destinatarios. El boletín no se enviará a ninguna persona."]
+//							."');
+//							</script>";
+//						}
+//						fclose($fp);
+//						echo "<script type='text/javascript'>
+//						alert('"
+//						.$lang["El boletín se enviará de forma automática y progresiva en el transcurso de las próximas horas. Puede consultar el avance de los envíos haciendo click en _Bitácoras_."]
+//						."');
+//						</script>";	
+//					}
+				}
+			}
+		}
+	}
+}
+function newsletterMantiene(){
+	if(DEVELOPMENT){
+		eval('$db=new '.DB1.'DB();');
+		$db->mantieneBase(
+			array(
+				"table"=>"corenvios",
+				"prefix"=>"corenvios_",
+				"fields"=>array(
+					array(
+						"name"=>"id",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"primary",
+					),
+					array(
+						"name"=>"instante",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"titulo",
+						"type"=>"varchar",
+						"size"=>"250",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"texto",
+						"type"=>"text",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"grupos",
+						"type"=>"text",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"enviadoPor",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"listo",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>0,
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"categoriaId",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+				)
+			)
+		);
+		$db->mantieneBase(
+			array(
+				"table"=>"correos",
+				"prefix"=>"correos_",
+				"fields"=>array(
+					array(
+						"name"=>"id",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"primary",
+					),
+					array(
+						"name"=>"nombre",
+						"type"=>"varchar",
+						"size"=>"200",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"email",
+						"type"=>"varchar",
+						"size"=>"200",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"pais",
+						"type"=>"varchar",
+						"size"=>"2",
+						"default"=>"EC",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"cedula",
+						"type"=>"varchar",
+						"size"=>"30",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"comentario",
+						"type"=>"text",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"created",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>0,
+						"special"=>"",
+						"index"=>"",
+					),
+				)
+			)
+		);
+		$db->mantieneBase(
+			array(
+				"table"=>"gruposcorreo",
+				"prefix"=>"gruposcorreo_",
+				"fields"=>array(
+					array(
+						"name"=>"id",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"primary",
+					),
+					array(
+						"name"=>"nombre",
+						"type"=>"varchar",
+						"size"=>"100",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"publico",
+						"type"=>"varchar",
+						"size"=>"2",
+						"default"=>"N",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"pordefecto",
+						"type"=>"varchar",
+						"size"=>"2",
+						"default"=>"N",
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"descripcion",
+						"type"=>"varchar",
+						"size"=>"200",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"",
+					),
+				)
+			)
+		);
+		$db->mantieneBase(
+			array(
+				"table"=>"correoxgrupos",
+				"prefix"=>"correoxgrupos_",
+				"fields"=>array(
+					array(
+						"name"=>"id",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>"",
+						"special"=>"",
+						"index"=>"primary",
+					),
+					array(
+						"name"=>"correoId",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>0,
+						"special"=>"",
+						"index"=>"",
+					),
+					array(
+						"name"=>"grupoId",
+						"type"=>"int",
+						"size"=>"",
+						"default"=>0,
+						"special"=>"",
+						"index"=>"",
+					),
+				)
+			)
+		);
+	}
+}
+?><? //_FIN_DE_ARCHIVO ?>

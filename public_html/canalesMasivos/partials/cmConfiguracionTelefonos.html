@@ -1,0 +1,271 @@
+<style>
+    .md-switch.md-default-theme.md-checked .md-bar, md-switch.md-checked .md-bar {
+        background-color: #d6eaf8;
+    }
+    .md-switch.md-default-theme.md-checked .md-thumb, md-switch.md-checked .md-thumb {
+        background-color: #428bca;
+    }
+    .md-switch.md-default-theme.md-checked .md-ink-ripple, md-switch.md-checked .md-ink-ripple {
+        color: #428bca;
+    }
+</style>
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 100vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>N&uacute;meros telef&oacute;nicos por cartera/campa&ntilde;a</div>
+        </div>
+    </div>
+</div>
+<div style="display: flex; flex-direction: column; padding: 10px;">
+    <!--#region FILTROS-->
+    <div style="width: 100%; display: flex; margin-bottom: 18px;  border: solid 1px #cbcbcb; border-radius: 4px;">
+        <div style="height: 65px; display: flex; justify-content: center; align-items: center; vertical-align: middle; background-color: #cbcbcb;">
+            &nbsp;
+            <li class="fa fa-filter fa-15x" style="cursor: default;"></li>
+            &nbsp;
+        </div>
+        <div style="padding: 12px; display: flex; width: 100%;">
+            <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                <li class="fa fa-fw fa-briefcase fa-15x" style="cursor: default;"></li>
+                <select
+                    id="filtroCartera"
+                    class="form-control select-filtro"
+                    ng-model="filtros.cartera"
+                    ng-options="p.cobCartera_id as p.cobCartera_nombre for p in listas.carteras"
+                    ng-change="aplicarFiltros()"
+                ></select>
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                <li class="fa fa-fw fa-tag fa-15x" style="cursor: default;"></li>
+                <select
+                    id="filtroCampania"
+                    class="form-control select-filtro"
+                    ng-model="filtros.campania"
+                    ng-options="p.scRamas_id as p.scRamas_nombre for p in listas.campanias"
+                    ng-change="aplicarFiltros()"
+                ></select>
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;" ng-show="filtros.campania!=='' || filtros.cartera!==''">
+                <span class="badge" ng-click="quitarFiltros()" style="cursor: pointer;">
+                    Quitar filtros
+                    <li class="fa fa-fw fa-times" title="Quitar filtros"></li>
+                </span>
+            </div>
+            <div style="display: flex; flex:1; justify-content: end;">
+                <button class="btn btn-primary" ng-click="nuevoNumero()">
+                    Nuevo n&uacute;mero
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="padding:10px">
+    <table
+        observa-y-recarga="tabuVariable"
+        tabula="telefonos"
+        url="../canalesMasivos/cmConfiguracionTelefonosCtrl.php?act=cargarTabula&cartera={{filtros.cartera}}&campania={{filtros.campania}}"
+        class="table "
+        border="1"
+        tamanio-inicial="10"
+        post-carga="cargoTabula(filas, extra)"
+    >
+        <tr>
+            <th>
+                <lang>Acciones</lang>
+            </th>
+            <th tabula-encabezado="activo" titulo="Activo" ordenar></th>
+            <th
+                tabula-encabezado="proveedor"
+                titulo="Proveedor"
+                filtrar
+                ordenar
+            ></th>
+            <th
+                tabula-encabezado="numero"
+                titulo="Número"
+                filtrar
+                ordenar
+            ></th>
+            <th>Carteras</th>
+            <th>Campa&ntilde;as</th>
+            <th tabula-encabezado="fecha" titulo="<lang>Registro</lang>"></th>
+        </tr>
+        <tr ng-repeat="tel in tabulas['telefonos'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+            <td style="vertical-align: middle; text-align: center;">
+                <nobr>
+                    <!--<i class="fa fa-edit fa-fw" title="Modificar número" ng-click="modificarTelefono(tel)"></i>-->
+                    <i class="fa fa-cog fa-fw" title="Configurar carteras/campañas" ng-click="configurarCampania(tel)"></i>
+                    <i class="fa fa-trash-o fa-red fa-fw" title="Eliminar número" ng-click="eliminarTelefono(tel)"></i>
+                </nobr>
+            </td>
+            <td style="vertical-align: middle; justify-content: center; align-items: center; text-align: center; justify-items: center;">
+                <md-switch ng-model="tel.activo" aria-label="Disabled active switch" ng-change="activarTelefono(tel)"></md-switch>
+            </td>
+            <td style="vertical-align: middle; text-align: center;">
+                {{tel.proveedor}}
+            </td>
+            <td style="vertical-align: middle; text-align: center;">
+                {{tel.numero}}
+            </td>
+            <td>
+                <ul>
+                    <li ng-repeat="c in tel.carteras">Cartera: {{c.nombre}} {{c.exclusivo ? "(exclusivo)" : ""}}</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li ng-repeat="c in tel.campanias">Campa&ntilde;a: {{c.nombre}} {{c.exclusivo ? "(exclusivo)" : ""}}</li>
+                </ul>
+            </td>
+            <td style="vertical-align: middle; text-align: center;">
+                <span title="{{tel.registroUsuaruioNombre}}">{{tel.registroUsuaruioNombre | textoExtenso:20}}</span>
+                <br>
+                <small>
+                    {{tel.registrofecha | fecha:'d/m/Y H:i'}}
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" colspan="1">
+                <button class="btn btn-primary" ng-click="actualizarTabula()">
+                    Actualizar
+                </button>
+            </td>
+            <td colspan="8">
+                <tabula-paginador dataset="tabulas['telefonos']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+            </td>
+        </tr>
+    </table>
+</div>
+<modal-popup
+    titulo="Relacionar cartera/campaña"
+    evento="{{verModalCartera.evento}}"
+    icono="fa fa-briefcase fa-fw"
+    width="700"
+    abrir="verModalCartera.activo"
+    style="color: black;"
+>
+    <div style="margin-bottom: 12px;">
+        <ul class="list-group">
+            <li>
+                <b>
+                    Carteras relacionadas:
+                    <span class="badge">{{verModalCartera.seleccionado.carteras.length}}</span>
+                </b>
+            </li>
+            <li class="list-group-item" ng-repeat="cp in verModalCartera.seleccionado.carteras">
+                <span class="fa fa-fw fa-trash-o fa-red" title="Eliminar relación" ng-click="eliminarRelacion(cp, 'cartera')"></span>
+                {{cp.nombre}} {{cp.exclusivo ? "(exclusivo)" : ""}}
+            </li>
+        </ul>
+        <ul class="list-group">
+            <li>
+                <b>
+                    Campa&ntilde;as relacionadas:
+                    <span class="badge">{{verModalCartera.seleccionado.campanias.length}}</span>
+                </b>
+            </li>
+            <li class="list-group-item" ng-repeat="cp in verModalCartera.seleccionado.campanias">
+                <span class="fa fa-fw fa-trash-o fa-red" title="Eliminar relación" ng-click="eliminarRelacion(cp, 'campania')"></span>
+                {{cp.nombre}} {{cp.exclusivo ? "(exclusivo)" : ""}}
+            </li>
+        </ul>
+    </div>
+    <hr>
+    <div>
+        <div class="form-group">
+            <b>Nueva relaci&oacute;n:</b>
+        </div>
+        <div class="form-group">
+            <label for="carteras">
+                *Cartera
+            </label>
+            <autocomplete
+                name="carteras"
+                placeholder="Seleccione cartera"
+                limit="5"
+                url="../canalesMasivos/cmConfiguracionTelefonosCtrl.php?act=cargarCarteras"
+                resultado="seleccionado.carteraSeleccionada"
+                muestra-resultado="cobCartera_nombre"
+                charsearch="0"
+            >
+                <ul ng-repeat="fila in autos['carteras'].filas" class="nav nav-pills nav-stacked">
+                    <li autosuggestion ng-value="fila" ng-class="fila.estiloAutocomplete">
+                        {{fila.cobCartera_nombre}}
+                    </li>
+                </ul>
+            </autocomplete>
+        </div>
+        <div class="form-group" ng-if="seleccionado.carteraSeleccionada['cobCartera_id']!==undefined">
+            <label for="campania">
+                Campa&ntilde;a
+            </label>
+            <autocomplete
+                name="campanias"
+                placeholder="Seleccione campaña"
+                limit="5"
+                url="../canalesMasivos/cmConfiguracionTelefonosCtrl.php?act=cargarCampanias&cartera={{seleccionado.carteraSeleccionada['cobCartera_id']}}"
+                resultado="seleccionado.campaniaSeleccionada"
+                muestra-resultado="scRamas_nombre"
+                charsearch="0"
+            >
+                <ul ng-repeat="fila in autos['campanias'].filas" class="nav nav-pills nav-stacked">
+                    <li autosuggestion ng-value="fila" ng-class="fila.estiloAutocomplete">
+                        {{fila.scRamas_nombre}}
+                    </li>
+                </ul>
+            </autocomplete>
+        </div>
+        <div class="form-group">
+            <div style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+                <input type="checkbox" ng-model="verModalCartera.exclusivo">
+                <small>&nbsp;N&uacute;mero exclusivo para esta relaci&oacute;n</small>
+            </div>
+        </div>
+        <button class="btn btn-primary" ng-click="relacionar()" ng-disabled="verModalCartera.desactiva">
+            Relacionar con {{verModalCartera.seleccionado.numero}}
+        </button>
+        <div style="height: 80px; width: 100%;"></div>
+    </div>
+</modal-popup>
+<!--NUEVO NUMERO-->
+<modal-popup
+    titulo="Nuevo número"
+    evento="{{verModalNuevo.evento}}"
+    icono="fa fa-file-o fa-fw"
+    width="400"
+    abrir="verModalNuevo.activo"
+    style="color: black;"
+>
+    <div>
+        <div class="form-group">
+            <label for="proveedor">
+                *Proveedor
+            </label>
+            <select
+                id="proveedor"
+                class="form-control"
+                ng-model="verModalNuevo.datos.proveedor"
+                ng-options="p.id as p.nombre for p in listas.proveedores"
+            ></select>
+        </div>
+        <div class="form-group">
+            <label for="numero">
+                *N&uacute;mero
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="numero"
+                ng-model="verModalNuevo.datos.numero"
+                placeholder="+593998877665"
+                style="width: 200px;"
+            >
+        </div>
+        <button class="btn btn-primary" ng-click="guardarNuevoNumero()">
+            Guardar
+        </button>
+    </div>
+</modal-popup>
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

@@ -1,0 +1,203 @@
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 99vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>Configuraci&oacute;n LiveKit</div>
+        </div>
+    </div>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; vertical-align: middle; justify-content: center; width: 99vw; height: 100%; padding: 8px;">
+    <tabset style="width: 100%;">
+        <tab heading="General">
+            <div style="padding-top: 8px;">
+                <div class="form-group">
+                    <div ng-show="configuracion.general.pausa_servicio===0" ng-click="cambiaEstadoAgente('detener')">
+                        <li class="fa fa-fw fa-stop fa-red"></li>
+                        <label style="cursor: pointer;">Detener lanzamiento de llamadas</label>
+                    </div>
+                    <div ng-show="configuracion.general.pausa_servicio===1" ng-click="cambiaEstadoAgente('reanudar')">
+                        <li class="fa fa-fw fa-play fa-green"></li>
+                        <label style="cursor: pointer;">Reanudar lanzamiento de llamadas</label>
+                    </div>
+                </div>
+            </div>
+            <div style="width: 100%; display: flex;">
+                <div style="width: 33%; padding: 8px; display: flex; flex-direction: column;">
+                    <div class="form-group">
+                        <label for="registros_procesar">
+                            Llamadas a lanzar por vuelta
+                        </label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="registros_procesar"
+                            ng-model="configuracion.general.registros_procesar"
+                            style="width: 80px;"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="segundos_pausa_entre_procesos">
+                            Pausa entre vuelta de lanzamiento
+                        </label>
+                        <div class="input-group" style="width: 120px;">
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="segundos_pausa_entre_procesos"
+                                ng-model="configuracion.general.segundos_pausa_entre_procesos"
+                            >
+                            <div class="input-group-addon">segs.</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registros_finalizado_procesar">
+                            Llamadas a analizar por vuelta
+                        </label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="registros_finalizado_procesar"
+                            ng-model="configuracion.general.registros_finalizado_procesar"
+                            style="width: 80px;"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="segundos_pausa_entre_procesos_finalizado">
+                            Pausa entre vuelta de an&aacute;lisis
+                        </label>
+                        <div class="input-group" style="width: 120px;">
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="segundos_pausa_entre_procesos_finalizado"
+                                ng-model="configuracion.general.segundos_pausa_entre_procesos_finalizado"
+                            >
+                            <div class="input-group-addon">segs.</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="width: 33%; padding: 8px; display: flex; flex-direction: column;">
+                    <div class="form-group">
+                        <label for="modelo_analisis">
+                            Modelo an&aacute;lisis llamadas
+                        </label>
+                        <input
+                            class="form-control"
+                            id="modelo_analisis"
+                            ng-model="configuracion.general.modelo_analisis"
+                            maxlength="200"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="temperatura_analisis">
+                            Temperatura modelo an&aacute;lisis llamadas
+                        </label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="temperatura_analisis"
+                            ng-model="configuracion.general.temperatura_analisis"
+                            max="1"
+                            min="0"
+                            style="width: 80px;"
+                            step="0.1"
+                        >
+                        <p class="help-block">Mientras m&aacute;s bajo, m&aacute;s preciso</p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex;">
+                <button class="btn btn-primary" ng-click="guardarConfiguracionGeneral()">
+                    Guardar
+                </button>
+                <p class="bg-info" style="padding: 4px; margin-left: 8px;">
+                    <small>&Uacute;ltima modificaci&oacute;n {{configuracion["general"].usuario_modificacion}} el {{configuracion["general"].fecha_modificacion | fecha:"d/m/Y H:i"}}</small>
+                </p>
+            </div>
+        </tab>
+        <tab heading="Agentes">
+            <div style="padding-top: 8px;">
+                <div class="form-group">
+                    <label for="agente">
+                        Agente
+                    </label>
+                    <select
+                        id="agente"
+                        class="form-control select-filtro"
+                        ng-model="agenteSeleccionado"
+                        ng-options="p.id as p.nombre for p in agentes"
+                        ng-change="traerConfiguracionAgente(agenteSeleccionado)"
+                    ></select>
+                </div>
+            </div>
+            <div style="width: 100%; display: flex;" ng-show="agenteSeleccionado!==''">
+                <div style="width: 33%; padding: 8px; display: flex; flex-direction: column;">
+                    <div class="form-group">
+                        <label for="tts_proveedor_nombre">
+                            Nombre proveedor TTS
+                        </label>
+                        <!--<input class="form-control" id="tts_proveedor_nombre" ng-model="configuracion[agenteSeleccionado].tts_proveedor_nombre">-->
+                        <select
+                            id="tts_proveedor_nombre"
+                            class="form-control select-filtro"
+                            ng-model="configuracion[agenteSeleccionado].tts_proveedor_nombre"
+                            ng-options="p.nombre as p.nombre for p in provsTTS"
+                        ></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tts_api_key">
+                            TTS API key
+                        </label>
+                        <input class="form-control" id="tts_api_key" ng-model="configuracion[agenteSeleccionado].tts_api_key">
+                    </div>
+                    <div class="form-group">
+                        <label for="tts_voice_id">
+                            Id voz TTS
+                        </label>
+                        <input class="form-control" id="tts_voice_id" ng-model="configuracion[agenteSeleccionado].tts_voice_id">
+                    </div>
+                    <div class="form-group">
+                        <label for="tts_model">
+                            Modelo TTS
+                        </label>
+                        <input class="form-control" id="tts_model" ng-model="configuracion[agenteSeleccionado].tts_model">
+                    </div>
+                </div>
+                <div style="width: 33%; padding: 8px; display: flex; flex-direction: column;">
+                    <div class="form-group">
+                        <label for="stt_proveedor_nombre">
+                            Nombre proveedor STT
+                        </label>
+                        <!--<input class="form-control" id="stt_proveedor_nombre" ng-model="configuracion[agenteSeleccionado].stt_proveedor_nombre">-->
+                        <select
+                            id="stt_proveedor_nombre"
+                            class="form-control select-filtro"
+                            ng-model="configuracion[agenteSeleccionado].stt_proveedor_nombre"
+                            ng-options="p.nombre as p.nombre for p in provsSTT"
+                        ></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stt_api_key">
+                            STT API key
+                        </label>
+                        <input class="form-control" id="stt_api_key" ng-model="configuracion[agenteSeleccionado].stt_api_key">
+                    </div>
+                    <div class="form-group">
+                        <label for="stt_model">
+                            Modelo STT
+                        </label>
+                        <input class="form-control" id="stt_model" ng-model="configuracion[agenteSeleccionado].stt_model">
+                    </div>
+                </div>
+            </div>
+            <div ng-show="agenteSeleccionado!==''" style="display: flex;">
+                <button class="btn btn-primary" ng-click="guardarConfiguracionAgente(agenteSeleccionado)">
+                    Guardar
+                </button>
+                <p class="bg-info" style="padding: 4px; margin-left: 8px;">
+                    <small>&Uacute;ltima modificaci&oacute;n {{configuracion[agenteSeleccionado].usuario_modificacion}} el {{configuracion[agenteSeleccionado].fecha_modificacion | fecha:"d/m/Y H:i"}}</small>
+                </p>
+            </div>
+        </tab>
+    </tabset>
+</div>
+<wait-window activar="cargando"></wait-window>

@@ -1,0 +1,57 @@
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 100vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>DEMO AGENTES VIRTUALES</div>
+        </div>
+    </div>
+</div>
+<div style="padding:10px; padding-left: 24px;">
+    <div class="form-group">
+        <label for="telefono">
+            *Tel&eacute;fono
+        </label>
+        <div class="input-group">
+            <div class="input-group-addon">+593</div>
+            <input
+                type="text"
+                class="form-control"
+                id="telefono"
+                ng-model="programar.telefono"
+                maxlength="10"
+                style="width: 125px;"
+                placeholder="963252154"
+            >
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="nombre">
+            Nombre y apellido
+        </label>
+        <input
+            type="text"
+            class="form-control"
+            id="nombre"
+            ng-model="programar.nombre"
+            maxlength="100"
+            style="width: 400px;"
+            placeholder="Juan Perez"
+        >
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" ng-model="programar.llamada">
+            Llamada tel&eacute;fonica
+        </label>
+    </div>
+    <div class="checkbox">
+        <label>
+            <input type="checkbox" ng-model="programar.whatsapp">
+            Whatsapp
+        </label>
+    </div>
+    <button class="btn btn-primary" ng-click="programarDemo()">
+        Generar
+    </button>
+</div>
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

@@ -1,0 +1,225 @@
+<reporte-cabecera nombre="<lang>Bitácora de envíos</lang>">
+    <lang>No se han definido filtros para éste reporte</lang>
+</reporte-cabecera>
+<div class="contenedor-tabs tabscuadradas" layout-padding>
+    <table width="100%" tabula="Bitacora" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacora&acc=getData" tamanio-inicial="15" observa-y-recarga="recargaBitacora" wait-tabula="waitWindow">
+        <tr>
+            <td align="center"><button class="btn btn-info" ng-click="recargarBitacora()"><i class="fa fa-refresh fa-fw"></i></button></td>
+            <td align="center"><tabula-exportar dataset="tabulas['Bitacora']"></tabula-exportar></td>
+            <td colspan="100" align="center"><tabula-paginador dataset="tabulas['Bitacora']"></tabula-paginador></td>
+        </tr>
+        <tr>
+            <th tabula-encabezado="boc_nombre cat_nombre" titulo="<lang>Nombre Boletin</lang>" ordenar></th>
+            <th tabula-encabezado="usu_apellidos usu_nombres" titulo="<lang>Enviado por</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_jerarquias" titulo="<lang>Marcados</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_envioProgramado" titulo="<lang>Fecha envío</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_filasLectura" titulo="<lang>Filas leidas</lang>"></th>
+            <th tabula-encabezado="bbi_enviados" titulo="<lang>Enviados</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_noEnviados" titulo="<lang>No Enviados</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_descripEstado" titulo="<lang>Estado</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_leidos" titulo="<lang>Leidos</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_desuscritos" titulo="<lang>Desuscritos</lang>" ordenar></th>
+            <th colspan="2"></th>
+        </tr>
+        <tr ng-repeat="pr in tabulas['Bitacora'].filas" style="border-top:4px;font-size: 13px;" ng-class-odd="'odd'" ng-class-even="'even'">
+            <td align="left">
+                <div layout="column">
+                    {{pr.boc_nombre}}
+                    <!--<div ng-if="pr.cat_nombre!=='null'">- {{pr.cat_nombre}}</div>-->
+                </div>
+            </td>
+            <td align="left"><span ng-if="pr.bbi_userId > 0">{{pr.usu_apellidos +' '+ pr.usu_nombres}}</span></td>
+            <td align="center">{{pr.bbi_jerarquias}}</td>
+            <td align="center">
+                <span ng-if="pr.bbi_envioProgramado > 0">{{pr.bbi_envioProgramado | fecha:'Y-m-d'}} {{pr.bbi_horaenvio}}</span>
+                <span ng-if="pr.bbi_envioProgramado === '0'">{{pr.bbi_creado | fecha:'Y-m-d'}}</span>
+            </td>
+            <td align="center">{{pr.bbi_filasLectura + " / "+ pr.bbi_filasTotal}}</td>
+            <td align="center">{{pr.bbi_enviados}}</td>
+            <td align="center">{{pr.bbi_noEnviados}}</td>
+            <td align="center">{{pr.bbi_descripEstado}}</td>
+            <td align="center">{{pr.bbi_leidos}}</td>
+            <td align="center">{{pr.bbi_desuscritos}}</td>
+            <td align="center">
+                <i ng-if="pr.bbi_estadoEnvio === '1'" class="fa fa-circle fa-green fa-fw" tooltip="<lang>Envio completo</lang>"></i>
+                <i ng-if="pr.bbi_estadoEnvio === '0'" class="fa fa-toggle-off fa-green fa-fw" tooltip="<lang>Detener</lang>" ng-click="cambiaEstadoEnvio(pr.bbi_id,pr.bbi_estadoEnvio)"></i>
+                <i ng-if="pr.bbi_estadoEnvio === '2'" class="fa fa-toggle-on fa-fw" tooltip="<lang>Reiniciar</lang>" ng-click="cambiaEstadoEnvio(pr.bbi_id,pr.bbi_estadoEnvio)"></i>
+            </td>
+            <td align="center">
+                <i class="fa fa-chevron-right fa-fw" tooltip="<lang>Ver Detalle</lang>" mde-click="verDetalle(pos,pr,$event)"></i>
+            </td>
+        </tr>
+    </table>
+</div>
+<!-- Modales -->
+<modal-popup titulo="<lang>Estadísticas</lang>" evento="{{Bitacora.evento}}" icono="fa fa-bar-chart fa-lg" width="820" abrir="Bitacora.ver">
+    <div class="contenedor-tabs tabscuadradas">
+        <tabset>
+            <tab class="title-tab">
+                <tab-heading><lang>Detalle</lang></tab-heading>
+                <div class="contenidosTabs">
+                    <table aling="center" class="table SUBtableModulos tb ng-isolate-scope" border="1">
+                        <tr>
+                            <th class="ng-isolate-scope"><lang>Archivo</lang></th>
+                            <th class="ng-isolate-scope"><lang>Programado</lang></th>
+                        </tr>
+                        <tr>
+                            <td align="left">{{Bitacora.estadisticas.archivo}}</td>
+                            <td align="center">
+                                <span ng-if="Bitacora.estadisticas.programado > 0">{{Bitacora.estadisticas.programado | fecha:'Y-m-d' + ' ' + Bitacora.estadisticas.hora}}</span>
+                                <span ng-if="Bitacora.estadisticas.programado == 0"><lang>No</lang></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th colspan="2" class="ng-isolate-scope"><lang>Selección</lang></th>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div ng-repeat="mr in Bitacora.estadisticas.marcados">{{mr.nombre}}</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </tab>
+            <tab class="title-tab">
+                <tab-heading><lang>Envío</lang></tab-heading>
+                <div class="contenidosTabs">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div layout="row">
+                                <div class="panel-title"><i class="fa fa-envelope-o fa-lg"></i><lang>Enviados y No enviados</lang></div>
+                                <div flex></div>
+                                <div>
+                                    <a style="cursor: pointer;" class="panel-title" ng-click="alerts.ver=!alerts.ver">
+                                            <span ng-if="!alerts.ver"><lang>Ver Registros de Email Alerts</lang></span>
+                                            <span ng-if="alerts.ver"><lang>Ver Registros de Envío</lang></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <table ng-if="!alerts.ver" style="width:100%" tabula="RegistroBitacora" observa-y-recarga="recargaBitacora1" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacora&acc=registroBitacora&bitacoraId={{Bitacora.selecId}}" campo="" tamanio-inicial="15">
+                                 <tr>
+                                    <td colspan="3" align="center"><tabula-paginador dataset="tabulas['RegistroBitacora']"></tabula-paginador></td>
+                                    <td align="right"><tabula-exportar dataset="tabulas['RegistroBitacora']"></tabula-exportar></td>
+                                </tr>
+                                <tr>
+                                    <th tabula-encabezado="brb_nombreBoletin" titulo="<lang>Boletín</lang>" ordenar filtrar ></th>
+                                    <th tabula-encabezado="brb_correoElectronico" titulo="<lang>Para</lang>" ordenar filtrar></th>
+                                    <th tabula-encabezado="brb_fecha" titulo="<lang>Fecha envío</lang>" ordenar filtrar tipo="range"></th>
+                                    <th tabula-encabezado="brb_estado" titulo="<lang>Estado</lang>" filtrar></th>
+                                </tr>
+                                <tr ng-repeat="rb in tabulas['RegistroBitacora'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'"> 
+                                    <td>{{rb.brb_nombreBoletin}}</td>
+                                    <td>{{rb.brb_correoElectronico}}</td>
+                                    <td>{{rb.brb_fecha | fecha:'Y-m-d h:m:s'}}</td>
+                                    <td align="center">{{rb.brb_estado}}
+                                        <p class="panel-title" style="font-size: 10px" >{{rb.brb_nota}}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table ng-if="alerts.ver" style="width:100%" tabula="Enviados" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacora&acc=enviados&bitacoraId={{Bitacora.selecId}}" campo="" tamanio-inicial="15">
+                                <tr>
+                                    <td colspan="3" align="center"><tabula-paginador dataset="tabulas['Enviados']"></tabula-paginador></td>
+                                    <td align="right"><tabula-exportar dataset="tabulas['Enviados']"></tabula-exportar></td>
+                                </tr>
+                                <tr>
+                                    <th tabula-encabezado="aev_subject" titulo="<lang>Boletín</lang>" ordenar filtrar ></th>
+                                    <th tabula-encabezado="aev_to" titulo="<lang>Para</lang>" ordenar filtrar></th>
+                                    <th tabula-encabezado="aev_when" titulo="<lang>Fecha envío</lang>" ordenar filtrar tipo="range"></th>
+                                    <th tabula-encabezado="aev_success" titulo="<lang>Enviado</lang>" filtrar></th>
+                                </tr>
+                                <tr ng-repeat="ev in tabulas['Enviados'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>{{ev.aev_subject}}</td>
+                                    <td>{{ev.aev_to}}</td>
+                                    <td>{{ev.aev_when | fecha:'Y-m-d h:m:s'}}</td>
+                                    <td align="center">{{ev.aev_success}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </tab>
+            <tab class="title-tab">
+                <tab-heading><lang>Lecturas</lang></tab-heading>
+                <div class="contenidosTabs">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <table width="100%">
+                                <tr>
+                                    <td>
+                                        <div class="panel-title"><i class="fa fa-child fa-lg"></i><lang>Leidos</lang></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="panel-body">
+                            <table style="width:100%" tabula="leidos" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacora&acc=leidos&bitacoraId={{Bitacora.selecId}}" campo="" tamanio-inicial="15">
+                                <tr>
+                                    <td colspan="2" align="center"><tabula-paginador dataset="tabulas['leidos']"></tabula-paginador></td>
+                                    <td align="right"><tabula-exportar dataset="tabulas['leidos']"></tabula-exportar></td>
+                                </tr>
+                                <tr>
+                                    <th tabula-encabezado="brg_correo" titulo="<lang>Correo</lang>" ordenar filtrar></th>
+                                    <th tabula-encabezado="brg_fechaRegistro" titulo="<lang>Fecha lectura</lang>" ordenar filtrar tipo="range"></th>
+                                    <th tabula-encabezado="brg_visitas" titulo="<lang>Visitas</lang>"></th>
+                                </tr>
+                                <tr ng-repeat="lec in tabulas['leidos'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>{{lec.brg_correo}}</td>
+                                    <td align="center">{{lec.brg_fechaRegistro | fecha:'Y-m-d h:m:s'}}</td>
+                                    <td align="center">{{lec.brg_visitas}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </tab>
+            <tab class="title-tab">
+                <tab-heading><lang>Desuscripciones</lang></tab-heading>
+                <div class="contenidosTabs">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <table width="100%">
+                                <tr>
+                                    <td>
+                                        <div class="panel-title"><i class="fa fa-exclamation fa-lg"></i><lang>Suscripciones canceladas</lang></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="panel-body">
+                            <table style="width:100%" tabula="desuscripcion" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacora&acc=desuscritos&bitacoraId={{Bitacora.selecId}}" campo="" tamanio-inicial="15">
+                                <tr>
+                                    <td colspan="2" align="left"><tabula-paginador dataset="tabulas['desuscripcion']"></tabula-paginador></td>
+                                    <td colspan="2" align="center"><tabula-exportar dataset="tabulas['desuscripcion']"></tabula-exportar>
+                                </tr>
+                                <tr>
+                                    <th tabula-encabezado="brg_correo" titulo="<lang>Correo</lang>" ordenar filtrar></th>
+                                    <th tabula-encabezado="brg_visitas" titulo="<lang>Cuantos</lang>"></th>
+                                    <th tabula-encabezado="brg_fechaRegistro" titulo="<lang>Ultima Desuscripción</lang>" ordenar filtrar tipo="range"></th>
+                                    <th></th>
+                                </tr>
+                                <tr ng-repeat-start="des in tabulas['desuscripcion'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>{{des.brg_correo}}</td>
+                                    <td align="center">{{des.brg_visitas}}</td>
+                                    <td align="center">{{des.brg_fechaRegistro | fecha:'Y-m-d h:m:s'}}</td>
+                                    <td align="center"><li class="fa fa-chevron-right fa-lg" ng-click="verDetalleDesuscripciones(des.brg_bitacoraId,des);"></li></td>
+                                </tr>
+                                <tr ng-if="des.brg_activo != 0" ng-repeat-end="">
+                                    <th><lang>Desuscripciones</lang></th>
+                                    <td colspan="2"><div ng-repeat="dt in des.brg_jerarquias">{{dt.nombre}}</div></td><td></td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </tab>
+        </tabset>
+    </div>
+</modal-popup>
+<!-- Pie de reporte -->
+<reporte-pie></reporte-pie>
+<!-- Wait window -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

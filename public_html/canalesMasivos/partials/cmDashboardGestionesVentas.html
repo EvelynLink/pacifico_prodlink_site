@@ -1,0 +1,544 @@
+<div class="gv-root">
+    <div class="gv-container">
+        <!--#region FILTROS-->
+        <div class="gv-filtros-bar">
+
+    <!-- IZQUIERDA: FILTROS -->
+    <div class="gv-filtros-izq">
+
+        <div class="gv-filtro-icon">
+            &nbsp;
+            <li class="fa fa-filter fa-15x"></li>
+            &nbsp;
+        </div>
+
+        <div class="gv-filtro-content">
+
+
+            <div class="gv-filtro-item">
+                <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                <input id="fechaDesde" class="form-control gv-input-fecha" type="text"
+                    datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaDesde"
+                    ng-click="abreFechaDesde = !abreFechaDesde"
+                    ng-model="fechaDesde"
+                    placeholder="Desde"
+                    ng-change="aplicarRangoFechas()">
+            </div>
+
+            <div class="gv-filtro-item">
+                <input id="fechaHasta" class="form-control  gv-input-fecha" type="text"
+                    datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaHasta"
+                    ng-click="abreFechaHasta = !abreFechaHasta"
+                    ng-model="fechaHasta"
+                    placeholder="Hasta"
+                    ng-change="aplicarRangoFechas()">
+            </div>
+
+            <div class="gv-filtro-item-select">
+                <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroCartera"
+                    class="form-control "
+                    ng-model="filtroCartera"
+                    ng-options="p.id as p.nombre for p in listas.carteras"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <div class="gv-filtro-item-select">
+                <li class="fa fa-fw fa-tags fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroProducto"
+                    class="form-control "
+                    ng-model="filtroProducto"
+                    ng-options="p.id as p.nombre for p in listas.productos"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <div class="gv-filtro-item-select">
+                <li class="fa fa-fw fa-random fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroCanal"
+                    class="form-control "
+                    ng-model="filtroCanal"
+                    ng-change="validarFiltros()">
+                    <option value="todo">Todos los canales</option>
+                    <option value="AV">AV</option>
+                    <option value="WHATSAPP">WHATSAPP</option>
+                    <option value="EMAIL">EMAIL</option>
+                </select>
+            </div>
+
+            <div class="gv-filtro-item-select">
+                <li class="fa fa-fw fa-calendar fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroFechaCarga"
+                    class="form-control "
+                    ng-model="filtroFechaCarga"
+                    ng-options="p.id as p.nombre for p in listas.fechasCarga"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <!-- DERECHA: TITULO + BOTONES -->
+    <div class="gv-filtros-derecha">
+
+        <div class="gv-refresh-block">
+            <i class="fa fa-fw fa-refresh fa-15x"
+                title="Actualizar datos ahora"
+                ng-click="traerParametrizacion()"></i>
+
+            <select title="Actualizar autom&aacute;ticamente"
+                id="tiempoAct"
+                class="form-control input-sm select-filtro"
+                ng-model="tiempoActualizar"
+                ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                ng-change="setTiempoActualizar()"></select>
+        </div>
+
+
+    </div>
+
+</div>
+
+
+        <!--#region FILTROS APLICADOS-->
+        <div class="gv-filtros-aplicados">
+
+    <!-- Lado izquierdo: filtros -->
+    <div class="gv-badges-izq">
+        <div ng-show="filtrosAplicados.tiempo.activo" class="gv-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.tiempo.titulo}}
+                <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.cartera.activo" class="gv-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.cartera.titulo}}
+                <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.producto.activo" class="gv-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.producto.titulo}}
+                <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.canal.activo" class="gv-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.canal.titulo}}
+                <li ng-click="quitarFiltro('canal')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.fechaCarga.activo" class="gv-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.fechaCarga.titulo}}
+                <li ng-click="quitarFiltro('fechaCarga')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="cuantosAplicados>1" class="gv-badge-item">
+            <span class="badge" ng-click="quitarFiltro('todo')">
+                {{filtrosAplicados.todo.titulo}}
+                <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+    </div>
+
+    <!-- Lado derecho: boton -->
+    <!--<div>
+        <button type="button" class="btn btn-primary gv-btn-ver-datos"
+        ng-click="mostrarModalGestiones()">
+            <i class="fa fa-eye gv-btn-ver-datos-icon"></i>
+            Ver Datos
+        </button>
+    </div>-->
+
+</div>
+
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--#region TITULO-->
+
+        <!--#region seccion resultado general-->
+
+        <div class="contenedor-seccion">
+
+            <div layout="row">
+            <span class="titulo-pantalla gv-titulo-span">
+                {{titulo}}
+            </span>
+
+            </div>
+
+
+
+            <!-- DASHBOARD KPI -->
+            <div class="gv-kpi-dashboard">
+
+                <!-- FILA SUPERIOR -->
+                <div class="gv-kpi-row">
+
+                    <!-- KPI 1: GAUGE -->
+                    <div class="gv-card">
+
+                        <div ng-show="cargandoGraficos" class="gv-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                        </div>
+
+                        <div class="gv-card-header">
+                            <div class="gv-card-header-title">
+                                KPI de Gesti&oacute;n de Base
+                                <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                            </div>
+                            <div class="gv-header-actions">
+                                <button type="button" class="gv-btn-detalle" ng-click="irDetalleBase()">
+                                    <span>Ver Detalle</span>
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="gv-gauge-row">
+
+                            <div class="gv-gauge-chart-wrap">
+                                <div id="chartGauge" class="gv-chart-gauge"></div>
+                            </div>
+
+                            <div class="gv-kpi-detail">
+
+                                <div class="gv-kpi-detail-item">
+                                    <div class="gv-kpi-detail-icon gv-kpi-icon-blue">
+                                        <i class="fa fa-database"></i>
+                                    </div>
+                                    <div class="gv-kpi-detail-text">
+                                        <div class="gv-kpi-detail-label">Base Asignada</div>
+                                        <div class="gv-kpi-detail-value">{{ totales.gestion[0].total || 0 }} Clientes</div>
+                                    </div>
+                                </div>
+
+                                <div class="gv-kpi-detail-item">
+                                    <div class="gv-kpi-detail-icon gv-kpi-icon-green">
+                                        <i class="fa fa-check"></i>
+                                    </div>
+                                    <div class="gv-kpi-detail-text">
+                                        <div class="gv-kpi-detail-label">Clientes Gestionados</div>
+                                        <div class="gv-kpi-detail-value">{{ totales.gestion[1].total || 0 }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="gv-kpi-detail-item">
+                                    <div class="gv-kpi-detail-icon gv-kpi-icon-red">
+                                        <i class="fa fa-times"></i>
+                                    </div>
+                                    <div class="gv-kpi-detail-text">
+                                        <div class="gv-kpi-detail-label">Clientes Sin Gesti&oacute;n</div>
+                                        <div class="gv-kpi-detail-value">{{ totales.gestion[2].total || 0 }}</div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: PIE -->
+                    <div class="gv-card">
+                        <div ng-show="cargandoGraficos" class="gv-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                        </div>
+
+                        <div class="gv-card-header">
+                            <div class="gv-card-header-title">
+                                KPI de Contactabilidad
+                                <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                            </div>
+                            <div class="gv-header-actions">
+                                <button type="button" class="gv-btn-detalle" ng-click="irDetalleContactabilidad()">
+                                    <span>Ver Detalle</span>
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="gv-pie-row">
+
+                            <div class="gv-pie-chart-wrap">
+                                <div id="chartPie" class="gv-chart-pie"></div>
+                            </div>
+
+                            <div class="gv-pie-legend">
+
+                                <div class="gv-pie-legend-item gv-pie-legend-green">
+                                    <span><i class="fa fa-check"></i> Contacto Directo</span>
+                                    <b>{{ totales.tipificacion[0].porcentaje || 0 }}%</b>
+                                </div>
+
+                                <div class="gv-pie-legend-item gv-pie-legend-yellow">
+                                    <span><i class="fa fa-check"></i> Contacto Indirecto</span>
+                                    <b>{{ totales.tipificacion[1].porcentaje || 0 }}%</b>
+                                </div>
+
+                                <div class="gv-pie-legend-item gv-pie-legend-orange">
+                                    <span><i class="fa fa-check"></i> Sin Contacto</span>
+                                    <b>{{ totales.tipificacion[2].porcentaje || 0 }}%</b>
+                                </div>
+
+                                <div class="gv-pie-legend-item gv-pie-legend-red">
+                                    <span><i class="fa fa-check"></i> No Contactado</span>
+                                    <b>{{ totales.gestion[2].porcentaje || 0 }}%</b>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: EFECTIVIDAD COMERCIAL -->
+                    <div class="gv-card">
+                        <div ng-show="cargandoGraficos" class="gv-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                        </div>
+
+                        <div class="gv-card-header">
+                            <div class="gv-card-header-title">
+                                KPI de Efectividad Comercial
+                                <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                            </div>
+                            <div class="gv-header-actions">
+                                <button type="button" class="gv-btn-detalle" ng-click="irDetalleEfectividad()">
+                                    <span>Ver Detalle</span>
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Porcentajes destacados -->
+                        <div class="gv-efectividad-box">
+
+                            <div class="gv-efectividad-stat">
+                                <div class="gv-efectividad-stat-value">{{ totales.gestion[4].porcentaje || 0 }}%</div>
+                                <div class="gv-efectividad-stat-label">Efectividad comercial</div>
+                            </div>
+
+                            <div class="gv-efectividad-stat">
+                                <div class="gv-efectividad-stat-value">{{ totales.gestion[5].porcentaje || 0 }}%</div>
+                                <div class="gv-efectividad-stat-label">Efectividad de contacto</div>
+                            </div>
+
+                        </div>
+
+                        <!-- Totales con icono -->
+                        <div class="gv-efectividad-stats-row">
+
+                            <div class="gv-efectividad-item">
+                                <div class="gv-efectividad-item-icon gv-bg-gestionados">
+                                    <i class="fa fa-user"></i>
+                                </div>
+                                <div class="gv-efectividad-item-value">{{ totales.gestion[1].total || 0 }}</div>
+                                <div class="gv-efectividad-item-label">Gestionados</div>
+                            </div>
+
+                            <div class="gv-efectividad-item">
+                                <div class="gv-efectividad-item-icon gv-bg-contactados">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <div class="gv-efectividad-item-value">{{ totales.gestion[3].total || 0 }}</div>
+                                <div class="gv-efectividad-item-label">Contactados</div>
+                            </div>
+
+                            <div class="gv-efectividad-item">
+                                <div class="gv-efectividad-item-icon gv-bg-interesados">
+                                    <i class="fa fa-star"></i>
+                                </div>
+                                <div class="gv-efectividad-item-value">{{ totales.gestion[4].total || 0 }}</div>
+                                <div class="gv-efectividad-item-label">Interesados</div>
+                            </div>
+
+                            <div class="gv-efectividad-item">
+                                <div class="gv-efectividad-item-icon gv-bg-efectivos">
+                                    <i class="fa fa-check"></i>
+                                </div>
+                                <div class="gv-efectividad-item-value">0</div>
+                                <div class="gv-efectividad-item-label">Efectivos</div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+        </div>
+
+                <!-- FILA INFERIOR -->
+                <div class="gv-lower-row">
+
+                    <!-- BARRAS HORARIOS -->
+                    <div class="gv-barras-col">
+                        <div class="gv-barras-card">
+                            <div ng-show="cargandoGraficos" class="gv-loading-overlay">
+                                <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                            </div>
+
+                            <div class="gv-card-header">
+                                <div class="gv-card-header-title">
+                                    Contactabilidad por Horarios
+                                    <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                                </div>
+                                <div class="gv-header-actions">
+                                    <button type="button" class="gv-btn-detalle" ng-click="irDetalleHorarios()">
+                                        <span>Ver Detalle</span>
+                                        <i class="fa fa-angle-right"></i>
+                                    </button>
+                                    <!--<button type="button" class="gv-btn-filtrar">
+                                        <i class="fa fa-filter"></i>
+                                        <span>Filtrar</span>
+                                    </button>-->
+                                </div>
+                            </div>
+
+                            <div id="chartBarras" class="gv-chart-barras"></div>
+
+                        </div>
+                    </div>
+
+                    <!-- INTENSIDAD -->
+                    <div class="gv-intensidad-col">
+
+                         <div class="gv-intensidad-card">
+
+                            <div ng-show="cargandoGraficos" class="gv-loading-overlay">
+                                <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                            </div>
+
+                            <!-- Titulo -->
+                            <div class="gv-card-header">
+                                <div class="gv-card-header-title">
+                                    Intensidad por Canales
+                                    <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                                </div>
+                                <div class="gv-header-actions">
+                                    <button type="button" class="gv-btn-detalle" ng-click="irDetalleIntensidad()">
+                                        <span>Ver Detalle</span>
+                                        <i class="fa fa-angle-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            <div class="gv-intensidad-body">
+
+                                    <!-- Bloque 1 -->
+                                <div class="gv-canal-card">
+
+                                    <!-- icono -->
+                                    <div class="gv-canal-icon gv-c-green">
+                                        <i class="fa fa-phone"></i>
+                                    </div>
+
+                                    <!-- Texto -->
+                                    <div class="gv-canal-text">
+                                        <div class="gv-canal-title">Call Center</div>
+                                        <div class="gv-canal-subtitle">Intentos Promedio</div>
+                                    </div>
+
+                                    <div class="gv-canal-value">{{ totales.intensidad[0].tooltip[0] || 0 }}</div>
+                                </div>
+
+                                <!-- Bloque 2 -->
+                                <div class="gv-canal-card">
+
+                                    <div class="gv-canal-icon gv-c-whatsapp">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </div>
+
+                                    <div class="gv-canal-text">
+                                        <div class="gv-canal-title">WhatsApp</div>
+                                        <div class="gv-canal-subtitle">Intentos Promedio</div>
+                                    </div>
+
+                                    <div class="gv-canal-value">{{ totales.intensidad[0].tooltip[2] || 0 }}</div>
+                                </div>
+
+                                <!-- Bloque 3 -->
+                                <div class="gv-canal-card">
+
+                                    <div class="gv-canal-icon gv-c-correo">
+                                        <i class="fa fa-envelope"></i>
+                                    </div>
+
+                                    <div class="gv-canal-text">
+                                        <div class="gv-canal-title">Correo</div>
+                                        <div class="gv-canal-subtitle">Intentos Promedio</div>
+                                    </div>
+
+                                    <div class="gv-canal-value">{{ totales.intensidad[0].tooltip[1] || 0 }}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+</div>
+
+<modal-popup titulo="Gestiones Realizadas " evento="{{modalGraficos.evento}}" icono="fa fa-check-square-o fa-fw"
+    width="1500" abrir="modalGraficos.activo" class="gv-modal-color">
+
+    <div layout="row" >
+
+        <div ng-show="cargandoGraficos" class="gv-loading-overlay">
+            <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+        </div>
+
+    <table  tabula="asignacionGestiones" tamanio-inicial="10"
+                           url="../canalesMasivos/cmDashboardGestionesVentasCtrl.php?act=listaAsignacionGestiones&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}">
+                    <tr>
+                            <th width="5%" tabula-encabezado="cubAV_numFactura" titulo="Operaci&oacute;n" ordenar filtrar></th>
+                            <th width="30%" tabula-encabezado="cubAV_carteraNombre" titulo="Cartera" ordenar filtrar></th>
+                            <th width="5%" tabula-encabezado="cubAV_gestionada" titulo="Gestionado" ordenar></th>
+                            <th width="10%" tabula-encabezado="cubAV_tipificacion1" titulo="Contactabilidad" ordenar filtrar></th>
+                            <th width="25%" tabula-encabezado="cubAV_tipificacion2" titulo="Gesti&oacute;n Realizada" ordenar filtrar></th>
+                            <th width="15%" tabula-encabezado="cubAV_fechaGestion" titulo="Fecha y Hora Gesti&oacute;n" ordenar ></th>
+                    </tr>
+
+                        <tr ng-repeat="x in tabulas['asignacionGestiones'].filas track by $index" >
+
+                            <td class="p-1 m-0 gv-td-center">{{ x.cubAV_numFactura }}</td>
+                            <td class="p-1 m-0 gv-td-center">{{ x.cubAV_carteraNombre }}</td>
+                            <td class="p-1 m-0 gv-td-center">{{ x.cubAV_gestionada }}</td>
+                            <td class="p-1 m-0 gv-td-center">{{ x.cubAV_tipificacion1 }}</td>
+                            <td class="p-1 m-0 gv-td-center">{{ x.cubAV_tipificacion2 }}</td>
+                            <td class="p-1 m-0 gv-td-center">{{  x.cubAV_fechaGestion ? (x.cubAV_fechaGestion * 1000 | date:'yyyy-MM-dd HH:mm:ss') : '' }}</td>
+
+
+            </tr>
+            <tr>
+                 <td colspan="1" align="center">
+
+                    </td>
+                <td colspan="4" align="center">
+                 <tabula-paginador dataset="tabulas['asignacionGestiones']" maxbotones="3"></tabula-paginador>
+                </td>
+                <td colspan="1" align="center">
+                         <button type="button" class="btn btn-success" ng-click="descargarReporteExcel()">
+                        <i class="fa fa-file-excel-o" ></i>
+                        Exportar Excel
+                    </button>
+                </td>
+
+            </tr>
+            </table>
+
+    </div>
+
+</modal-popup>

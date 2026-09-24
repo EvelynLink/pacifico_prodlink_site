@@ -1,0 +1,271 @@
+<div class="gv-root">
+    <div class="gv-container">
+
+        <!--#region FILTROS-->
+        <div class="gv-filtros-bar">
+
+            <!-- IZQUIERDA: FILTROS -->
+            <div class="gv-filtros-izq">
+
+                <div class="gv-filtro-icon">
+                    &nbsp;
+                    <li class="fa fa-filter fa-15x"></li>
+                    &nbsp;
+                </div>
+
+                <div class="gv-filtro-content">
+
+                    <div class="gv-filtro-item">
+                        <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                        <input id="fechaDesde" class="form-control gv-input-fecha" type="text"
+                            datepicker-popup="dd/MM/yyyy"
+                            is-open="abreFechaDesde"
+                            ng-click="abreFechaDesde = !abreFechaDesde"
+                            ng-model="fechaDesde"
+                            placeholder="Desde"
+                            ng-change="aplicarRangoFechas()">
+                    </div>
+
+                    <div class="gv-filtro-item">
+                        <input id="fechaHasta" class="form-control  gv-input-fecha" type="text"
+                            datepicker-popup="dd/MM/yyyy"
+                            is-open="abreFechaHasta"
+                            ng-click="abreFechaHasta = !abreFechaHasta"
+                            ng-model="fechaHasta"
+                            placeholder="Hasta"
+                            ng-change="aplicarRangoFechas()">
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                        <select ng-disabled="cargando" id="filtroCartera"
+                            class="form-control "
+                            ng-model="filtroCartera"
+                            ng-options="p.id as p.nombre for p in listas.carteras"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-tags fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroProducto"
+                            class="form-control "
+                            ng-model="filtroProducto"
+                            ng-options="p.id as p.nombre for p in listas.productos"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-random fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroCanal"
+                            class="form-control "
+                            ng-model="filtroCanal"
+                            ng-change="validarFiltros()">
+                            <option value="todo">Todos los canales</option>
+                            <option value="AV">AV</option>
+                            <option value="WHATSAPP">WHATSAPP</option>
+                            <option value="EMAIL">EMAIL</option>
+                        </select>
+                    </div>
+
+                    <div class="gv-filtro-item-select">
+                        <li class="fa fa-fw fa-calendar fa-15x"></li>
+                        <select  ng-disabled="cargando" id="filtroFechaCarga"
+                            class="form-control "
+                            ng-model="filtroFechaCarga"
+                            ng-options="p.id as p.nombre for p in listas.fechasCarga"
+                            ng-change="validarFiltros()"></select>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- DERECHA: VOLVER -->
+            <div class="gv-filtros-derecha">
+                <button type="button" class="btn gv-btn-volver" ng-click="volver()">
+                    <i class="fa fa-arrow-left"></i>
+                    Atr&aacute;s
+                </button>
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region FILTROS APLICADOS-->
+        <div class="gv-filtros-aplicados">
+
+            <div class="gv-badges-izq">
+                <div ng-show="filtrosAplicados.tiempo.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.tiempo.titulo}}
+                        <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.cartera.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.cartera.titulo}}
+                        <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.producto.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.producto.titulo}}
+                        <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.canal.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.canal.titulo}}
+                        <li ng-click="quitarFiltro('canal')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="filtrosAplicados.fechaCarga.activo" class="gv-badge-item">
+                    <span class="badge">
+                        {{filtrosAplicados.fechaCarga.titulo}}
+                        <li ng-click="quitarFiltro('fechaCarga')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+
+                <div ng-show="cuantosAplicados>1" class="gv-badge-item">
+                    <span class="badge" ng-click="quitarFiltro('todo')">
+                        {{filtrosAplicados.todo.titulo}}
+                        <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+        <!--#region TITULO-->
+        <div class="contenedor-seccion">
+
+            <div layout="row">
+                <span class="titulo-pantalla gv-titulo-span">
+                    Detalle &middot; Contactabilidad por Horarios
+                </span>
+            </div>
+
+            <!-- KPI RESUMEN: 4 TARJETAS -->
+            <div class="gv-detalle-kpi-row gv-detalle-kpi-row-4">
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-intentos">
+                        <i class="fa fa-clock-o"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-intentos">Intentos</div>
+                        <div class="gv-detalle-kpi-value">{{ resumen.intentos }}</div>
+                        <div class="gv-detalle-kpi-sub">Total de intentos</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-contactos">
+                        <i class="fa fa-phone"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-contactos">Contactos</div>
+                        <div class="gv-detalle-kpi-value">{{ resumen.contactos }}</div>
+                        <div class="gv-detalle-kpi-sub">Contactos logrados</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-franja">
+                        <i class="fa fa-star"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-franja">Mejor Franja Horaria</div>
+                        <div class="gv-detalle-kpi-value gv-detalle-kpi-value-chica">{{ resumen.mejorFranja }}</div>
+                        <div class="gv-detalle-kpi-sub">Mayor contactabilidad</div>
+                    </div>
+                </div>
+
+                <div class="gv-detalle-kpi-card">
+                    <div class="gv-detalle-kpi-icon gv-kpi-icon-promedio">
+                        <i class="fa fa-check-circle"></i>
+                    </div>
+                    <div class="gv-detalle-kpi-text">
+                        <div class="gv-detalle-kpi-label gv-c-texto-promedio">Contactabilidad Promedio</div>
+                        <div class="gv-detalle-kpi-value">{{ resumen.contactabilidadPromedio }}%</div>
+                        <div class="gv-detalle-kpi-sub">Promedio general</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TARJETA: SUB-PESTAÑAS + TABLA -->
+            <div class="gv-detalle-tabs-card">
+
+                <div ng-show="cargando" class="gv-loading-overlay">
+                    <i class="fa fa-spinner fa-fw fa-spin fa-4x gv-loading-icon"></i>
+                </div>
+
+                <div class="gv-detalle-lista-header">Contactabilidad por Horarios</div>
+
+                <!-- SUB-PESTAÑAS: Por Horario / Por Día y Hora (pendiente) -->
+                <div class="gv-detalle-subtabs-bar">
+                    <div class="gv-detalle-subtab"
+                        ng-class="{ 'gv-detalle-subtab-activo': subTabActiva === 'horario' }"
+                        ng-click="cambiarSubTab('horario')">
+                        <i class="fa fa-clock-o"></i>
+                        Por Horario
+                    </div>
+                    <!--<div class="gv-detalle-subtab gv-detalle-subtab-pendiente"
+                        ng-class="{ 'gv-detalle-subtab-activo': subTabActiva === 'diaHora' }"
+                        ng-click="cambiarSubTab('diaHora')"
+                        title="Todav&iacute;a no est&aacute; definida">
+                        <i class="fa fa-calendar"></i>
+                        Por D&iacute;a y Hora
+                    </div>-->
+                </div>
+
+                <!-- TABLA (arreglo fijo de 6 franjas, sin paginador de backend) -->
+                <div class="gv-detalle-tabla-wrap" ng-if="subTabActiva === 'horario'">
+                    <table>
+                        <tr>
+                            <th width="20%">Horario</th>
+                            <th width="15%">Intentos</th>
+                            <th width="15%">Contactos</th>
+                            <th width="30%">% Contactabilidad</th>
+                            <th width="20%">Variaci&oacute;n vs per&iacute;odo anterior</th>
+                        </tr>
+                        <tr ng-repeat="fila in filas track by $index">
+                            <td class="gv-td-horario">
+                                <span class="gv-dot gv-dot-horario"></span>
+                                {{ fila.horario }}
+                            </td>
+                            <td>{{ fila.intentos }}</td>
+                            <td>{{ fila.contactos }}</td>
+                            <td>
+                                <div class="gv-barra-porcentaje-wrap">
+                                    <div class="gv-barra-porcentaje-fondo">
+                                        <div class="gv-barra-porcentaje-relleno" ng-style="{ width: fila.porcentaje + '%', 'background-color': fila.color }"></div>
+                                    </div>
+                                    <span class="gv-barra-porcentaje-texto">{{ fila.porcentajeTexto }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span ng-if="!fila.variacion || !fila.variacion.hayDato" class="gv-td-variacion-pendiente">&mdash;</span>
+                                <span ng-if="fila.variacion.hayDato" class="gv-variacion"
+                                    ng-class="{ 'gv-variacion-up': fila.variacion.direccion === 'up', 'gv-variacion-down': fila.variacion.direccion === 'down', 'gv-variacion-igual': fila.variacion.direccion === 'igual' }">
+                                    <i class="fa"
+                                        ng-class="{ 'fa-arrow-up': fila.variacion.direccion === 'up', 'fa-arrow-down': fila.variacion.direccion === 'down', 'fa-minus': fila.variacion.direccion === 'igual' }"></i>
+                                    {{ fila.variacion.texto }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+        <!--#endregion-->
+
+    </div>
+</div>

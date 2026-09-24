@@ -1,0 +1,383 @@
+<div layout-padding layout="column">
+    <div layout="row" ng-init="inicializarEnvio()">
+        <!-- Boletines activos -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <i class="fa fa-photo fa-fw"></i>
+                    <lang>Boletines Activos</lang>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="container-fluid">
+                    <table style="width:100%" tabula="Boletines" url="../boletines/BoletinesCtrl.php?act=reporteBoletinesActivos" tamanio-inicial="10" post-carga="preparaBoletinesActivos(filas)" observa-y-recarga="boletin.recargaActivos">
+                        <tr>
+                            <th>&nbsp;</th>
+                            <th tabula-encabezado="boc_nombre" titulo="<lang>Título</lang>" ordenar filtrar ></th>
+                            <th tabula-encabezado="boc_fechaCreacion" titulo="<lang>Fecha</lang>" ordenar filtrar ></th>
+                            <th tabula-encabezado="boc_tipo" titulo="<lang>Tipo</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="boc_origen" titulo="<lang>Orígen</lang>" ordenar filtrar></th>
+                            <th>&nbsp;</th>
+                        </tr>
+                        <tr ng-show="!pr.editame" ng-repeat-start="pr in tabulas['Boletines'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                            <td><a ng-if="pr.boc_contenido!=='' || pr.boc_mensaje !== ''" ng-click="seleccionaBoletin(pr)" title='<lang>Seleccionar boletín</lang>'><i class="{{pr.seleccionada}}"></i></a>&nbsp;</td>
+                            <td width="70%">
+                                <div layout="column">
+                                    {{pr.boc_nombre}}
+                                    <small ng-if="pr.boc_categoriaId>0">- <lang>Plantilla desde editor de contenidos</lang></small>
+                                </div>
+                            </td>
+                            <td>{{pr.boc_fechaCreacion| fecha:'Y-m-d'}}</td>
+                            <td><small>{{pr.boc_tipo | uppercase}}</small></td>
+                            <td><small>{{pr.boc_origen | uppercase}}</small></td>
+                            <td>
+                                <div class="btn-group" dropdown>
+                                    <button class="btn btn-default dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="true" aria-label="Boletines" dropdown-toggle><i class="fa fa-gear fa-green fa-fw"></i></button>
+                                    <ul class="dropdown-menu dropdown-menu-left ">
+                                        <li>
+                                            <a style="cursor: pointer;" ng-click="pr.editame = !pr.editame"><i class="fa fa-pencil-square fa-fw fa-green"></i> <lang>Editar Boletín</lang></a>
+                                            <a style="cursor: pointer;" ng-if="pr.boc_tipo==='correo' && pr.boc_url" ng-click="actualizarHtml(pr)"><i class="fa fa-refresh fa-fw fa-green"></i> <lang>Actualizar HTML</lang></a>
+                                            <a style="cursor: pointer;" ng-if="pr.boc_url !==''" href="{{pr.boc_url}}" target="_blank"><i class="fa fa-eye fa-fw fa-green"></i> <lang>Abrir Boletín</lang></a>
+                                            <a style="cursor: pointer;" ng-click="cambiarEstadoBoletin(pr.boc_id)"><i class="fa fa-toggle-off fa-fw fa-green"></i> <lang>Desactivar</lang></a>
+                                            <a style="cursor: pointer;" ng-click="eliminarBoletin(pr.boc_id)"><i class="fa fa-remove fa-fw fa-red"></i> <lang>Eliminar Boletín</lang></a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr ng-form="subformulariomod" ng-show="pr.editame" ng-init="inicializaItem(pr)" ng-class-odd="'odd'" ng-class-even="'even'">
+                            <td colspan="5">
+                                <!-- título -->
+                                <h6><small>TITULO</small></h6>
+                                <input class="form-control" ng-model="pr.copy.boc_nombre" placeholder="<lang>Nombre boletín</lang>" required/>
+                                <!-- Descripción -->
+                                <h6><small>DESCRIPCIÓN</small></h6>
+                                <input class="form-control" ng-model="pr.copy.boc_descripcion" placeholder="<lang>Descripción de publicación</lang>" required/>
+                                <!-- Plugin -->
+                                <h6><small>PLUGIN</small></h6>
+                                <select class="form-control" ng-model="pr.copy.boc_plugin" style="width:98%" ng-options="tp.pluginEnvio as tp.nombre for tp in catalogos.pluginEnvio"></select>
+                                <!-- Orígen de Boletín -->
+                                <h6><small>ORÍGEN</small></h6>
+                                <select class="form-control" ng-model="pr.copy.boc_origen" style="width:98%" ng-options="or.id as or.nombre for or in tipoOrigen"></select>
+                                <!-- Tipo de Boletín -->
+                                <h6><small>TIPO</small></h6>
+                                <select class="form-control" ng-model="pr.copy.boc_tipo" style="width:98%" ng-options="te.id as te.nombre for te in tipoEnvio"></select>
+                                <!-- Plantilla tipo: Correo -->
+                                <h6 ng-if="pr.copy.boc_tipo === 'correo'"><small>PLANTILLA</small></h6>
+                                <div ng-if="pr.copy.boc_tipo === 'correo'" ng-repeat="tp in tipoPlantilla" layout="row" style="font-size: 12px;">
+                                    <input type="radio" ng-model="pr.copy.boc_tipoPlantilla" value="{{tp.id}}" ng-change="limpiarSeleccionEditorAntiguo(pr)" style="margin: 0;padding: 0;width: 20px;">
+                                    {{tp.nombre}}
+                                </div>                                        
+                                <input ng-if="pr.copy.boc_tipo === 'correo' && pr.copy.boc_tipoPlantilla !== 'editor'" type='text' style="width:98%;border-radius: 5px;" placeholder="<lang>Dirección de plantilla HTML</lang>" ng-model="pr.copy.boc_url" required/>
+                                <input ng-if="pr.copy.boc_tipo === 'correo' && pr.copy.boc_tipoPlantilla === 'editor' && pr.copy.boc_url !==''" ng-disabled="true" type='text' style="width:98%;border-radius: 5px;" placeholder="<lang>Dirección de plantilla HTML</lang>" ng-model="pr.copy.boc_url"/>
+                                <div ng-if="pr.copy.boc_tipo==='correo' && pr.copy.boc_tipoPlantilla==='editor' && editorAntiguo.idCategoria > 0" style="font-size: 12px;"><lang>Contenido</lang>: {{editorAntiguo.nombreCategoria}}</div>
+                                <a ng-if="pr.copy.boc_tipo==='correo' && pr.copy.boc_tipoPlantilla==='editor'" class="panel-title" style="font-size: 12px;cursor: pointer;" mde-click="seleccionarUrlEditorAntiguo(pos,pr)"><lang>Seleccionar en Editor Contenido</lang></a>
+                                <!-- Plantilla tipo: Facebook -->
+                                <h6 ng-if="pr.copy.boc_tipo === 'facebook'"><small>URL IMAGEN</small></h6>
+                                <input ng-if="pr.copy.boc_tipo === 'facebook'" type="text" ng-disabled="true" placeholder="<lang>Dirección Url de imagen</lang>" style="border-radius: 5px;" ng-model="pr.copy.boc_url" required>
+                                <h6 ng-if="pr.copy.boc_tipo === 'facebook'"><small>ADJUNTAR</small></h6>
+                                <uploader ng-if="pr.copy.boc_tipo === 'facebook'" url='../boletines/BoletinesCtrl.php' file-class="btn btn-default" subir="subirArchivosBoletin" tabula-ver="reporteArchivosBoletin" ver="verArchivoBoletin" eliminar="eliminarArchivoBoletin" al-cerrar="asignarDireccionArchivoBoletin(objFile,pr)" id-relacionado="pr.copy.boc_id" upload-away etiqueta="Cargar" icono="fa fa-upload fa-lg fa-green"></uploader>
+                                <div ng-if="pr.copy.boc_tipo === 'facebook'" class="alert alert-error" ng-show="pr.copy.errores.boc_nombre" >{{pr.copy.errores.boc_nombre}}</div>
+                                <div ng-if="pr.copy.boc_tipo === 'facebook'" class="alert alert-error" ng-show="pr.copy.errores.boc_url" >{{pr.copy.errores.boc_url}}</div>
+                                <h6 ng-if="pr.copy.boc_tipo === 'facebook'"><small>CONEXIÓN</small></h6>
+                                <select ng-if="pr.copy.boc_tipo === 'facebook'" class="form-control" ng-model="pr.copy.boc_conexId" style="width:98%" ng-options="cr.id as cr.descripcion group by cr.grupo for cr in conexionesRedes"></select>
+                                <input ng-if="pr.copy.boc_tipo === 'facebook'" type="hidden" ng-model="pr.copy.boc_conexId" required>
+                                <h6 ng-if="pr.copy.boc_tipo === 'facebook'"><small>ENLACE</small></h6>
+                                <input ng-if="pr.copy.boc_tipo === 'facebook'" class="form-control" ng-model="pr.copy.boc_enlace" placeholder="<lang>Enlace de publicación</lang>" required/>
+                                <!-- Plantilla tipo: SMS -->
+                                <h6 ng-if="pr.copy.boc_tipo === 'sms'"><small>MENSAJE</small></h6>
+                                <input ng-if="pr.copy.boc_tipo === 'sms'" class="form-control" ng-model="pr.copy.boc_mensaje" placeholder="<lang>Mensaje</lang>" required/>
+                            </td>
+                            <td>
+                                <a ng-click="pr.editame = false;reinicializaItem(pr, tabulas['Boletines'].filas)" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>' style="text-decoration:none;">
+                                    <i class="fa fa-times-circle fa-red"></i>
+                                </a>
+                                <a ng-show="subformulariomod.$valid" ng-click="actualizarBoletin(pr);" tooltip-placement='bottom' tooltip='<lang>Guardar cambios</lang>' style="text-decoration:none;">
+                                    <i class="fa fa-check fa-green"></i>
+                                </a>   
+                            </td>
+                        </tr>
+                        <tr ng-repeat-end ng-show="subformulariomod.$invalid && pr.editame">
+                            <td colspan="6">
+                                <div class="alert alert-success ng-scope"><lang>Complete el formulario para guardarlo</lang></div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="6" align="left"><tabula-paginador dataset="tabulas['Boletines']"></tabula-paginador></td>
+                        </tr>
+                        <tr>
+                            <td colspan='6'>
+                                <button class="btn btn-primary" ng-click="nuevoBoletin()">+ <lang>Crear un nuevo boletín</lang></button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- Boletín seleccionado -->
+        <div ng-if="boletin.actual.boletinEnVistaPrevia === 0" style="padding: 0px 10px 0px 25px;"><h6><lang>Seleccione un boletín para iniciar</lang></h6></div>
+        <div layout="column" ng-if="boletin.actual.boletinEnVistaPrevia > 0" style="padding: 0px 10px 0px 15px;">
+            <div class="panel-title"><h5><i class="fa fa-angle-right"></i><lang>Vista previa</lang>: <b>{{boletin.actual.nombreVistaPrevia}}</b></h5></div>
+            <div>
+                <div ng-bind-html="boletin.actual.contenido" class="vistaprevia detail-color"></div>
+            </div>
+        </div>  
+    </div>
+    <div class="personalizaEnvio panel-title" ng-if="boletin.actual.boletinEnVistaPrevia > 0">
+        <h5><i class="fa fa-angle-right"></i><lang>Modo de envío</lang>: <b>{{boletin.actual.origen | uppercase}}</b></h5>
+    </div>
+    <!-- Orígen: Módulo -->
+    <div layout="row" ng-if="boletin.actual.origen==='modulo'">
+        <!-- Selección de categorías Tipo:Correo -->
+        <div flex="33">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        <i class="fa fa-users fa-fw"></i>
+                        <lang>Grupos de envío</lang>
+                    </div>
+                </div>
+                <div class="panel-body">
+                    <div style="max-height: 450px;overflow-y: auto;overflow-x: auto; padding:0 5px">
+                        <div
+                            jerarquia="jcategoria" 
+                            url="../boletines/BoletinesCtrl.php?act=jSuscripcionEnvio" 
+                            selector="seleccionaItem(item,seleccionadas)" nivel-maximo="5"
+                            niveles-separados abrir-en="jerarquias['jcategoria'].key" drag-enabled="false" no-editable seleccion-multiple>
+                            <div jerarquia-nodos ng-model="jerarquias['jcategoria']">
+                                <li ng-repeat="item in jerarquias['jcategoria']" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=comunes/partials/TemplateJerarquia.html'"></li>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Selección de criterios -->
+        <div style="padding: 0 0 0 10;" flex="33">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        <i class="fa fa-check-square fa-fw"></i>
+                        <lang>Criterios seleccionados</lang>
+                    </div>
+                </div>
+                <div class="panel-body" ng-if="boletin.listaMarcadosVista">
+                    <h6 ng-if="boletin.listaMarcadosVista.length===0"><lang>Seleccione al menos un grupo de envío</lang></h6>
+                    <div ng-repeat="ls in boletin.listaMarcadosVista">{{ls}}</div>
+                </div>
+            </div>
+        </div>
+        <!-- Tipo de Envío -->
+        <div style="padding: 0 0 0 10;" flex="33" layout="column">
+            <button class="btn btn-default" ng-disabled="boletin.listaMarcadosVista.length===0" ng-click="activarEnviosPorTipo('bitacora');"><i class="fa fa-envelope-o fa-fw"></i> <lang>Envío por Bitácora</lang></button>
+            <button class="btn btn-default" ng-disabled="boletin.listaMarcadosVista.length===0" ng-click="activarEnviosPorTipo('lista')"><i class="fa fa-list-alt fa-fw"></i> <lang>Envíar Lista Personalizada</lang></button>
+            <button class="btn btn-default" ng-click="activarEnviosPorTipo('manual')"><i class="fa fa-list-alt fa-fw"></i> <lang>Envío Manual</lang></button>
+            <div layout="row" ng-if="boletin.actual.tipo==='correo' && boletin.envioManual" style="padding: 15px 0 0 0;">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <a class="panel-title" style="text-decoration: none;cursor:pointer;">
+                            <i class="fa fa-envelope-o fa-fw"></i>
+                            <lang>Envío Manual</lang>
+                        </a>
+                    </div>
+                    <div class="panel-body">
+                        <form name="misEnvios">
+                            <div layout="column">
+                                <h6><lang>El envío manual de correos no pasa por bitácora de envíos</lang></h6>
+                                <textarea id="txtCorreos" class="form-control" ng-model="boletin.correos" placeholder="Escriba un email por línea" rows="2" cols="50" required></textarea>
+                                <button class="btn btn-primary" ng-disabled="!misEnvios.$valid" ng-click="enviarManual(boletin.correos)"><lang>Enviar</lang></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Suscriptores -->
+    <div layout="row" ng-if="boletin.actual.origen==='modulo' && (boletin.bitacora || boletin.envioManualLista)">
+        <div flex="66" layout="column">
+            <div class="panel panel-default">
+                <div class="panel-heading" layout="row">
+                    <div class="panel-title"> <i class="fa fa-th fa-fw"></i> <lang>Suscriptores con los criterios seleccionados</lang></div>
+                </div>
+                <div class="panel-body" ng-if="boletin.listaMarcados">
+                    <table align="center" class="table SUBtableModulos tb ng-isolate-scope" border="1">
+                        <tbody class="ng-scope">
+                            <tr>
+                                <th class="ng-isolate-scope" align="center">
+                                    <div>
+                                        <span><lang>Correo</lang>
+                                            <i ng-if="boletin.suscritos.enviosTotal > 0" class="fa fa-filter fa-fw" ng-click="boletin.search = !boletin.search;boletin.filtro='';"></i>
+                                        </span>
+                                    </div>
+                                    <div ng-show="boletin.search">
+                                        <span>
+                                            <form name="miBusqueda">
+                                                <table align="center" cellspacing="0" cellpadding="0" border="0">
+                                                    <tr>
+                                                        <td style="border:0px"><input class="form-control" ng-model="boletin.filtro" placeholder="<lang>Correo Electrónico</lang>" style="width:200px;" required></td>
+                                                        <td style="border:0px"><a style="text-decoration: none;cursor: pointer" class="fa fa-search fa-fw panel-title" ng-click="buscaEmailEnvio(boletin.filtro)" ng-disabled="!miBusqueda.$valid"></a></td>
+                                                    </tr>
+                                                </table>
+                                            </form>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th class="ng-isolate-scope" align="left"><lang>Identificación</lang></th>
+                                <th class="ng-isolate-scope" align="left"><lang>Nombre</lang></th>
+                                <th class="ng-isolate-scope" ng-if="boletin.envioManualLista">
+                                    <div>
+                                        <span>
+                                            {{boletin.suscritos.enviosTotal}}&nbsp;<lang>Encontrados</lang>
+                                            <span ng-if="boletin.suscritos.enviosTotal > 0">
+                                                <br>
+                                                <li ng-if="(boletin.suscritos.paginaEnvio - 1) >= 0" class="fa fa-chevron-left fa-fw" ng-click="traeAnteriorEnvio(boletin.filtro)"></li>&nbsp;{{(boletin.suscritos.paginaEnvio + 1) + '/' + boletin.suscritos.totalPaginas}}&nbsp;<li ng-if="(boletin.suscritos.enviosTotal > 0) && ((boletin.suscritos.paginaEnvio + 1) < boletin.suscritos.totalPaginas)" class="fa fa-chevron-right fa-fw" ng-click="traeSiguienteEnvio(boletin.filtro)"></li>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </th>
+                            </tr>
+                            <tr ng-repeat="en in boletin.suscritos.envios" style="padding:0;font-size: 13px;">
+                                <td style="padding:1px">{{en.bco_email}}</td>
+                                <td style="padding:1px" align="center">&nbsp;{{en.bco_identificacion}}</td>
+                                <td style="padding:1px" align="center">&nbsp;{{en.bco_nombre| uppercase}}</td>
+                                <td style="padding:1px" align="center" ng-if="boletin.envioManualLista">
+                                    <div layout="row">
+                                        <button class="btn btn-primary ng-pristine ng-valid" ng-click="seleccionaListaEnvio(en)"><lang>Si</lang></button>
+                                        <button class="btn btn-success ng-pristine ng-valid" ng-click="deSeleccionaListaEnvio(en)"><lang>No</lang></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 0 0 0 10;" flex="33" layout="column">
+            <div layout="row" ng-if="boletin.envioManualLista" flex>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <i class="fa fa-th-list fa-fw"></i>
+                            <lang>Lista Personalizada de Envio</lang>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <h6><lang>La lista personalizada de correos no pasa por bitácora de envíos</lang></h6>
+                        <div ng-repeat="le in boletin.listaEnvios">{{le.bco_email}}</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-success" ng-if="boletin.bitacora" mde-click="abreConfirmaEnvio(pos,1)"><i class="fa fa-envelope-o fa-inverse fa-fw"></i><lang>Envio Masivo</lang></button>
+            <button class="btn btn-primary" ng-if="boletin.envioManualLista" ng-disabled="!boletin.activaListaEnvio" mde-click="abreConfirmaEnvioSelec(pos,1)"><i class="fa fa-list-alt fa-inverse fa-fw"></i><lang>Enviar Lista</lang></button>
+            <button class="btn btn-primary" ng-if="boletin.bitacora" mde-click="abreProgramacionBoletin(pos,1)"><i class="fa fa-clock-o fa-inverse fa-fw"></i><lang>Envío Programado</lang></button>
+        </div>
+    </div>
+    <!-- Orígen: Archivo-->
+    <div layout="row" ng-if="boletin.actual.origen==='archivo'" ng-init="inicializarArchivo(boletin.actual.tipo)">
+        <div flex="45" layout="column">
+            <div><h6><lang>Seleccione su archivo</lang></h6></div>
+            <select class="form-control" ng-model="boletin.archivo.seleccionado" style="width:98%" ng-options="a.nombre for a in catalogos.archivos"></select>
+            <div layout="row" class="btn-group" role="group" style="padding-top: 15px;">
+                <button class="btn btn-deafault" ng-disabled="boletin.archivo.seleccionado.id===''" ng-click="generarVistaPreviaArchivo(boletin.archivo.seleccionado)"><i class="fa fa-eye fa-fw"></i> <lang>Previsualizar</lang></button>
+                <button class="btn btn-success" ng-disabled="boletin.archivo.seleccionado.id===''" mde-click="abreConfirmaEnvio(pos,2)"><i class="fa fa-envelope-o fa-inverse fa-fw"></i> <lang>Envio Masivo</lang></button>
+                <button class="btn btn-primary" ng-disabled="boletin.archivo.seleccionado.id===''" mde-click="abreProgramacionBoletin(pos,2)"><i class="fa fa-clock-o fa-inverse fa-fw"></i> <lang>Envio Programado</lang></button>
+            </div>
+            <div><small><lang>La vista previa del archivo presentará únicamente las 100 primeras líneas del mismo</lang></small></div>
+        </div>
+        <div flex="55" layout="row" ng-if="boletin.archivo.vistaprevia">
+            <div ng-bind-html="boletin.archivo.contenido" class="vistaprevia detail-color"></div>
+        </div>
+    </div>
+    <div style="height: 100px;">&nbsp;</div>
+</div>
+<!-- Modales -->
+<!-- Modal de selección url editor antiguo -->
+<modal-popup titulo="<lang>Editor de Contenidos</lang>" evento="{{editorAntiguo.evento}}" icono="fa fa-object-group fa-fw" width="450" abrir="editorAntiguo.activo" on-close="editorAntiguo.idContenido=false;">
+    <div style="padding: 5px 0px 5px 0px;" layout="row">
+        <div ng-if="editorAntiguo.idCategoria > 0" layout="row" layout-align="start center"><h6><lang>Boletín Seleccionado</lang>: <b>{{editorAntiguo.nombreCategoria}}</b></h6></div>
+        <div ng-if="editorAntiguo.idCategoria === 0"><h6><lang>Seleccione el Boletín</lang></h6></div>
+        <div flex></div>
+        <button class="btn btn-default" ng-click="abrirEditorBoletin()" tooltip="<lang>Editor de Contenidos</lang>"><i class="fa fa-drivers-license-o fa-fw"></i></button>
+    </div>
+    <div
+        jerarquia="jeditorAntiguo" 
+        url="../boletines/BoletinesCtrl.php?act=jEditorAntiguo" 
+        selector="seleccionarEditorAntiguo(item,seleccionadas)" drag-enabled="false" no-editable>
+        <div jerarquia-nodos ng-model="jerarquias['jeditorAntiguo']">
+            <li ng-repeat="item in jerarquias['jeditorAntiguo']" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=boletines/partials/TemplateJerarquiaBoletines.html'"></li>
+        </div>
+    </div>
+</modal-popup>
+<!-- Modal de confirmación de envío en lote -->
+<modal-popup titulo="<lang>Confirmar envío</lang>" evento="{{boletin.confirmaEnvioEvento}}" icono="fa fa-exclamation-circle fa-fw" width="350" abrir="boletin.confirmaEnvio">
+    <div ng-if="boletin.confirmaEnvioTipo===1">
+        <lang>Está seguro de enviar las suscripciones actuales?</lang>
+        <br>
+        <br>
+        <button  class="btn btn-primary" ng-click="enviaFiltrado()"><lang>Enviar</lang></button>&nbsp;
+        <br>
+        <br>
+    </div>
+    <div ng-if="boletin.confirmaEnvioTipo===2">
+        <lang>Está seguro de enviar el contenido del archivo?</lang>
+        <br>
+        <br>
+        <button  class="btn btn-primary" ng-click="enviaFiltradoArchivo()"><lang>Enviar</lang></button>&nbsp;
+        <br>
+        <br>
+    </div>
+</modal-popup>
+<!-- Modal de confirmación de envío de listado -->
+<modal-popup titulo="<lang>Confirmar envío</lang>" evento="{{boletin.confirmaEnvioSelecEvento}}" icono="fa fa-exclamation-circle fa-fw" width="350" abrir="boletin.confirmaEnvioSelec">
+    <lang>Está seguro de enviar las suscripciones de Lista de Envío?</lang>
+    <br>
+    <br>
+    <button class="btn btn-primary" ng-click="enviaListado()"><lang>Enviar Lista de Envio</lang></button>
+    <br>
+    <br>
+</modal-popup>
+<!-- Modal de programación de envío de boletín -->
+<modal-popup titulo="<lang>Programar Boletín</lang>" evento="{{boletin.modalProgramacionEvento}}" icono="fa fa-clock-o fa-fw" width="520" abrir="boletin.modalProgramacion">
+    <form name="miBoletinProgramado">
+        <div layout="column">
+            <div layout="row">
+                <div layout="column" flex="50">
+                    <h5><strong><lang>Fecha:</lang></strong></h5>
+                    <timestamp-editor timestamp="prg.fechaProgramada" class="form-control" placeholder="<lang>Fecha de envío</lang>" formato="yyyy-MM-dd" required></timestamp-editor>
+                </div>
+                <div layout="column" flex="20">
+                    <h5><strong><lang>Hora:</lang></strong></h5>
+                    <timepicker ng-model="prg.horaProgramada" minute-step="15" show-meridian="false" required></timepicker>
+                    
+                </div>
+            </div>
+            <div>
+                <button ng-if="boletin.modalProgramacionTipo === 1" class="btn btn-primary" ng-disabled="!miBoletinProgramado.$valid" ng-click="enviarProgramacion(prg)"><lang>Programar</lang></button>
+                <button ng-if="boletin.modalProgramacionTipo === 2" class="btn btn-primary" ng-disabled="!miBoletinProgramado.$valid" ng-click="enviarProgramacionArchivo(prg)"><lang>Programar</lang></button>
+            </div>
+        </div>
+    </form>
+</modal-popup>
+<!-- Estilos -->
+<style>
+    .vistaprevia{
+        padding:2px;
+        margin:2px;
+        min-width:740px;
+        max-width:750px;
+        max-height:500px;
+        overflow: auto;
+        border-radius: 5px;
+    }
+    .personalizaEnvio{
+        padding: 0px 0px 0px 25px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        border: 1px solid #DDDDDD;
+        margin: 0px 7px 0px 7px;
+    }
+</style>
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

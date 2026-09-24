@@ -1,0 +1,89 @@
+<style>
+    .chartDetail{
+        padding-bottom:15px; 
+    }
+    .chartDetail svg.nvd3-svg{
+        display: block;
+        height: auto;
+        min-height:300px;
+        /*width: 95%;*/        
+    }
+    .chartDetaila svg{
+        min-height: 114px;
+        /*display: block;
+        height: auto;
+        min-height:100px;*/
+        /*width: 95%;*/     
+    }
+    .chartDetail .nvd3 text{
+        font: 400 10px Arial,sans-serif;   
+    }
+    .panel-default{
+        margin-right:15px;
+    }
+    .sinMargen.panel-default{
+        margin-right:0;
+    }
+    .calidadIco{
+        font-size: 35px
+    }
+
+</style>
+<div style="padding:30px;" ng-init="cargarDatos()">
+    <div layout="row" layout-align="space-between start">
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Preguntas sin respuesta
+            </div>    
+            <div class="chartDetail panel-body"> 
+                <nvd3 options="optionsPreguntasSinRespuesta" data="dataPreguntasSinRespuesta"></nvd3>
+            </div>
+        </div>
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Preguntas más frecuentes con respuesta
+            </div>
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsPreguntasSinRespuesta" data="dataPreguntasConRespuesta"></nvd3>
+            </div>
+        </div>        
+    </div>
+    <div layout="row" layout-align="space-between start">
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Datos captados
+            </div>       
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsFuenteDatos" data="dataFuenteDatos"></nvd3>
+            </div>
+        </div>
+        <div flex="50" class="panel panel-default ">
+            <div class="panel-heading">
+                Conversaciones por provincia
+            </div>
+            <div class="chartDetail panel-body" >  
+                <div ng-bind-html="imagenMapa">
+                </div>
+            </div>
+        </div>   
+    </div>    
+    <div layout="row" layout-align="space-between start">
+        <div flex="50" class="panel panel-default">
+            <div class="panel-heading">
+                Interacción por género y edad
+            </div>       
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsEdad" data="dataEdad"></nvd3>
+            </div>
+        </div>
+        <div flex="50" class="panel panel-default ">
+            <div class="panel-heading">
+                Interacción por hora
+            </div>
+            <div class="chartDetail panel-body" >  
+                <nvd3 options="optionsHora" data="dataHora"></nvd3>
+            </div>
+        </div>   
+    </div>    
+</div>
+<wait-window activar="procesando"></wait-window>

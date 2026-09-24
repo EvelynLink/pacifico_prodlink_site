@@ -1,0 +1,305 @@
+<reporte-cabecera nombre="<lang>Bitácota de publicación</lang>">
+    <lang>No se han definido filtros para éste reporte</lang>
+</reporte-cabecera>
+<div class="contenedor-tabs tabscuadradas" layout-padding>
+    <table style="width:100%" tabula="Bitacora" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacoraRedes&acc=getData" observa-y-recarga='reloadMainTable' tamanio-inicial="15">
+        <tr>
+            <td align="center"><tabula-exportar dataset="tabulas['Bitacora']"></tabula-exportar></td>
+            <td colspan="100" align="center"><tabula-paginador dataset="tabulas['Bitacora']"></tabula-paginador></td>
+        </tr>
+        <!-- Encabezado de tabla de modulos -->
+        <tr>
+            <th tabula-encabezado="boc_nombre" titulo="<lang>Nombre Boletin</lang>" ordenar></th>
+            <th tabula-encabezado="usu_apellidos usu_nombres" titulo="<lang>Enviado por</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_jerarquias" titulo="<lang>Marcados</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_envioProgramado" titulo="<lang>Fecha envío</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_elementosTotal" titulo="<lang>Elementos</lang>"></th>
+            <th tabula-encabezado="bbi_estadoPublicacion" titulo="<lang>Estado</lang>" ordenar></th>
+            <th tabula-encabezado="bbi_tipo" titulo="<lang>Tipo</lang>" ordenar></th>
+            <td></td>
+        </tr>
+        <tr ng-repeat="pr in tabulas['Bitacora'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+            <!-- Columnas de datos -->
+            <td align="left">&nbsp;{{pr.boc_nombre}}</td>
+            <td align="left"><span ng-if="pr.bbi_userId > 0">{{pr.usu_apellidos +' '+ pr.usu_nombres}}</span></td>
+            <td align="center">{{pr.bbi_jerarquias}}</td>
+            <td align="center">
+                <span ng-if="pr.bbi_envioProgramado > 0">{{pr.bbi_envioProgramado | fecha:'Y-m-d'}} {{pr.bbi_horaenvio}}</span>
+                <span ng-if="pr.bbi_envioProgramado == 0">{{pr.bbi_creado | fecha:'Y-m-d'}}</span>
+            </td>
+            <td align="center">{{pr.bbi_elementosTotal}}</td>
+            <td align="center">
+                <select ng-if="pr.bbi_estadoPublicacion == 'ACTIVO' || pr.bbi_estadoPublicacion == 'PAUSADO'" style="width: 130px" class='form-control' ng-options="item.key as item.value for item in adStatus" ng-model="pr.bbi_estadoPublicacion" ng-change="preActualizarEstadoAd(pr.bbi_id, pr.bbi_estadoPublicacion)"></select>
+                <span ng-if="pr.bbi_estadoPublicacion != 'ACTIVO' && pr.bbi_estadoPublicacion != 'PAUSADO'">{{pr.bbi_estadoPublicacion}}</span>
+            </td>
+            <td align="center">{{pr.bbi_tipo | uppercase}}</td>
+            <td align="center"><li class="fa fa-chevron-right fa-fw" mde-click="verDetalleRedes(pos,pr)"></li></td>
+        </tr>
+    </table>
+</div>
+<!-- Modales -->
+<!-- Detalle de Envío -->
+<modal-popup titulo="<lang>Estadísticas de publicación en Facebook</lang>" evento="{{Bitacora.evento}}" icono="fa fa-bar-chart fa-lg" width="950" abrir="Bitacora.ver">
+    <div ng-show="!insightDetatil.connect" style="text-align: center; padding: 20px">
+        <span style="color: grey">
+            {{insightDetatil.message}}
+        </span>
+    </div>
+    <div style="padding: 10px">
+        <table style="width: 100%" ng-init="getDetailAdInfo()">
+            <tr>
+                <td>
+                    <div ng-show="insightDetatil.connect" class="form-group" style="padding: 15px">
+                        <!--Filtros-->
+                        <table class="filter_table">
+                            <tr>
+                                <td>
+                                    <span style="color: grey; font-size: 12px">Filtro de tiempo</span>
+                                </td>
+                                <td>
+                                    <span style="color: grey; font-size: 12px">Previzualización de anuncio</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <select class='form-control custom_control_filter' ng-options="item.key as item.value for item in filterOptions" ng-model="insightDetatil.filter" ng-change="actualizarFiltroDetalle()"></select>
+                                </td>
+                                <td>
+                                    <select class='form-control custom_control_preview' ng-options="item.key as item.value for item in previewOptions" ng-model="insightDetatil.filterPreview" ng-change="actualizarFiltroDetallePreview()"></select>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+                <td rowspan="2" style="text-align: right; vertical-align: top">
+                    <span ng-if="insightDetatil.preview !== ''" style="text-align: right" ng-bind-html="insightDetatil.preview | to_trusted"></span>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top; font-size: 13px">
+                    <div ng-show="insightDetatil.connect">
+                        <span style="color: grey">Nombre:</span><br/><b>{{insightDetatil.name}}</b><br/><br/>
+                        <span style="color: grey">Cuenta publicitaria:</span><br/><b>{{insightDetatil.account_name}}</b><br/><br/>
+                        <span style="color: grey">Campaña:</span><br/><b>{{insightDetatil.campaign_name}}</b><br/><br/>
+                        <span style="color: grey">Conjunto de anuncios:</span><br/><b>{{insightDetatil.adset_name}}</b><br/><br/>
+                        <span style="color: grey">Fecha de creación:</span><br/><b>{{insightDetatil.created_time}}</b><br/><br/>
+                        <span style="color: grey">Recomendaciones:</span><br/>
+                        <span style="font-size: 12px" ng-repeat="(key, value) in insightDetatil.recommendations" tooltip="{{value.message}}">&nbsp;&nbsp;&nbsp;{{value.title}}</span><br/>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <table ng-show="insightDetatil.connect" class="tablaDetalleRedes" tabula="Enviados" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpBitacoraRedes&acc=enviados&bitacoraId={{Bitacora.selecId}}&filter={{insightDetatil.filter}}" observa-y-recarga='reloadDetail' tamanio-inicial="15" post-carga="detallePostCargaRedes(filas, extra)">
+        <tr>
+            <th tabula-encabezado="clicks" titulo="<lang>Clics</lang>"></th>
+            <th tabula-encabezado="impressions" titulo="<lang>Impresiones</lang>"></th>
+            <th tabula-encabezado="reach" titulo="<lang>Alcance</lang>"></th>
+            <th tooltip="" tabula-encabezado="cpc" titulo="<lang>CPC</lang>"></th>
+            <th tabula-encabezado="cpm" titulo="<lang>CPM</lang>"></th>
+            <th tabula-encabezado="cpp" titulo="<lang>CPP</lang>"></th>
+            <th tabula-encabezado="ctr" titulo="<lang>CTR</lang>"></th>
+            <th tabula-encabezado="objective" titulo="<lang>Objetivo</lang>"></th>
+            <th tabula-encabezado="spend" titulo="<lang>Gasto</lang>"></th>
+            <th tabula-encabezado="created_time" titulo="<lang>Creación</lang>"></th>
+            <th tabula-encabezado="date_start" titulo="<lang>Inicio</lang>"></th>
+            <th tabula-encabezado="date_stop" titulo="<lang>Fin</lang>"></th>
+        </tr>
+        <tr ng-if="insightDetatil.almost_one" ng-repeat="ev in tabulas['Enviados'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+            <!-- Columnas de datos -->
+            <td>{{ev.clicks}}</td>
+            <td>{{ev.impressions}}</td>
+            <td>{{ev.reach}}</td>
+            <td>{{ev.cpc}}</td>
+            <td>{{ev.cpm}}</td>
+            <td>{{ev.cpp}}</td>
+            <td>{{ev.ctr}}%</td>
+            <td>{{ev.objective}}</td>
+            <td>USD {{ev.spend}}</td>
+            <td>{{ev.created_time}}</td>
+            <td>{{ev.date_start}}</td>
+            <td>{{ev.date_stop}}</td>
+        </tr>
+        <tr ng-if="!insightDetatil.almost_one">
+            <td colspan="12">
+                <span style="color: grey">
+                    {{insightDetatil.message}}
+                </span>
+            </td>
+        </tr>
+        <tr ng-if="insightDetatil.almost_one">
+            <td colspan="12" align="right"><tabula-exportar dataset="tabulas['Enviados']"></tabula-exportar></td>
+        </tr>
+    </table>
+</modal-popup>
+<!-- INICIO DIV PARA ALERT DE MENSAJES MULTIPROPOSITOS -->
+<div class="row" ng-if="messageAlert.show">
+    <div  class="modal-backdrop fade in" style="z-index:1200;background:black;opacity:0.7;"></div>
+    <div style="position:fixed;left:25%;top:20%;width:600px;z-index:1201;padding:10px;background:transparent;">
+        <div class="panel panel-primary">
+            <div class="panel-heading">{{messageAlert.title}}
+                <a style="z-index:1000;background:white;opacity:0.7;" class='pull-right' ng-click="closeAlert()" title="Cerrar"><i class="fa fa-times"></i></a>
+            </div>
+            <div class="panel-body" align="center">
+                <div align='center' class="col-md-12">
+                    <br/><div ng-bind-html="messageAlert.message | to_trusted"></div><br/>
+                </div>
+                <!--ACCIONES DE ALERT-->
+                <div ng-show='messageAlert.ops && !messageAlert.anyOptions'>
+                    <br/>
+                    <button ng-click="closeAlert()" class="md-raised md-warn md-button md-ink-ripple">
+                        NO, GRACIAS
+                    </button>
+                    <button ng-click="reciveOpAlert(messageAlert.passthrough)" class="md-raised md-primary md-button md-ink-ripple">
+                        PROCEDER
+                    </button>
+                </div>
+                <div ng-show='!messageAlert.ops && !messageAlert.anyOptions'>
+                    <br/>
+                    <button ng-click="closeAlert()" class="md-raised md-warn md-button md-ink-ripple">
+                        ACEPTAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- FIN DIV PARA ALERT DE MENSAJES MULTIPROPOSITOS -->                   
+<!-- Estilos -->
+<style>
+    .tablaDetalleRedes {
+        width: 100%
+    }
+    .tablaDetalleRedes tr td {
+        font-size: 12px
+    }
+    .tablaDetalleRedes tr th {
+        font-size: 13px
+    }
+    .custom_control_filter {
+        max-width: 170px
+    }
+    .custom_control_preview {
+        max-width: 250px
+    }
+    .filter_table tr td {
+        padding: 5px
+    }
+</style>
+<!-- Pie de reporte -->
+<reporte-pie></reporte-pie>
+<!-- Wait window -->
+<wait-window activar="waitWindow"></wait-window>
+
+<!--<div  class="modal-backdrop fade in" style="z-index:1000;background:black;opacity:0.7;" ng-if="Bitacora.ver"></div>
+<div style="position:absolute;left:10%;top:20%;width:950px;z-index:1001;background: none;" ng-if="Bitacora.ver">
+    <div  class="panel panel-default" style="border:1px solid green; padding: 2px;">
+        <div class="panel-heading">
+            <table width="100%">
+                <tr>
+                    <td width="95%">
+                        <div class="panel-title">
+                            <i class="fa fa-bar-chart fa-lg"></i>
+                            <lang>Estadísticas de publicación en Facebook</lang>
+                        </div>
+                    </td>
+                    <td align="right" style="border-left: 1px solid green;"><h5><li class="fa fa-close fa-green fa-lg" ng-click="Bitacora.ver=false"></li></h5></td>
+                </tr>
+            </table>
+        </div>
+        <div class="panel-body">
+            <div ng-show="!insightDetatil.connect" style="text-align: center; padding: 20px">
+                <span style="color: grey">
+                    {{insightDetatil.message}}
+                </span>
+            </div>
+            <div style="padding: 10px">
+                <table style="width: 100%" ng-init="getDetailAdInfo()">
+                    <tr>
+                        <td>
+                            <div ng-show="insightDetatil.connect" class="form-group" style="padding: 15px">
+                                <!--Filtros-1->
+                                <table class="filter_table">
+                                    <tr>
+                                        <td>
+                                            <span style="color: grey; font-size: 12px">Filtro de tiempo</span>
+                                        </td>
+                                        <td>
+                                            <span style="color: grey; font-size: 12px">Previzualización de anuncio</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <select class='form-control custom_control_filter' ng-options="item.key as item.value for item in filterOptions" ng-model="insightDetatil.filter" ng-change="actualizarFiltroDetalle()"></select>
+                                        </td>
+                                        <td>
+                                            <select class='form-control custom_control_preview' ng-options="item.key as item.value for item in previewOptions" ng-model="insightDetatil.filterPreview" ng-change="actualizarFiltroDetallePreview()"></select>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                        <td rowspan="2" style="text-align: right; vertical-align: top">
+                            <span ng-if="insightDetatil.preview !== ''" style="text-align: right" ng-bind-html="insightDetatil.preview | to_trusted"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="vertical-align: top; font-size: 13px">
+                            <div ng-show="insightDetatil.connect">
+                                <span style="color: grey">Nombre:</span><br/><b>{{insightDetatil.name}}</b><br/><br/>
+                                <span style="color: grey">Cuenta publicitaria:</span><br/><b>{{insightDetatil.account_name}}</b><br/><br/>
+                                <span style="color: grey">Campaña:</span><br/><b>{{insightDetatil.campaign_name}}</b><br/><br/>
+                                <span style="color: grey">Conjunto de anuncios:</span><br/><b>{{insightDetatil.adset_name}}</b><br/><br/>
+                                <span style="color: grey">Fecha de creación:</span><br/><b>{{insightDetatil.created_time}}</b><br/><br/>
+                                <span style="color: grey">Recomendaciones:</span><br/>
+                                <span style="font-size: 12px" ng-repeat="(key, value) in insightDetatil.recommendations" tooltip="{{value.message}}">&nbsp;&nbsp;&nbsp;{{value.title}}</span><br/>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table ng-show="insightDetatil.connect" class="tablaDetalleRedes" tabula="Enviados" url="../boletines/BoletinesCtrl.php?act=reporteBitacoraEnviadosRedes&bitacoraId={{Bitacora.selecId}}&filter={{insightDetatil.filter}}" campo="" observa-y-recarga='reloadDetail' tamanio-inicial="15" post-carga="detallePostCargaRedes(filas, extra)">
+                <tr>
+                    <th tabula-encabezado="clicks" titulo="<lang>Clics</lang>"></th>
+                    <th tabula-encabezado="impressions" titulo="<lang>Impresiones</lang>"></th>
+                    <th tabula-encabezado="reach" titulo="<lang>Alcance</lang>"></th>
+                    <th tooltip="" tabula-encabezado="cpc" titulo="<lang>CPC</lang>"></th>
+                    <th tabula-encabezado="cpm" titulo="<lang>CPM</lang>"></th>
+                    <th tabula-encabezado="cpp" titulo="<lang>CPP</lang>"></th>
+                    <th tabula-encabezado="ctr" titulo="<lang>CTR</lang>"></th>
+                    <th tabula-encabezado="objective" titulo="<lang>Objetivo</lang>"></th>
+                    <th tabula-encabezado="spend" titulo="<lang>Gasto</lang>"></th>
+                    <th tabula-encabezado="created_time" titulo="<lang>Creación</lang>"></th>
+                    <th tabula-encabezado="date_start" titulo="<lang>Inicio</lang>"></th>
+                    <th tabula-encabezado="date_stop" titulo="<lang>Fin</lang>"></th>
+                </tr>
+                <tr ng-if="insightDetatil.almost_one" ng-repeat="ev in tabulas['Enviados'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                    <!-- Columnas de datos -1->
+                    <td>{{ev.clicks}}</td>
+                    <td>{{ev.impressions}}</td>
+                    <td>{{ev.reach}}</td>
+                    <td>{{ev.cpc}}</td>
+                    <td>{{ev.cpm}}</td>
+                    <td>{{ev.cpp}}</td>
+                    <td>{{ev.ctr}}%</td>
+                    <td>{{ev.objective}}</td>
+                    <td>USD {{ev.spend}}</td>
+                    <td>{{ev.created_time}}</td>
+                    <td>{{ev.date_start}}</td>
+                    <td>{{ev.date_stop}}</td>
+                </tr>
+                <tr ng-if="!insightDetatil.almost_one">
+                    <td colspan="12">
+                        <span style="color: grey">
+                            {{insightDetatil.message}}
+                        </span>
+                    </td>
+                </tr>
+                <tr ng-if="insightDetatil.almost_one">
+                    <td colspan="12" align="right"><tabula-exportar dataset="tabulas['Enviados']"></tabula-exportar></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>-->
+<!-- _FIN_DE_ARCHIVO -->

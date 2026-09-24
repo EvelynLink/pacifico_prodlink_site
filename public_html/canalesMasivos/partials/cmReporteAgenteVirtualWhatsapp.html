@@ -1,0 +1,539 @@
+<div style="display: flex; flex-direction: column; align-items: center; vertical-align: middle; justify-content: center; width: 99vw; height: 100%; padding: 8px;">
+    <div style="display: flex; flex-direction: column; padding-top: 12px; width: 100%;">
+        <!--#region FILTROS-->
+        <div style="width: 100%; display: flex; margin-bottom: 18px;  border: solid 1px #cbcbcb; border-radius: 4px;">
+            <div style="height: 65px; display: flex; justify-content: center; align-items: center; vertical-align: middle; background-color: #cbcbcb;">
+                &nbsp;
+                <li class="fa fa-filter fa-15x" style="cursor: default;"></li>
+                &nbsp;
+            </div>
+            <div style="padding: 12px; display: flex;">
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle;">
+                    <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                    <select
+                        id="filtroTiempo"
+                        class="form-control"
+                        ng-model="filtroTiempo"
+                        ng-change="traerParametrizacion()"
+                    >
+                        <option value="hora">Ultima hora</option>
+                        <option value="dia">Este d&iacute;a</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="mes">Este mes</option>
+                        <option value="rango">Rango de tiempo</option>
+                        <option value="todo">Todo</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaDesde"
+                        class="form-control"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaDesde"
+                        ng-click="abreFechaDesde = !abreFechaDesde"
+                        ng-model="fechaDesde"
+                        placeholder="Desde"
+                        style="width: 120px;"
+                        ng-change="aplicarRangoFechas()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaHasta"
+                        class="form-control select-filtro"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaHasta"
+                        ng-click="abreFechaHasta = !abreFechaHasta"
+                        ng-model="fechaHasta"
+                        placeholder="Hasta"
+                        style="width: 120px;"
+                        ng-change="aplicarRangoFechas()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-hashtag fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroLote"
+                        class="form-control select-filtro"
+                        ng-model="filtroLote"
+                        ng-options="p.id as p.nombre for p in listas.lotes"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-connectdevelop fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroProveedor"
+                        class="form-control select-filtro"
+                        ng-model="filtroProveedor"
+                        ng-options="p.id as p.nombre for p in listas.proveedores"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-briefcase fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroCartera"
+                        class="form-control select-filtro"
+                        ng-model="filtroCartera"
+                        ng-options="p.id as p.nombre for p in listas.carteras"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tags fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroCampania"
+                        class="form-control select-filtro"
+                        ng-model="filtroCampania"
+                        ng-options="p.id as p.nombre for p in listas.campanias"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tags fa-15x" style="cursor: default;"></li>
+                    <select
+                        id="filtroProducto"
+                        class="form-control select-filtro"
+                        ng-model="filtroProducto"
+                        ng-options="p.id as p.nombre for p in listas.productos"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+            </div>
+        </div>
+        <!--#region FILTROS APLICADOS-->
+        <div style="display: flex; width: 100%;">
+            <div ng-show="filtrosAplicados.tiempo.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.lote.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.lote.titulo}}
+                    <li ng-click="quitarFiltro('lote')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.proveedor.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.proveedor.titulo}}
+                    <li ng-click="quitarFiltro('proveedor')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.cartera.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.cartera.titulo}}
+                    <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.campania.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.campania.titulo}}
+                    <li ng-click="quitarFiltro('campania')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.producto.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.producto.titulo}}
+                    <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" style="padding-right: 8px;">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#endregion-->
+        <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-top: 12px; padding-bottom: 12px; position: sticky; top: 0; background-color: white; z-index: 8;">
+            <span class="titulo-pantalla" style="flex: 1; text-align: center; ">{{titulo}}</span>
+            <div style="display: flex;">
+                <i class="fa fa-fw fa-refresh fa-15x" title="Actualizar datos ahora" ng-click="actualizarTabula()"></i>
+                <select
+                    title="Actualizar automáticamente"
+                    id="tiempoAct"
+                    class="form-control input-sm select-filtro"
+                    ng-model="tiempoActualizar"
+                    ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                    ng-change="setTiempoActualizar()"
+                ></select>
+            </div>
+        </div>
+        <div style="display: flex; margin-top: 38px; height: 220px;">
+            <div class="contenedor-cuadros">
+                <div ng-repeat="cuadro in dataGraficos.cuadros" class="contenedor-totales" title="{{cuadro[2]}}">
+                    <div style="text-align: left;" ng-show="!cargandoGraficos">
+                        <b>
+                            <small>{{cuadro[0] | textoExtenso:21}}</small>
+                        </b>
+                    </div>
+                    <span
+                        ng-style="{color:cuadro[4]}"
+                        style="padding-top: 4px;"
+                        class="numero"
+                        ng-show="!cargandoGraficos"
+                    >
+                        <large>{{cuadro[1]}}</large>
+                        <!--<br>
+                        <small class="pequeño">
+                            {{cuadro[3]}}
+                        </small>-->
+                    </span>
+                    <div ng-show="cargandoGraficos">
+                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                    </div>
+                </div>
+            </div>
+            <div style="width: 35%; display: flex; flex-direction: row; justify-content: center; align-items: center; vertical-align: middle;">
+                <div style="width: 100%;" class="contenedor-grafico">
+                    <nvd3 style="width: 100%;" options="opcionesPie" data="dataGraficos.dataGrafico"></nvd3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--#region TABULA CHATS-->
+    <div style="width: 100%; margin-top: 24px;">
+        <div style="margin: 6px; display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <label name="tituloDetalle" class="como-link" ng-click="mostrar()">
+                Detalle de chats
+                <li class="fa fw fa-chevron-up" title="Ocultar detalle" ng-show="mostrarTabulaDetalle"></li>
+                <li class="fa fw fa-chevron-down" title="Mostrar detalle de cada llamada" ng-show="!mostrarTabulaDetalle"></li>
+            </label>
+        </div>
+        <div id="tabulaDetalle">
+            <table
+                ng-show="mostrarTabulaDetalle"
+                tamanio-inicial="20"
+                tabula="chatsProgramadas"
+                observa-y-recarga="recargarTabula"
+                url="../canalesMasivos/cmReporteAgenteVirtualWhatsappCtrl.php?act=cargarTabulaProgramadas&filtroLote={{filtroLote}}&filtroCartera={{filtroCartera}}&filtroCampania={{filtroCampania}}&filtroProducto={{filtroProducto}}&filtroProveedor={{filtroProveedor}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}"
+                post-carga="cargoTabula(filas, extra)"
+            >
+                <tr>
+                    <th>&nbsp;</th>
+                    <th
+                        ng-if="permisos.soyDesarrollo && mostrarDesarrollo"
+                        tabula-encabezado="ws_proveedor"
+                        titulo="Proveedor"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_estadoEnvio"
+                        titulo="Estado"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_fecha"
+                        titulo="Fecha<br>asignación"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_primeraRespuestaAutomatica"
+                        titulo="Fecha inicio"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_ultimaRespuestaAutomatica"
+                        titulo="Fecha última<br>interacción"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_numeroInteracciones"
+                        titulo="#<br>Interacc."
+                        tipo="range"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_telefono"
+                        titulo="Número"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_cedula"
+                        titulo="Cédula"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_nombre"
+                        titulo="Nombre"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_producto"
+                        titulo="Producto"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <!--<th
+                    tabula-encabezado="av_lote"
+                    titulo="Fecha<br>Programación"
+                    tipo="timestamp"
+                    ordenar
+                    filtrar
+                ></th>-->
+                    <th
+                        tabula-encabezado="ws_carteraNombre"
+                        titulo="Cartera"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_campaniaNombre"
+                        titulo="Campaña"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="ws_tipo"
+                        titulo="Tipo envio"
+                        ordenar
+                        filtrar
+                    ></th>
+                </tr>
+                <tr ng-repeat="(index, item) in tabulas['chatsProgramadas'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+                    <td align="center" style="vertical-align: middle;">
+                        <div>
+                            <li class="fa fa-search-plus fa-fw" title="Detalle" ng-click="mostrarDetalle(pos, item)"></li>
+                        </div>
+                    </td>
+                    <td style="vertical-align: middle;" ng-if="permisos.soyDesarrollo && mostrarDesarrollo">{{item.ws_proveedor}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_estadoEnvio}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_fecha | fecha:"d/m/Y H:i:s"}}</td>
+                    <td style="vertical-align: middle;">
+                        {{item.ws_primeraRespuestaAutomatica!==undefined && item.ws_primeraRespuestaAutomatica > 0 ?
+                    (item.ws_primeraRespuestaAutomatica | fecha:"d/m/Y H:i:s") : ""}}
+                    </td>
+                    <td style="vertical-align: middle;">
+                        {{item.ws_ultimaRespuestaAutomatica!==undefined && item.ws_ultimaRespuestaAutomatica > 0 ?
+                    (item.ws_ultimaRespuestaAutomatica | fecha:"d/m/Y H:i:s") : ""}}
+                    </td>
+                    <td style="vertical-align: middle;" align="center">{{item.ws_numeroInteracciones}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_telefono}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_cedula}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_nombre}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_producto}}</td>
+                    <!--<td style="vertical-align: middle;">{{item.av_lote | fecha:"d/m/Y H:i"}}</td>-->
+                    <td style="vertical-align: middle;">{{item.ws_carteraNombre}}</td>
+                    <td title="{{item.ws_campaniaNombre}}" style="vertical-align: middle;">{{item.ws_campaniaNombre | textoExtenso:20}}</td>
+                    <td style="vertical-align: middle;">{{item.ws_tipo}}</td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <button class="btn btn-primary" ng-click="actualizarTabula()">
+                            Actualizar
+                        </button>
+                    </td>
+                    <td colspan="9" align="center">
+                        <tabula-paginador dataset="tabulas['chatsProgramadas']" maxbotones="5"></tabula-paginador>
+                    </td>
+                    <td colspan="2" align="center">
+                        <tabula-exportar dataset="tabulas['chatsProgramadas']"></tabula-exportar>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!--#endregion-->
+    <!--#region MODAL DETALLE LLAMADA-->
+    <modal-popup
+        titulo="{{verDetalle.titulo}}"
+        evento="{{verDetalle.evento}}"
+        icono="fa fa-wechat fa-fw"
+        width="800"
+        abrir="verDetalle.activo"
+        style="color: black;"
+    >
+        <div class="form-group" ng-show="permisos.soyDesarrollo" style="padding-top: 4px;">
+            <label for="elid">
+                ID proveedor
+            </label>
+            <br>
+            <input
+                type="text"
+                class="form-control"
+                id="elid"
+                ng-model="verDetalle.detalle.ws_idConversacion"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo">
+            <label for="resumen">
+                Costo proveedor
+            </label>
+            <div class="input-group">
+                <div class="input-group-addon">$</div>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="costo"
+                    ng-model="verDetalle.detalle.chat_cost"
+                    readonly
+                    style="width: 100px;"
+                >
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="resumen">
+                Resumen
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="resumen"
+                ng-model="verDetalle.detalle.chat_summary"
+                readonly
+                title="{{verDetalle.detalle.tengoTraduccion ? verDetalle.detalle.resumenOriginal : ''}}"
+            ></textarea>
+        </div>
+        <div class="form-group">
+            <label for="exito">
+                El agente piensa que tuvo exito
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="exito"
+                value="{{verDetalle.detalle.chat_successful}}"
+                readonly
+                style="width: 200px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="sentimiento">
+                Sentimiento
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="sentimiento"
+                ng-model="verDetalle.detalle.user_sentiment"
+                readonly
+                style="width: 200px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaLlamada">
+                Fecha agente inicia el chat
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaLlamada"
+                value="{{verDetalle.detalle.ws_fecha | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaContesta">
+                Fecha usuario contesta primera vez
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaContesta"
+                value="{{verDetalle.detalle.ws_primeraRespuestaAutomatica | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaUltima">
+                Fecha &uacute;ltima interacci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaUltima"
+                value="{{verDetalle.detalle.ws_ultimaRespuestaAutomatica | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="duracion">
+                Interacciones
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="duracion"
+                value="{{verDetalle.detalle.ws_numeroInteracciones}}"
+                readonly
+                style="width: 80px;"
+            >
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="error">
+                Transcripci&oacute;n
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarTranscripcion" ng-click="verDetalle.detalle.mostrarTranscripcion=!verDetalle.detalle.mostrarTranscripcion"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarTranscripcion" ng-click="verDetalle.detalle.mostrarTranscripcion=!verDetalle.detalle.mostrarTranscripcion"></li>
+            </label>
+            <div ng-show="verDetalle.detalle.mostrarTranscripcion" style="border: solid 1px #ccc; border-radius: 4px; background-color: #eee;" ng-show="verDetalle.detalle.transcripcion.length > 0">
+                <div ng-repeat="item in verDetalle.detalle.transcript" style="width: 100%; margin-bottom: 8px; margin-top: 8px;">
+                    <div style="display: flex; " ng-class="{textoAgente: item.direccion==='agente', textoCliente: item.direccion==='cliente'}">
+                        <div style="max-width: 60%; display: flex; flex-direction: column; padding: 8px;" ng-class="{contenedorAgente: item.direccion==='agente', contenedorCliente: item.direccion==='cliente'}">
+                            <span ng-show="item.direccion==='agente'">
+                                <b>Agente virtual</b>
+                            </span>
+                            <span ng-show="item.direccion==='cliente'">
+                                <b>{{verDetalle.detalle.ws_telefono}}</b>
+                            </span>
+                            <span style="padding-top: 4px; padding-bottom: 4px;">{{item.mensaje}}</span>
+                            <span ng-show="item.fechaHora!==undefined" ng-class="{horaAgente: item.direccion==='agente', horaCliente: item.direccion==='cliente'}">
+                                <small>{{item.fechaHora}}</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="verDetalle.detalle.transcripcion.length == 0">No hay transcripci&oacute;n</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="error">
+                Valores din&aacute;micos
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarDinamicos" ng-click="verDetalle.detalle.mostrarDinamicos=!verDetalle.detalle.mostrarDinamicos"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarDinamicos" ng-click="verDetalle.detalle.mostrarDinamicos=!verDetalle.detalle.mostrarDinamicos"></li>
+            </label>
+            <ul class="list-group" ng-show="verDetalle.detalle.mostrarDinamicos">
+                <li class="list-group-item" ng-repeat="(i, v) in verDetalle.detalle.ws_valoresReemplazo">
+                    <b>{{i}}</b>
+                    :&nbsp;{{v}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group" ng-show="verDetalle.detalle.errorData!==undefined">
+            <label for="errorData">
+                Error API
+            </label>
+            <textarea
+                class="form-control"
+                rows="4"
+                id="errorData"
+                readonly
+            >
+                {{verDetalle.detalle.errorData | json}}</textarea>
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+    <wait-window activar="cargando"></wait-window>
+</div>

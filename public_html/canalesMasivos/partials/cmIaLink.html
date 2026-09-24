@@ -1,0 +1,253 @@
+<style>
+    .abierto {
+        background-color: #fcf3cf;
+    }
+    .contenedor-indicador {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        vertical-align: middle;
+        gap: 0.25rem;
+        width: 50px;
+        background: #fcf3cf;
+        border-radius: 0px 4px 4px 0px;;
+        padding: 1rem;
+    }
+    .bolita-indicador {
+        border-radius: 9999px;
+        height: 0.8rem;
+        width: 0.8rem;
+        background: rgba(148 163 184 / 1);
+        animation: wave 1s infinite;
+    }
+
+    .bolita-indicador:nth-child(1) {
+        animation-delay: 0.3333s;
+    }
+    .bolita-indicador:nth-child(2) {
+        animation-delay: 0.6666s;
+    }
+    .bolita-indicador:nth-child(3) {
+        animation-delay: 0.9999s;
+    }
+
+    .angular-with-newlines {
+        white-space: pre-line;
+    }
+
+    .sidenav {
+        width: 300px; 
+        position: absolute; 
+        z-index: 1; 
+        top: 0; 
+        left: 0;
+        background-color: #f8f8fb; 
+        overflow-x: hidden; 
+        margin-top: 10px;
+        margin-bottom: 45px;
+        height: 100%;
+        padding: 8px;
+        border-right: 1px solid #e7e7e7;
+        border-bottom: 1px solid #e7e7e7;
+        border-top: 1px solid #e7e7e7;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-card {
+        display: flex; 
+        align-items: flex-start; 
+        background-color: #fff; 
+        border-radius: 16px; 
+        padding: 15px;
+        max-width: 400px; 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+        margin-bottom: 8px; 
+        cursor: pointer;
+    }
+
+    .card-seleccionada {
+        background-color: #fcf3cf; 
+    }
+
+    .message-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-text {
+        margin: 0; 
+        font-size: 14px;
+        color: #555;
+        line-height: 1.4; 
+    }
+
+    .message-date {
+        margin: 0; 
+        font-size: 11px;
+        color: #555;
+        line-height: 1.4; 
+    }
+
+    @keyframes wave {
+        0% {
+            transform: translateY(0px);
+            background: rgba(148 163 184 / 0);
+        }
+        50% {
+            transform: translateY(-0.5rem);
+            background: rgba(148 163 184 / 0.8);
+        }
+        100% {
+            transform: translateY(0px);
+            background: rgba(148 163 184 / 0);
+        }
+    }
+</style>
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 100vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>Link IA</div>
+            <div style="flex:1;text-align: center; display: flex; justify-content: end; width: 100%;" ng-show="sesion.id!==''">
+                <button class="btn btn-primary" ng-click="nuevoChat()">
+                    Nuevo chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div style="position: relative; display: flex; flex-direction: column; width: 100%; height: 80%; align-items: center; justify-content: center; vertical-align: middle;">
+    <!--SIDEBAR CHAT ABIERTO-->
+    <div class="sidenav" ng-show="!ocultarSidebar">
+        <div style="display: flex; justify-content: end; align-items: center; vertical-align: middle; margin-bottom: 8px;" ng-click="ocultarSidebar=true;">
+            <span style="display: flex; flex: 1;">
+                <b>Chats</b>
+            </span>
+            &nbsp;
+            <li class="fa fa-fw fa-chevron-left" title="Ocultar chats"></li>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+            <div ng-show="cargandoChats" style="display: flex; justify-content: center;">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+            <div
+                ng-repeat="c in misChats"
+                class="chat-card"
+                ng-click="abrirChat(c)"
+                ng-class="{'card-seleccionada': c.seleccionado}"
+            >
+                <div class="message-content">
+                    <div class="message-date">
+                        <b>{{c.id}}</b>
+                    </div>
+                    <div class="message-date">{{c.fecha | fecha:"d/m/Y H:i:s"}}</div>
+                    <div class="message-text" title="{{c.modelo}}">{{c.modelo | textoExtenso:24}}</div>
+                    <div class="message-text" style="word-break: break-all;" title="{{c.primer_mensaje | textoExtenso:200}}">
+                        <b>{{c.primer_mensaje | textoExtenso:100}}</b>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 40px; width: 100%;"></div>
+        </div>
+    </div>
+    <!--SIDEBAR CHAT CERRADO-->
+    <div class="sidenav" ng-show="ocultarSidebar" style="width: 120px; height: 40px; overflow: hidden;">
+        <div style="display: flex; justify-content: end; align-items: center; vertical-align: middle;" ng-click="ocultarSidebar=false;">
+            <span style="display: flex; flex: 1;">
+                <b>Chats</b>
+            </span>
+            &nbsp;
+            <li class="fa fa-fw fa-chevron-right" title="Mostrar chats"></li>
+        </div>
+    </div>
+    <!--CHAT-->
+    <div style="display: flex; display: flex; overflow: auto; width: 100%; flex-direction: column;" ng-click="ocultarSidebar=true;">
+        <div style="display: flex; flex-direction: column;">
+            <div style="display: flex;">
+                <span ng-show="sesion.id!==''" style="flex: 1; padding: 8px; width: 100%; text-align: right;">
+                    <b>
+                        <nobr>Chat: {{sesion.id}}</nobr>
+                    </b>
+                </span>
+            </div>
+            <div ng-repeat="item in sesion.conversacion" style="width: 100%; margin-bottom: 8px; margin-top: 8px;">
+                <div style="display: flex; cursor: text;" ng-class="{textoAgente: item.rol==='agente', textoCliente: item.rol==='usuario'}">
+                    <div style="max-width: 90%; display: flex; flex-direction: column; padding: 8px;" ng-class="{contenedorAgente: item.rol==='agente', contenedorCliente: item.rol==='usuario'}">
+                        <span ng-show="item.rol==='agente'">
+                            <b>{{nombreLLM}}</b>
+                        </span>
+                        <span ng-show="item.rol==='usuario'">
+                            <b>Yo</b>
+                        </span>
+                        <span style="padding-top: 4px; padding-bottom: 4px;" class="angular-with-newlines">{{item.mensaje}}</span>
+                        <span ng-show="item.fecha!==undefined" ng-class="{horaAgente: item.rol==='agente', horaCliente: item.rol==='usuario'}">
+                            <small>{{item.fecha | fecha:"d/m/y H:i:s"}}</small>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="esperandoRespuesta" class="textoAgente" style="padding: 8px;">
+                <div class="contenedor-indicador">
+                    <div class="bolita-indicador"></div>
+                    <div class="bolita-indicador"></div>
+                    <div class="bolita-indicador"></div>
+                </div>
+            </div>
+            <div style="height: 60px; width: 100%;" id="footer"></div>
+        </div>
+    </div>
+    <!--INPUT TEXT CHAT-->
+    <div style="display: flex; width: 100%; justify-content: center; align-items: center; vertical-align: middle; position: fixed; bottom: 0;" ng-show="ocultarInput">
+        <div style="display: flex; width: 40%; justify-content: center; align-items: center; vertical-align: middle; padding: 8px; flex-direction: column;background-color: #f8f8fb; border-right: 1px solid #e7e7e7; border-left: 1px solid #e7e7e7; border-top: 1px solid #e7e7e7;">
+            <div>
+                <li class="fa fa-fw fa-chevron-up" title="Mostrar" ng-click="ocultarInput=false;"></li>
+            </div>
+        </div>
+    </div>
+    <div style="display: flex; width: 100%; justify-content: center; align-items: center; vertical-align: middle; position: fixed; bottom: 0; " ng-show="!ocultarInput">
+        <div style="display: flex; width: 40%; justify-content: center; align-items: center; vertical-align: middle; padding: 8px; flex-direction: column; background-color: #f8f8fb; border-right: 1px solid #e7e7e7; border-left: 1px solid #e7e7e7; border-top: 1px solid #e7e7e7;">
+            <div>
+                <li class="fa fa-fw fa-chevron-down" title="Ocultar" ng-click="ocultarInput=true;"></li>
+            </div>
+            <textarea
+                class="form-control input-sm"
+                rows="3"
+                id="textpregunta"
+                ng-model="pregunta"
+                placeholder="{{placeholder}}"
+                ng-disabled="esperandoRespuesta"
+            ></textarea>
+            <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; width: 100%; padding-top: 8px;">
+                <div style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+                    <select
+                        id="modelo"
+                        class="form-control input-sm"
+                        style="width: 300px;"
+                        ng-model="modeloSeleccionado"
+                        ng-options="p.id as p.nombre for p in modelos"
+                        ng-disabled="!permiteCambiarModelo"
+                        ng-change="establecerNombreLlm()"
+                        title="{{permiteCambiarModelo ? modeloSeleccionado : 'No se puede cambiar el modelo durante una sesión'}}"
+                    ></select>
+                    &nbsp;&nbsp;
+                    <select
+                        id="temperatura"
+                        class="form-control input-sm"
+                        style="width: 60px;"
+                        ng-model="sesion.temperatura"
+                        ng-options="p for p in temperaturas"
+                        ng-disabled="!permiteCambiarModelo"
+                        title="Temperatura"
+                    ></select>
+                </div>
+                <div style="display: flex; flex: 1; justify-content: end; align-items: center; vertical-align: middle;">
+                    <button class="btn btn-primary" ng-click="enviarPregunta()" ng-disabled="pregunta==='' || modeloSeleccionado==='0' || esperandoRespuesta">
+                        Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

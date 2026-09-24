@@ -1,0 +1,264 @@
+.dashboard-container{
+    width:100%;
+    padding:12px;
+    background:#f4f6f9;
+}
+
+/* =========================
+   KPI CARDS
+========================= */
+
+.kpi-card{
+    flex:1;
+    background:#fff;
+    border-radius:10px;
+    padding:18px;
+    display:flex;
+    align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    transition:0.2s ease;
+    min-height:95px;
+}
+
+.kpi-card:hover{
+    transform:translateY(-2px);
+}
+
+.kpi-icon{
+    width:55px;
+    height:55px;
+    border-radius:12px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:22px;
+    margin-right:16px;
+}
+
+.icon-blue{
+    background:#2F80ED;
+}
+
+.icon-yellow{
+    background:#F2C94C;
+}
+
+.icon-red{
+    background:#EB5757;
+}
+
+.icon-green{
+    background:#27AE60;
+}
+
+.kpi-title{
+    font-size:12px;
+    font-weight:700;
+    color:#7B8190;
+    margin-bottom:5px;
+}
+
+.kpi-value{
+    font-size:30px;
+    font-weight:bold;
+    color:#1F2937;
+}
+
+.kpi-trend{
+    margin-top:6px;
+    font-size:12px;
+    font-weight:600;
+}
+
+.trend-positive{
+    color:#27AE60;
+}
+
+.trend-negative{
+    color:#EB5757;
+}
+
+/* =========================
+   CARDS GENERALES
+========================= */
+
+.chart-card{
+    background:#fff;
+    border-radius:10px;
+    padding:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    transition:0.2s ease;
+}
+
+.chart-card:hover{
+    transform:translateY(-2px);
+}
+
+.chart-title{
+    font-size:15px;
+    font-weight:700;
+    color:#1F2937;
+    margin-bottom:16px;
+}
+
+/* =========================
+   TABLA
+========================= */
+
+.dashboard-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+.dashboard-table th{
+    background:#1E4E8C;
+    color:white;
+    padding:10px;
+    font-size:13px;
+    text-align:center;
+}
+
+.dashboard-table td{
+    padding:10px;
+    border-bottom:1px solid #E5E7EB;
+    font-size:13px;
+    text-align:center;
+}
+
+.dashboard-table tr:hover{
+    background:#F9FAFB;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge-mora{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    display:inline-block;
+}
+
+.badge-green{
+    background:#4CAF50;
+}
+
+.badge-yellow{
+    background:#F2C94C;
+}
+
+.badge-orange{
+    background:#F2994A;
+}
+
+.badge-red{
+    background:#EB5757;
+}
+
+.badge-darkred{
+    background:#D63031;
+}
+
+.badge-wine{
+    background:#B71C1C;
+}
+
+/* =========================
+   HEATMAP
+========================= */
+
+.heatmap-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+.heatmap-table th{
+    background:#F3F4F6;
+    padding:10px;
+    font-size:12px;
+}
+
+.heatmap-table td{
+    padding:12px;
+    text-align:center;
+    font-weight:600;
+    font-size:13px;
+    color:#1F2937;
+}
+
+.hm-green{
+    background:#B7E4C7;
+}
+
+.hm-yellow{
+    background:#FFE08A;
+}
+
+.hm-orange{
+    background:#F9C27B;
+}
+
+.hm-red{
+    background:#F5A3A3;
+}
+
+
+
+
+.tabla-mora{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+}
+
+.tabla-mora th{
+    text-align:left;
+    padding-bottom:12px;
+    color:#344054;
+    font-weight:600;
+}
+
+.tabla-mora td{
+    padding:10px 0;
+    border-bottom:1px solid #F0F2F5;
+    color:#475467;
+}
+
+
+
+
+.dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:8px;
+}
+
+.dot-green{
+    background:#4CAF50;
+}
+
+.dot-yellow{
+    background:#F2C94C;
+}
+
+.dot-orange{
+    background:#F2994A;
+}
+
+.dot-red{
+    background:#EB5757;
+}
+
+.dot-darkred{
+    background:#D63031;
+}
+
+.dot-wine{
+    background:#B71C1C;
+}

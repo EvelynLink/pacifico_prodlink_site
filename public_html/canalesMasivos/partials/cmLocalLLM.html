@@ -1,0 +1,281 @@
+<style>
+    .abierto {
+        background-color: #fcf3cf;
+    }
+    .contenedor-indicador {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        vertical-align: middle;
+        gap: 0.25rem;
+        width: 50px;
+        background: #fcf3cf;
+        border-radius: 0px 4px 4px 0px;;
+        padding: 1rem;
+    }
+    .bolita-indicador {
+        border-radius: 9999px;
+        height: 0.8rem;
+        width: 0.8rem;
+        background: rgba(148 163 184 / 1);
+        animation: wave 1s infinite;
+    }
+
+    .bolita-indicador:nth-child(1) {
+        animation-delay: 0.3333s;
+    }
+    .bolita-indicador:nth-child(2) {
+        animation-delay: 0.6666s;
+    }
+    .bolita-indicador:nth-child(3) {
+        animation-delay: 0.9999s;
+    }
+
+    @keyframes wave {
+        0% {
+            transform: translateY(0px);
+            background: rgba(148 163 184 / 0);
+        }
+        50% {
+            transform: translateY(-0.5rem);
+            background: rgba(148 163 184 / 0.8);
+        }
+        100% {
+            transform: translateY(0px);
+            background: rgba(148 163 184 / 0);
+        }
+    }
+</style>
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 99vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>Chats LLMs Locales</div>
+        </div>
+    </div>
+</div>
+<div style="display: flex; padding:10px; justify-content: start;">
+    <button class="btn btn-primary" ng-click="nuevoChat()">
+        Nuevo chat
+    </button>
+</div>
+<div style="padding:10px; display: flex; width: 100%; max-width: 99vw; height: 100%;">
+    <div style="width: 60%;">
+        <table
+            observa-y-recarga="tabuVariable"
+            tabula="chats"
+            url="../canalesMasivos/cmLocalLLMCtrl.php?act=cargaTabula"
+            class="table "
+            tamanio-inicial="10"
+            post-carga="cargoTabula(filas, extra)"
+        >
+            <tr>
+                <th>
+                    <lang>Acciones</lang>
+                </th>
+                <th tabula-encabezado="idChat" titulo="Id Chat"></th>
+                <th
+                    tabula-encabezado="fecha_creacion"
+                    titulo="Fecha inicio"
+                    tipo="timestamp"
+                    filtrar
+                    ordenar
+                ></th>
+                <th
+                    tabula-encabezado="ultima_actividad"
+                    titulo="Última actividad"
+                    tipo="timestamp"
+                    filtrar
+                    ordenar
+                ></th>
+                <th
+                    tabula-encabezado="estado"
+                    titulo="Estado"
+                    filtrar
+                    ordenar
+                ></th>
+            </tr>
+            <tr
+                ng-repeat="ct in tabulas['chats'].filas"
+                ng-class="{ 'abierto': ct.abierto === 'true' || ct.abierto === true }"
+                ng-class-odd="'odd'"
+                ng-class-even="'even'"
+            >
+                <td style="vertical-align: middle; text-align: center;">
+                    <nobr>
+                        <i class="fa fa-folder-open-o fa-fw" title="Abrir" ng-click="abrirChat(ct)"></i>
+                        <i class="fa fa-search fa-fw" title="Analizar" ng-click="analizarChat(ct)"></i>
+                        <i
+                            class="fa fa-stop fa-fw fa-red"
+                            title="Finalizar"
+                            ng-click="finalizarChat(ct)"
+                            ng-show="ct.estado!=='finalizado'"
+                        ></i>
+                        <i class="fa fa-stop fa-fw fa-gray" title="Finalizar" ng-show="ct.estado==='finalizado'"></i>
+                        <i class="fa fa-trash-o fa-red fa-fw" title="Eliminar" ng-click="eliminarChat(ct)"></i>
+                    </nobr>
+                </td>
+                <td>
+                    {{ct.idChat}}
+                </td>
+                <td>
+                    {{ct.fecha_creacion | fecha:"d/m/Y H:i:s"}}
+                </td>
+                <td>
+                    {{ct.ultima_actividad > 0 ? (ct.ultima_actividad | fecha:"d/m/Y H:i:s") : ""}}
+                </td>
+                <td>
+                    {{ct.estado}}
+                </td>
+            </tr>
+            <tr>
+                <td align="center" colspan="1">
+                    <button class="btn btn-primary" ng-click="actualizarTabula()">
+                        Actualizar
+                    </button>
+                </td>
+                <td colspan="4">
+                    <tabula-paginador dataset="tabulas['chats']" maxbotones="3"></tabula-paginador>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="width: 40%; margin-left:12px; display: flex; flex-direction: column; ">
+        <div style="display: flex; flex-direction: column; border: solid 1px #ccc; border-radius: 4px; padding: 12px;" ng-show="chatSeleccionado._id!==undefined">
+            <div style="width: 100%; display: flex; justify-content: start; align-items: center; vertical-align: middle; padding-bottom: 12px;">
+                <label>Detalle del chat {{chatSeleccionado._id}}</label>
+                <div style="flex:1; display: flex; justify-content: end;">
+                    <button class="btn btn-primary btn-sm" ng-click="cerrarChat()">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+            <div>
+                <span class="badge">{{chatSeleccionado.estado}}</span>
+                <span class="badge">{{chatSeleccionado.id_agente}}</span>
+            </div>
+            <div class="form-group" style="padding-top: 12px;">
+                <label for="inicio">
+                    Fecha de inicio
+                </label>
+                <input
+                    type="phone"
+                    class="form-control"
+                    id="inicio"
+                    ng-model="chatSeleccionado.fecha_creacion"
+                    style="width: 180px;"
+                    readonly
+                >
+            </div>
+            <div class="form-group">
+                <label for="inicio">
+                    &Uacute;ltima actividad
+                </label>
+                <input
+                    type="phone"
+                    class="form-control"
+                    id="inicio"
+                    ng-model="chatSeleccionado.ultima_actividad"
+                    style="width: 180px;"
+                    readonly
+                >
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label for="error">
+                    Chat
+                    <li class="fa fw fa-chevron-up" ng-show="mostrarTranscripcion" ng-click="mostrarTranscripcion=!mostrarTranscripcion"></li>
+                    <li class="fa fw fa-chevron-down" ng-show="!mostrarTranscripcion" ng-click="mostrarTranscripcion=!mostrarTranscripcion"></li>
+                </label>
+                <div ng-show="mostrarTranscripcion" style="border: solid 1px #ccc; border-radius: 4px; background-color: #eee;" ng-show="chatSeleccionado.mensajes.length > 0">
+                    <div ng-repeat="item in chatSeleccionado.mensajes" style="width: 100%; margin-bottom: 8px; margin-top: 8px;">
+                        <div style="display: flex; " ng-class="{textoAgente: item.rol==='agente', textoCliente: item.rol==='usuario'}">
+                            <div style="max-width: 60%; display: flex; flex-direction: column; padding: 8px;" ng-class="{contenedorAgente: item.rol==='agente', contenedorCliente: item.rol==='usuario'}">
+                                <span ng-show="item.rol==='agente'">
+                                    <b>Agente virtual</b>
+                                </span>
+                                <span style="padding-top: 4px; padding-bottom: 4px;">{{item.mensaje}}</span>
+                                <span ng-show="item.fecha!==undefined" ng-class="{horaAgente: item.rol==='agente', horaCliente: item.rol==='usuario'}">
+                                    <small>{{item.fecha}}</small>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-show="esperandoRespuesta" class="textoAgente" style="padding: 8px;">
+                        <div class="contenedor-indicador">
+                            <div class="bolita-indicador"></div>
+                            <div class="bolita-indicador"></div>
+                            <div class="bolita-indicador"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; padding: 8px;" ng-show="chatSeleccionado.estado === 'en_curso'">
+                        <div style="width: 85%;">
+                            <textarea
+                                class="form-control"
+                                rows="3"
+                                id="mensaje"
+                                ng-model="nuevoMensaje"
+                            ></textarea>
+                        </div>
+                        <div style="width: 15%; display: flex; justify-content: center; align-items: end; vertical-align: middle;">
+                            <button class="btn btn-primary btn-sm" ng-click="enviarMensaje()" ng-disabled="esperandoRespuesta">
+                                Enviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div ng-show="chatSeleccionado.mensajes.length == 0">A&uacute;n no hay transcripci&oacute;n</div>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label for="error">
+                    Valores din&aacute;micos
+                    <li class="fa fw fa-chevron-up" ng-show="mostrarDinamicos" ng-click="mostrarDinamicos=!mostrarDinamicos"></li>
+                    <li class="fa fw fa-chevron-down" ng-show="!mostrarDinamicos" ng-click="mostrarDinamicos=!mostrarDinamicos"></li>
+                </label>
+                <ul class="list-group" ng-show="mostrarDinamicos">
+                    <li class="list-group-item" ng-repeat="(i, v) in chatSeleccionado.valores_dinamicos">
+                        <b>{{i}}</b>
+                        :&nbsp;{{v}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div style="display: flex; flex-direction: column; border: solid 1px #ccc; border-radius: 4px; padding: 12px;" ng-show="dataNuevoChat.agente!==undefined">
+            <div style="width: 100%; display: flex; justify-content: start; align-items: center; vertical-align: middle; padding-bottom: 12px;">
+                <label>Nuevo chat</label>
+                <div style="flex:1; display: flex; justify-content: end;">
+                    <button class="btn btn-primary btn-sm" ng-click="cerrarNuevoChat()">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="agente">
+                    *Agente
+                </label>
+                <select
+                    id="agente"
+                    class="form-control"
+                    ng-model="dataNuevoChat.agente"
+                    ng-options="p.id as p.nombre for p in dataNuevoChat.listaAgentes"
+                    ng-change="traerVariablesDinamicas()"
+                ></select>
+            </div>
+            <div class="form-group" ng-repeat="d in dataNuevoChat.variablesDinamicas">
+                <label for="{{d.nombre}}">
+                    {{d.nombre}}
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="{{d.nombre}}"
+                    ng-model="d.valor"
+                    maxlength="100"
+                >
+            </div>
+            <button class="btn btn-primary" ng-click="iniciarChat()" ng-disabled="dataNuevoChat.agente===''">
+                Iniciar chat
+            </button>
+        </div>
+    </div>
+</div>
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

@@ -1,0 +1,505 @@
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 99vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>Llamadas LiveKit</div>
+        </div>
+    </div>
+</div>
+<div style="display: flex; flex-direction: column; align-items: center; vertical-align: middle; justify-content: center; width: 99vw; height: 100%; padding: 8px;">
+    <div style="display: flex; flex-direction: column; padding-top: 12px; width: 100%;">
+        <div style="width: 100%; display: flex; margin-bottom: 18px;  border: solid 1px #cbcbcb; border-radius: 4px;">
+            <div style="height: 72px; display: flex; justify-content: center; align-items: center; vertical-align: middle; background-color: #cbcbcb;">
+                &nbsp;
+                <li class="fa fa-filter fa-15x" style="cursor: default;"></li>
+                &nbsp;
+            </div>
+            <div style="padding: 12px; display: flex;">
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle;">
+                    <li class="fa fa-fw fa-clock-o fa-15x" title="Fecha de creación"></li>
+                    <select
+                        id="filtroTiempo"
+                        class="form-control"
+                        ng-model="filtroTiempo"
+                        ng-change="debounceAplicarFiltros()"
+                    >
+                        <option value="dia">Este d&iacute;a</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="semanaanterior">Semana anterior</option>
+                        <option value="mes">Este mes</option>
+                        <option value="mesanterior">Mes anterior</option>
+                        <option value="rango">Rango de tiempo</option>
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaDesde"
+                        class="form-control"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaDesde"
+                        ng-click="abreFechaDesde = !abreFechaDesde"
+                        ng-model="fechaDesde"
+                        placeholder="Desde"
+                        style="width: 120px;"
+                        ng-change="debounceAplicarFiltros()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaHasta"
+                        class="form-control select-filtro"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaHasta"
+                        ng-click="abreFechaHasta = !abreFechaHasta"
+                        ng-model="fechaHasta"
+                        placeholder="Hasta"
+                        style="width: 120px;"
+                        ng-change="debounceAplicarFiltros()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-briefcase fa-15x" style="cursor: default;" title="Agente"></li>
+                    <select
+                        id="filtroAgentes"
+                        class="form-control select-filtro"
+                        ng-model="agentesSeleccionados"
+                        multiple
+                        ng-options="p.id as p.nombre for p in listas.agentes"
+                        style="height: 48px;"
+                        ng-change="debounceAplicarFiltros()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tag fa-15x" style="cursor: default;" title="Estado de la llamada"></li>
+                    <select
+                        id="filtroEstados"
+                        class="form-control select-filtro"
+                        ng-model="estadosSeleccionados"
+                        multiple
+                        ng-options="p.id as p.nombre for p in listas.estados"
+                        style="height: 48px;"
+                        ng-change="debounceAplicarFiltros()"
+                    ></select>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; width: 100%; margin-bottom: 12px;">
+            <div ng-show="filtrosAplicados.tiempo.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.agentes.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.agentes.titulo}}
+                    <li ng-click="quitarFiltro('agentes')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.estados.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.estados.titulo}}
+                    <li ng-click="quitarFiltro('estados')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" style="padding-right: 8px;">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div style="flex:1"></div>
+            <div>
+                <button class="btn btn-primary" ng-click="nuevaLlamada()">
+                    Programar llamada
+                </button>
+            </div>
+        </div>
+    </div>
+    <div style="display: flex; width: 100%; height: 100%;">
+        <table
+            observa-y-recarga="tabuVariable"
+            tabula="llamadas"
+            url="../canalesMasivos/cmLlamadasLivekitCtrl.php?act=cargaTabula&agentes={{agentesSeleccionados}}&estados={{estadosSeleccionados}}&tiempo={{filtroTiempo}}&fecha_desde={{filtroDesde}}&fecha_hasta={{filtroHasta}}"
+            class="table "
+            tamanio-inicial="10"
+            post-carga="cargoTabula(filas, extra)"
+        >
+            <tr>
+                <th>
+                    <lang>Acciones</lang>
+                </th>
+                <th tabula-encabezado="estado" titulo="Estado"></th>
+                <th tabula-encabezado="agent_id" titulo="Agente"></th>
+                <th tabula-encabezado="to_number" titulo="Teléfono" filtrar></th>
+                <th
+                    tabula-encabezado="fecha_creacion"
+                    titulo="Fecha creación"
+                    tipo="timestamp"
+                    filtrar
+                    ordenar
+                ></th>
+                <th
+                    tabula-encabezado="fecha_inicio"
+                    titulo="Fecha inicio"
+                    tipo="timestamp"
+                    ordenar
+                ></th>
+                <th
+                    tabula-encabezado="fecha_fin"
+                    titulo="Fecha fin"
+                    tipo="timestamp"
+                    ordenar
+                ></th>
+            </tr>
+            <tr ng-repeat="ct in tabulas['llamadas'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+                <td style="vertical-align: middle; text-align: center;">
+                    <nobr>
+                        <i class="fa fa-search fa-fw" title="Ver detalle" ng-click="abrirLlamada(ct)"></i>
+                        <i
+                            class="fa fa-minus-circle fa-red fa-fw"
+                            title="Desprogramar"
+                            ng-click="desprogramarLlamada(ct)"
+                            ng-show="ct.estado==='new'"
+                        ></i>
+                        <i class="fa fa-trash-o fa-red fa-fw" title="Eliminar" ng-click="eliminarLlamada(ct)"></i>
+                    </nobr>
+                </td>
+                <td align="center">
+                    {{equivalencias.estados[ct.estado]}}
+                </td>
+                <td>
+                    {{equivalencias.agentes[ct.agent_id]}}
+                </td>
+                <td>
+                    {{ct.to_number}}
+                </td>
+                <td align="center">
+                    {{ct.fecha_creacion | fecha:"d/m/Y H:i:s"}}
+                </td>
+                <td align="center">
+                    {{ct.fecha_inicio | fecha:"d/m/Y H:i:s"}}
+                </td>
+                <td align="center">
+                    {{ct.fecha_fin | fecha:"d/m/Y H:i:s"}}
+                </td>
+            </tr>
+            <tr>
+                <td align="center" colspan="2">
+                    <button class="btn btn-primary" ng-click="actualizarTabula()">
+                        Actualizar
+                    </button>
+                </td>
+                <td colspan="5">
+                    <tabula-paginador dataset="tabulas['llamadas']" maxbotones="3"></tabula-paginador>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<modal-popup
+    titulo="Programar llamada"
+    evento="{{verModalLlamada.evento}}"
+    icono="fa fa-volume-control-phone fa-fw"
+    width="500"
+    abrir="verModalLlamada.activo"
+    style="color: black;"
+>
+    <div>
+        <div class="form-group">
+            <label for="telefono">
+                Número a llamar
+            </label>
+            <input
+                type="phone"
+                class="form-control"
+                id="telefono"
+                ng-model="verModalLlamada.numero"
+                style="width: 150px;"
+                placeholder="+593964582952"
+            >
+        </div>
+        <div class="form-group">
+            <label for="agente">
+                Agente
+            </label>
+            <select
+                id="agente"
+                class="form-control select-filtro"
+                ng-model="verModalLlamada.agente"
+                ng-options="p.id as p.nombre for p in listas.agentes"
+                ng-change="traerCamposAgente()"
+            ></select>
+        </div>
+        <div ng-show="verModalLlamada.agente!==''">
+            <div class="form-group" ng-repeat="d in verModalLlamada.nuevoDatos">
+                <label for="{{d.nombre}}">
+                    {{d.nombre}}
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="{{d.nombre}}"
+                    ng-model="d.valor"
+                    maxlength="100"
+                >
+            </div>
+            <button class="btn btn-primary" ng-click="iniciarLlamada()">
+                Programar
+            </button>
+        </div>
+    </div>
+</modal-popup>
+<modal-popup
+    titulo="Detalle llamada {{verDetalleLlamada.datos.to_number}}"
+    evento="{{verDetalleLlamada.evento}}"
+    icono="fa fa-reorder fa-fw"
+    width="800"
+    abrir="verDetalleLlamada.activo"
+    style="color: black;"
+>
+    <div>
+        <div style="display: flex;">
+            <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; width: 50%;">
+                <audio controls autoplay ng-if="verDetalleLlamada.datos.audioLocal!==undefined && verDetalleLlamada.datos.audioLocal!==''">
+                    <source ng-src="{{verDetalleLlamada.datos.audioLocal}}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <span class="badge" ng-if="verDetalleLlamada.datos.audioLocal===undefined || verDetalleLlamada.datos.audioLocal===''" style="margin-top: 12px; margin-bottom: 12px;">Sin audio registrado</span>
+            </div>
+        </div>
+        <div class="form-group" style="padding-top: 4px;">
+            <label for="estado">
+                Estado
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="estado"
+                ng-model="equivalencias.estados[verDetalleLlamada.datos.estado]"
+                readonly
+            >
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="detail">
+                Detalle bdd
+                <li class="fa fw fa-chevron-up" ng-show="verDetalleLlamada.mostrarDetalle" ng-click="verDetalleLlamada.mostrarDetalle=!verDetalleLlamada.mostrarDetalle"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalleLlamada.mostrarDetalle" ng-click="verDetalleLlamada.mostrarDetalle=!verDetalleLlamada.mostrarDetalle"></li>
+            </label>
+            <pre ng-show="verDetalleLlamada.mostrarDetalle">
+                {{verDetalleLlamada.datos | json}}
+            </pre>
+        </div>
+        <div class="form-group" style="padding-top: 4px;">
+            <label for="elid">
+                ID proveedor
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="elid"
+                ng-model="verDetalleLlamada.datos._id"
+                readonly
+            >
+        </div>
+        <div class="form-group" style="padding-top: 4px;">
+            <label for="llm">
+                Modelo LLM
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="llm"
+                ng-model="equivalencias.agentes[verDetalleLlamada.datos.agent_id]"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="resumen">
+                Tel&eacute;fono origen
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="costo"
+                ng-model="verDetalleLlamada.datos.from_number"
+                readonly
+                style="width: 150px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="tokesn">
+                TTS n&uacute;mero de carateres
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="tokesn"
+                ng-model="verDetalleLlamada.datos.metricas.tts_characters_count"
+                readonly
+                style="width: 100px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="tokesn">
+                TTS duraci&oacute;n del audio
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="tokesn"
+                ng-model="verDetalleLlamada.datos.metricas.tts_audio_duration"
+                readonly
+                style="width: 100px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="resumen">
+                Resumen
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="resumen"
+                ng-model="verDetalleLlamada.datos.analisis.resumen_llamada"
+                readonly
+            ></textarea>
+        </div>
+        <div class="form-group">
+            <label for="sentimiento">
+                Sentimiento
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="sentimiento"
+                ng-model="verDetalleLlamada.datos.analisis.sentimiento_general"
+                readonly
+                style="width: 200px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="error">
+                Mensaje error
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="error"
+                ng-model="verDetalleLlamada.datos.mensaje"
+                readonly
+                style="color:red;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaLlamada">
+                Fecha agente inicia la llamada
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaLlamada"
+                value="{{(verDetalleLlamada.datos.fecha_inicio) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaContesta">
+                Fecha contesta
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaContesta"
+                value="{{(verDetalleLlamada.datos.fecha_inicia_conversacion) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaContesta">
+                Fecha finaliza la llamada
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="fechaContesta"
+                value="{{(verDetalleLlamada.datos.fecha_fin) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+                style="width: 160px;"
+            >
+        </div>
+        <div class="form-group">
+            <label for="duracion">
+                Duraci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="duracion"
+                value="{{verDetalleLlamada.datos.duracion_segundos}}"
+                readonly
+                style="width: 80px;"
+            >
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="error">
+                Transcripci&oacute;n
+                <li class="fa fw fa-chevron-up" ng-show="verDetalleLlamada.mostrarTranscripcion" ng-click="verDetalleLlamada.mostrarTranscripcion=!verDetalleLlamada.mostrarTranscripcion"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalleLlamada.mostrarTranscripcion" ng-click="verDetalleLlamada.mostrarTranscripcion=!verDetalleLlamada.mostrarTranscripcion"></li>
+            </label>
+            <div ng-show="verDetalleLlamada.mostrarTranscripcion" style="border: solid 1px #ccc; border-radius: 4px; background-color: #eee;">
+                <div ng-repeat="item in verDetalleLlamada.datos.transcripcion_simple" style="width: 100%; margin-bottom: 8px; margin-top: 8px;">
+                    <div style="display: flex; " ng-class="{textoAgente: item.direccion==='agente', textoCliente: item.direccion==='cliente'}">
+                        <div style="max-width: 60%; display: flex; flex-direction: column; padding: 8px;" ng-class="{contenedorAgente: item.direccion==='agente', contenedorCliente: item.direccion==='cliente'}">
+                            <span ng-show="item.direccion==='agente'">
+                                <b>Agente virtual</b>
+                            </span>
+                            <span ng-show="item.direccion==='cliente'">
+                                <b>{{verDetalleLlamada.datos.to_number}}</b>
+                            </span>
+                            <span style="padding-top: 4px; padding-bottom: 4px;">{{item.mensaje}}</span>
+                            <div ng-if="item.interlocutorInterrumpe" style="font-style: italic;">
+                                <b>Interlocutor iterrumpe</b>
+                            </div>
+                            <span ng-show="item.fechaHora!==undefined" ng-class="{horaAgente: item.direccion==='agente', horaCliente: item.direccion==='cliente'}">
+                                <small>{{item.fechaHora | fecha:"d/m/Y H:i:s"}}</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="verDetalle.detalle.transcripcion_simple.length == 0">No hay transcripci&oacute;n</div>
+        </div>
+        <div style="margin-bottom: 8px;">
+            <label for="error">
+                Valores din&aacute;micos
+                <li class="fa fw fa-chevron-up" ng-show="verDetalleLlamada.mostrarDinamicos" ng-click="verDetalleLlamada.mostrarDinamicos=!verDetalleLlamada.mostrarDinamicos"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalleLlamada.mostrarDinamicos" ng-click="verDetalleLlamada.mostrarDinamicos=!verDetalleLlamada.mostrarDinamicos"></li>
+            </label>
+            <ul class="list-group" ng-show="verDetalleLlamada.mostrarDinamicos">
+                <li class="list-group-item" ng-repeat="(i, v) in verDetalleLlamada.datos.variables">
+                    <b>{{i}}</b>
+                    :&nbsp;{{v}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group">
+            <label for="finalizacion">
+                Motivo finalizaci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="finalizacion"
+                value="{{verDetalleLlamada.datos.motivo_finaliza.reason}}"
+                readonly
+            >
+        </div>
+    </div>
+</modal-popup>
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

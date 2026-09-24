@@ -1,0 +1,106 @@
+<form name="miContacto">
+    <div layout="row" layout-align="center start">
+        <div flex>&nbsp;</div>
+        <div flex-xs="95" flex-gt-xs="80" flex-gt-sm="60">
+            <div layout-xs="column" layout-gt-xs="row" layout-wrap class="formFilaPad">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>NOMBRE:</label>
+                    <input ng-model="d.nombre" class="md-input miform ng-touched" name="nombre" placeholder="" required>
+                </md-input-container>                
+                <md-input-container class="md-input-has-value" flex>
+                    <label>APELLIDO:</label>
+                    <input ng-model="d.apellido" class="md-input miform ng-touched" name="apellido" placeholder="" required>
+                </md-input-container>
+            </div>
+            <div layout-xs="column" layout-gt-xs="row"class="formFilaPad">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>EMAIL:</label>
+                    <input ng-model="d.email" class="md-input miform ng-touched" name="correo" type="email" placeholder="" required>
+                </md-input-container>  
+                <md-input-container class="md-input-has-value" flex>
+                    <label>CIUDAD:</label>
+                    <input ng-model="d.ciudad" class="md-input miform ng-touched" type="text" name="ciudad" placeholder="" required>
+                </md-input-container>
+            </div>
+            <div layout-xs="column" layout-gt-xs="row"class="formFilaPad">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>IDENTIFICACIÓN</label>
+                    <input ng-model="d.identificacion" class="md-input miform ng-touched" type="text" name="ciudad" placeholder="" numbers-only required>
+                </md-input-container>
+            </div>
+            <div layout-xs="column" layout-gt-xs="row" class="formFilaPad">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>TELÉFONO:</label>
+                    <input ng-model="d.telefono" class="md-input miform ng-touched" type="text" name="telefono" placeholder="" numbers-only required>
+                </md-input-container>
+                <md-input-container class="md-input-has-value" flex>
+                    <label>CELULAR</label>
+                    <input ng-model="d.celular" class="md-input miform ng-touched" type="text" name="celular" placeholder="" numbers-only>
+                </md-input-container>                    
+            </div>
+            <div layout="row" layout-align="start center" class="formFilaPad borde-bt" style="position:relative; margin-top:20px">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>FECHA DE NACIMIENTO:</label>
+                    <timestamp-editor timestamp="d.fechaNacimiento" formato="yyyy-MM-dd" style="font-size: 14px;" placeholder="<lang>Fecha de nacimiento</lang>"></timestamp-editor>
+                </md-input-container>  
+            </div>
+            <div layout-xs="column" layout-gt-xs="row" layout-wrap class="formFilaPad">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>EMPRESA:</label>
+                    <input ng-model="d.empresa" class="md-input miform ng-touched" name="empresa" placeholder="">
+                </md-input-container>                
+                <md-input-container class="md-input-has-value" flex>
+                    <label>DIRECCION:</label>
+                    <input ng-model="d.direccion" class="md-input miform ng-touched" name="direccion" placeholder="">
+                </md-input-container>
+            </div>
+            <div layout-xs="column" layout-gt-xs="row" class="formFilaPad">
+                <md-input-container class="md-input-has-value" flex>
+                    <label>MENSAJE:</label>
+                    <textarea matInput ng-model="d.mensaje" class="miform" name="mensaje" placeholder=""></textarea>
+                </md-input-container>  
+            </div>
+            <div layout="row" layout-align="start center" class="formFilaPad borde-bt">
+                <div><p><lang>Género</lang>:</p></div>
+                <div class="btn-group" ng-repeat="gen in suscripcion.grupos.c_4" ng-click="seleccionDinamicaSuscripcion(gen)">
+                    <li ng-class="{'btn btn-default colorRadioBT':!seleccion[gen.id],'btn btn-success colorRadioBT':seleccion[gen.id]}">{{gen.nombre}}</li>
+                </div>
+            </div>
+            <div class="formFilaPad" layout="column" layout-align="start center">
+                <div><h5><b><lang>Desea Suscribirse</lang>?</b></h5></div>           
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default colorRadioBT" ng-model="d.deseaSuscribir" btn-radio="'Sí'">&nbsp;&nbsp;&nbsp;&nbsp;Sí&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    <button type="button" class="btn btn-default colorRadioBT" ng-model="d.deseaSuscribir" btn-radio="'No'">&nbsp;&nbsp;&nbsp;&nbsp;No&nbsp;&nbsp;&nbsp;&nbsp;</button> 
+                </div>
+            </div>
+            <div ng-if="d.deseaSuscribir == 'Sí'" class="formFilaPad borde-bt" layout="column"  layout-align="start stretch">
+                <h5><b><lang>Elija sus intereses</lang></b></h5>
+                <div ng-if="d.deseaSuscribir == 'Sí'"
+                    jerarquia="gruposinteres" 
+                    url="../boletines/ContactoCtrl.php?act=obtieneGrupos" 
+                    selector="seleccionarSuscripcion(item,seleccionadas)" nivel-maximo="5"
+                    niveles-separados abrir-en="jerarquias['gruposinteres'].key" drag-enabled="false" no-editable seleccion-multiple>
+                    <div jerarquia-nodos ng-model="jerarquias['gruposinteres']">
+                        <li ng-repeat="item in jerarquias['gruposinteres']" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=comunes/partials/TemplateJerarquia.html'"></li>
+                    </div>
+                </div>
+            </div>
+            <div class="formFilaPad" layout="column" layout-align="center center">
+                <h5><b><lang>Copie este verificador</lang></b></h5>
+                <div><img src="{{suscripcion.verificador.verificador}}"></div>
+                <div layout="column" layout-align="center center">
+                        <input type="hidden" ng-model="suscripcion.verificador.codVerificador" class="form-control" style="width:150px;" required>
+                        <input type="hidden" ng-model="suscripcion.verificador.challenge" class="form-control"/>
+                        <input type="text" ng-model="suscripcion.verificador.turingV" style="width:150px;" ng-keypress="teclea($event);" placeholder="<lang>Ingrese aquí el código verificador</lang>" class="form-control" maxlength="8" size="8" numbers-only/>
+                        <input type="hidden" ng-model="suscripcion.verificador.turingH" class="form-control"/>
+                        <div ng-click="borra()" class="md-raised md-warn md-button md-default-theme pull-right" style="margin:0px;width:100%;">Borrar</div>
+                </div>
+            </div>
+            <div layout="column" layout-align="center stretch" layout-padding>
+                <button class="btn btn-success" ng-click="guardarContacto(d)" style="width:100%" ng-disabled="!miContacto.$valid">Enviar</button>
+            </div>
+        </div>
+        <div flex>&nbsp;</div>
+    </div>
+</form>
+<!-- //_FIN_DE_ARCHIVO -->

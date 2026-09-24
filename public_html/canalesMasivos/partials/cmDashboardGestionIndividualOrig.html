@@ -1,0 +1,609 @@
+<div class="gen-contenedor-centrado-8608">
+    <div class="gen-contenedor-flexible-6866">
+        <!--#region FILTROS-->
+        <div class="gen-borde-gris-sencillo-7643">
+            <div class="gen-canalesMasivos-1781102279-3146">
+                &nbsp;
+                <li class="fa fa-filter fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                &nbsp;
+            </div>
+            <div class="gen-canalesMasivos-1783007084-2102">
+                <div class="gen-canalesMasivos-1783007084-4688">
+                    <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                    <select ng-disabled="cargando" id="filtroTiempo" class="form-control" ng-model="filtroTiempo"
+                        ng-change="traerParametrizacion()">
+                        <option value="hora">Última hora</option>
+                        <option value="dia">Este d&iacute;a</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="semanaanterior">Semana anterior</option>
+                        <option value="mes">Este mes</option>
+                        <option value="mesanterior">Mes anterior</option>
+                        <option value="rango">Rango de tiempo</option>
+                        <!--<option value="todo">Todo</option>-->
+                    </select>
+                </div>
+                <div
+                    ng-show="filtroTiempo==='rango'" class="gen-canalesMasivos-1783007084-6206">
+                    <input id="fechaDesde" class="form-control gen-canalesMasivos-1783007084-5989" type="text" datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaDesde" ng-click="abreFechaDesde = !abreFechaDesde" ng-model="fechaDesde"
+                        placeholder="Desde" ng-change="aplicarRangoFechas()">
+                </div>
+                <div
+                    ng-show="filtroTiempo==='rango'" class="gen-canalesMasivos-1783007084-6206">
+                    <input id="fechaHasta" class="form-control gen-canalesMasivos-1783007084-5989" type="text" datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaHasta" ng-click="abreFechaHasta = !abreFechaHasta" ng-model="fechaHasta"
+                        placeholder="Hasta" ng-change="aplicarRangoFechas()">
+                </div>
+                <div class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-briefcase fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <select ng-disabled="cargando" id="filtroCartera" class="form-control"
+                        ng-model="filtroCartera" ng-options="p.id as p.nombre for p in listas.carteras"
+                        ng-change="traerParametrizacion()"></select>
+                </div>
+                <div ng-if="filtroCartera!=='todo'" class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-tachometer fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <select ng-disabled="cargando" id="filtroPeriodo" class="form-control"
+                        ng-model="listas.filtroPeriodo" ng-change="traerParametrizacion()"
+                        ng-options="p.id as p.nombre for p in periodo">
+                    </select>
+                </div>
+                <div class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-tags fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <select ng-disabled="cargando" id="filtroCampania" class="form-control"
+                        ng-model="filtroCampania" ng-options="p.id as p.nombre for p in listas.campanias"
+                        ng-change="traerParametrizacion()"></select>
+                </div>
+                <div class="gen-centrado-flexible-8859">
+                    <li class="fa fa-fw fa-exchange fa-15x"></li>
+                    <select ng-disabled="cargando" id="filtroCanal" class="form-control" ng-model="filtroCanal"
+                        ng-change="traerParametrizacion()">
+                        <option selected value="todo">Todos los canales</option>
+                        <option value="llamada">Llamadas</option>
+                        <option value="wp">WhatsApp</option>
+                        <option value="mail">Correo electr&oacute;nico</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!--#region FILTROS APLICADOS-->
+        <div class="gen-contenedor-flexible-1573">
+            <div ng-show="filtrosAplicados.tiempo.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.cartera.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.cartera.titulo}}
+                    <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.campania.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.campania.titulo}}
+                    <li ng-click="quitarFiltro('campania')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--#region TITULO-->
+        <div class="gen-canalesMasivos-1783007084-1088">
+            <span class="titulo-pantalla gen-canalesMasivos-1783007084-7780">{{titulo}}</span>
+            <div class="gen-contenedor-flexible-8031">
+                <i class="fa fa-fw fa-refresh fa-15x" title="Actualizar datos ahora"
+                    ng-click="traerParametrizacion()"></i>
+                <select title="Actualizar automáticamente" id="tiempoAct" class="form-control input-sm"
+                    ng-model="tiempoActualizar" ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                    ng-change="setTiempoActualizar()"></select>
+            </div>
+            <br />
+            <div ng-show="permisos.soyDesarrollo" class="gen-contenedor-flexible-8031">
+                <i class="fa fa-tw fa-th fa-15x" title="Operaciones por día" ng-click="viewdias();"></i>
+            </div>
+        </div>
+        <!--#endregion-->
+     
+        <!--#region seccion llamadas agentes virtuales-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Gesti&oacute;n por llamada telef&oacute;nica&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes">
+                    </li>
+                </h2>
+                <span>
+                    <small>(Agentes vituales)</small>
+                </span>
+            </div>
+            <div class="contenedor-badges-campanias">
+                <span ng-repeat="c in secciones.llamadasAV.campanias">
+                    &nbsp;
+                    <span class="badge">
+                        {{c}}
+                    </span>
+                </span>
+            </div>
+            <div class="gen-contenedor-flexible-1573">
+                <div class="flex-row-centrado gen-columna-ancha-2218">
+                    <div class="flex-columna-centrado">
+                        <svg id="gaugeProgreso"></svg>
+                        <span class="gen-canalesMasivos-1783007094-3718">
+                            <b>Progreso</b>
+                        </span>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-general gen-canalesMasivos-1781099115-6691">
+                    <div ng-repeat="cuadro in secciones.llamadasAV.totales" class="contenedor-totales">
+                        <div ng-show="!cargandoGraficos" class="gen-canalesMasivos-1783007084-7298">
+                            <b>
+                                <small>{{cuadro["nombre"] | textoExtenso:14}}</small>
+                            </b>
+                        </div>
+                        <span class="numero gen-canalesMasivos-1783007084-1444" ng-show="!cargandoGraficos">
+                            <large>{{cuadro["total"]}}</large>
+                            <p class="subtitulo-cuadro gen-canalesMasivos-1781099115-9339">{{cuadro["tooltip"]}}</p>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico gen-margen-superior-8013" ng-if="permisos.soyDesarrollo">
+                <li class="fa fa-fw fa-question-circle-o gen-posicion-fija-arriba-7898" title="{{promedios.llamadas}}"></li>
+                <nvd3 options="opcionesLineaLlamadas" data="graficos.lineaLlamadas" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region seccion correos-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Gesti&oacute;n por correo electr&oacute;nico&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes">
+                    </li>
+                </h2>
+            </div>
+            <div class="contenedor-badges-campanias">
+                <span ng-repeat="c in secciones.correo.campanias">
+                    &nbsp;
+                    <span class="badge">
+                        {{c}}
+                    </span>
+                </span>
+            </div>
+            <div class="gen-contenedor-flexible-1573">
+                <div class="flex-row-centrado gen-columna-ancha-2218">
+                    <div class="flex-columna-centrado">
+                        <svg id="gaugeProgresoCorreo"></svg>
+                        <span class="gen-canalesMasivos-1783007094-3718">
+                            <b>Progreso</b>
+                        </span>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-general gen-canalesMasivos-1781099115-6691">
+                    <div ng-repeat="cuadro in secciones.correo.totales" class="contenedor-totales">
+                        <div ng-show="!cargandoGraficos" class="gen-canalesMasivos-1783007084-7298">
+                            <b>
+                                <small>{{cuadro["nombre"] | textoExtenso:14}}</small>
+                            </b>
+                        </div>
+                        <span class="numero gen-canalesMasivos-1783007084-1444" ng-show="!cargandoGraficos">
+                            <large>{{cuadro["total"]}}</large>
+                            <p class="subtitulo-cuadro gen-canalesMasivos-1781099115-9339">{{cuadro["tooltip"]}}</p>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico gen-margen-superior-8013">
+                <li class="fa fa-fw fa-question-circle-o gen-posicion-fija-arriba-7898" title="{{promedios.correos}}"></li>
+                <nvd3 options="opcionesLineaLlamadas" data="graficos.lineaCorreos" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region seccion whatsapp-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Gesti&oacute;n por WhatsApp&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes">
+                    </li>
+                </h2>
+            </div>
+            <div class="contenedor-badges-campanias">
+                <span ng-repeat="c in secciones.whatsapp.campanias">
+                    &nbsp;
+                    <span class="badge">
+                        {{c}}
+                    </span>
+                </span>
+            </div>
+            <div class="gen-contenedor-flexible-1573">
+                <div class="flex-row-centrado gen-columna-ancha-2218">
+                    <div class="flex-columna-centrado">
+                        <svg id="gaugeProgresoWhatsapp"></svg>
+                        <span class="gen-canalesMasivos-1783007094-3718">
+                            <b>Progreso</b>
+                        </span>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-general gen-canalesMasivos-1781099115-6691">
+                    <div ng-repeat="cuadro in secciones.whatsapp.totales" class="contenedor-totales"
+                        title="{{cuadro['extra']!==undefined ? cuadro['extra'] : ''}}">
+                        <div ng-show="!cargandoGraficos" class="gen-canalesMasivos-1783007084-7298">
+                            <b>
+                                <small>{{cuadro["nombre"] | textoExtenso:14}}</small>
+                            </b>
+                        </div>
+                        <span class="numero gen-canalesMasivos-1783007084-1444" ng-show="!cargandoGraficos">
+                            <large>{{cuadro["total"]}}</large>
+                            <p class="subtitulo-cuadro gen-canalesMasivos-1781099115-9339">{{cuadro["tooltip"]}}</p>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico gen-margen-superior-8013">
+                <li class="fa fa-fw fa-question-circle-o gen-posicion-fija-arriba-7898" title="{{promedios.whatsapp}}"></li>
+                <nvd3 options="opcionesLineaLlamadas" data="graficos.lineaWhatsapp" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+            </div>
+        </div>
+        <!--#endregion-->
+        <div class="gen-alto-fijo-6598"></div>
+    </div>
+</div>
+
+
+<!-- <div style="width: 100%;" layout="row" layout-align="space-around start">
+    <div flex="50" style="width: 70%;" layout="column" layout-align="start center">
+        /* cartera gestionada */
+        <div class="contenedor-totales" style="width: 420px;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{totales['gestion'][0]['nombre']}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][0]['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{totales['gestion'][0]['porcentaje']}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][0]['tooltip']}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][0]['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][0]['tooltip']}}</p>
+            </span>
+            <span style="margin-top: -10px;" class="numero"
+                ng-show="totales['gestion'][0]['monto']!==undefined && !cargandoGraficos">
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][0]['monto']}}</p>
+                <md-tooltip md-direction="bottom"
+                    style="font-size: 10px;">{{totales['gestion'][0]['montoTooltip']}}</md-tooltip>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+
+        </div>
+        /* fin cartera gestionada */
+
+        <div layout="row" layout-align="space-between center" style="margin-top: 20px; margin-bottom: 20px;">
+            /*cartera gestionada con contacto  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][1]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][1]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][1]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][1]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][1]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][1]['tooltip']}}</p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin cartera gestionada con contacto */
+
+            /*Compromisos de pago registrados  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][3]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][3]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][3]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][3]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][3]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][3]['tooltip']}}</p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin Compromisos de pago registrados */
+        </div>
+
+        <div layout="row" layout-align="space-between center">
+            /*Cartera gestionada pagada  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][4]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][4]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][4]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][4]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][4]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][4]['tooltip']}}</p>
+                </span>
+                <span style="margin-top: -10px;" class="numero"
+                    ng-show="totales['gestion'][4]['monto']!==undefined && !cargandoGraficos">
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][4]['monto']}}</p>
+                    <md-tooltip md-direction="bottom"
+                        style="font-size: 10px;">{{totales['gestion'][4]['montoTooltip']}}</md-tooltip>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin Cartera gestionada pagada */
+
+            /*Efectividad  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][6]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][6]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][6]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][6]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]['tooltip']}}</p>
+                </span>
+                <span style="margin-top: -10px;" class="numero" ng-show=" !cargandoGraficos">
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]["recaudo"]}}</p>
+                    <md-tooltip md-direction="bottom"
+                        style="font-size: 10px;">{{totales['gestion'][6]["recaudoTooltip"]}}</md-tooltip>
+                </span>
+                <span style="margin-top: -10px;" class="numero" ng-show="!cargandoGraficos">
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]["capital"]}}</p>
+                    <md-tooltip md-direction="bottom"
+                        style="font-size: 10px;">{{totales['gestion'][6]["capitalTooltip"]}}</md-tooltip>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin Efectividad */
+        </div>
+    </div>
+
+    <div flex="50" style="width: 100%;" layout="column" layout-align="start center">
+        /*Cartera no gestionada  */
+        <div class="contenedor-totales" style="width: 420px;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{totales['gestion'][2]['nombre']}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][2]['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{totales['gestion'][2]['porcentaje']}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][2]['tooltip']}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][2]['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][2]['tooltip']}}</p>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+
+        </div>
+        /* fin Cartera no gestionada */
+
+        /*Cartera no gestionada pagada  */
+        <div class="contenedor-totales" style="width: 205px;margin-top: 20px;margin-bottom: 20px;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{totales['gestion'][5]['nombre']}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][5]['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{totales['gestion'][5]['porcentaje']}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][5]['tooltip']}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][5]['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][5]['tooltip']}}</p>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+        </div>
+        /* fin Cartera no gestionada pagada */
+
+        <div
+            style="width: 800px; display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle; border: solid 1px #41b7f2; background-color: #f5f5fa; text-align: center; height: 1px; font-size: 14px; margin-bottom: 20px;">
+        </div>
+
+        /* cuadros tipificacion */
+        <div style="display: flex;">
+            <div ng-repeat="cuadro in totales.tipificacion" class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{cuadro["nombre"]}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                    <large>{{cuadro["porcentaje"]}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+
+            <div ng-repeat="cuadro in totales.intensidad" class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{cuadro["nombre"]}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                    <large>{{cuadro["total"]}}</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">
+                        <span ng-repeat="t in cuadro['tooltip']">
+                            {{t}}
+                            <br>
+                        </span>
+                    </p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+        </div>
+        /* fin cuadros tipificacion */
+    </div>
+</div>
+
+<div style="width: 100%;" layout="column" layout-align="center center" ng-show="permisos.soyDesarrollo"
+    style="margin-top: 20px;margin-bottom: 20px;">
+    <div
+        style="width: 70%; display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle; border: solid 1px #41b7f2; background-color: #f5f5fa; text-align: center; height: 1px; font-size: 14px; margin-bottom: 20px;margin-top: 20px;">
+    </div>
+
+    <div layout="row" layout-align="center center">
+        <div ng-repeat="cuadro in totales.cumplimiento" class="contenedor-totales"
+            style="width: 205px;align-self: normal;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{cuadro["nombre"]}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{cuadro["porcentaje"]}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+<modal-popup titulo="Descarga de reportes" evento="{{modalReportes.evento}}" icono="fa fa-file-excel-o fa-fw"
+    width="400" abrir="modalReportes.activo" class="gen-canalesMasivos-1781099115-7252">
+    <div>
+        <p>
+            <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="descargarReporteGeneral()"
+                ng-disabled="espere.general">{{espere.general ? 'Generando...' : 'Reporte gesti&oacute;n
+                general'}}</button>
+        </p>
+        <p>
+            <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="descargarReporteLlamadas()"
+                ng-disabled="espere.llamadas">{{espere.llamadas ? 'Generando...' : 'Reporte gesti&oacute;n con llamadas
+                telef&oacute;nicas'}}</button>
+        </p>
+        <p>
+            <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="descargarReporteCorreos()"
+                ng-disabled="espere.correos">{{espere.correos ? 'Generando...' : 'Reporte gesti&oacute;n con correos
+                electr&oacute;nicos'}}</button>
+        </p>
+        <p>
+            <button type="button" class="btn btn-primary btn-lg btn-block" ng-click="descargarReporteWhatsapp()"
+                ng-disabled="espere.whatsapp">{{espere.whatsapp ? 'Generando...' : 'Reporte gesti&oacute;n con
+                WhatsApp'}}</button>
+        </p>
+    </div>
+</modal-popup>
+
+<div ng-if="verDias" class="modal-backdrop fade in gen-fondo-oscuro-2908"></div>
+<div ng-if="verDias" class="panel panel-primary gen-ventana-modal-2237">
+    <div class="panel-heading" layout="row" layout-align="space-between center">
+        <div>Operaciones por día</div>
+        <button class="btn btn-success" ng-click="cerrarDias();" tabindex="0"><span>Cerrar</span></button>
+    </div>
+    <div class="panel-body" layout="column" layout-align="space-between stretch">
+        <div class="gen-contenedor-desplazable-1578">
+            <table width="100%" class="table table-condensed table-hover  tableModulos gen-texto-pequeno-6226"
+                align="center">
+                <thead>
+                    <tr>
+                        <th class="header TOPSUBtitulo gen-canalesMasivos-1781099115-7905">Día</th>
+                        <th class="header TOPSUBtitulo gen-canalesMasivos-1781099115-7905">Premora</th>
+                        <th class="header TOPSUBtitulo gen-canalesMasivos-1781099115-7905">Nuevas Premora
+                        </th>
+                        <th class="header TOPSUBtitulo gen-canalesMasivos-1781099115-7905">Vencida</th>
+                        <th class="header TOPSUBtitulo gen-canalesMasivos-1781099115-7905">Nuevas Vencida
+                        </th>
+                        <th class="header TOPSUBtitulo gen-canalesMasivos-1781099115-7905">Total</th>
+                </thead>
+                <tr ng-repeat="fila in tablaDias">
+                    <td class="gen-texto-centrado-9505">
+                        {{fila.dia}}
+                    </td>
+                    <td class="gen-texto-centrado-9505">
+                        {{fila.premora}}
+                    </td>
+                    <td class="gen-texto-centrado-9505">
+                        {{fila.nuevoPremora}}
+                    </td>
+                    <td class="gen-texto-centrado-9505">
+                        {{fila.vencida}}
+                    </td>
+                    <td class="gen-texto-centrado-9505">
+                        {{fila.nuevoVencida}}
+                    </td>
+                    <td class="gen-texto-centrado-9505">
+                        {{fila.total}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <wait-window activar="cargando"></wait-window>

@@ -1,0 +1,219 @@
+<div class="contenedor-tabs tabscuadradas">
+    <tabset>
+        <tab class="title-tab">
+            <tab-heading><lang>Suscripción</lang></tab-heading>
+            <div class="contenidosTabs">
+                <h6><lang>Búsque las suscripciones registradas en el sitio por categorías o por correo electrónico</lang></h6>
+                <div layout="row">
+                    <div flex="35">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="panel-title">
+                                    <i class="fa fa-users fa-fw"></i>
+                                    <lang>Grupos de asociación</lang>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div style="height: auto;min-height: 300px;" class="container-fluid">
+                                    <div class="row">
+                                        <div
+                                            jerarquia="jcategoria" 
+                                            url="../boletines/BoletinesCtrl.php?act=jSuscripcionEnvio" 
+                                            selector="seleccionaItemLimpieza(item,seleccionadas)" nivel-maximo="5"
+                                            niveles-separados abrir-en="jerarquias['jcategoria'].key" drag-enabled="false" no-editable seleccion-multiple>
+                                            <div jerarquia-nodos ng-model="jerarquias['jcategoria']">
+                                                <li ng-repeat="item in jerarquias['jcategoria']" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=comunes/partials/TemplateJerarquia.html'"></li>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div flex layout="column" style="padding: 0px 0px 0px 10px;">
+                        <div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <a class="panel-title" ng-click="
+                                        reporteActivo = false;
+                                        reporteSuscripciones.copy.correos = ''" style="text-decoration: none; cursor: pointer">
+                                        <i class="fa fa-envelope-o fa-fw"></i>
+                                        <lang>Búsqueda por correo</lang>
+                                    </a>
+                                </div>
+                                <div class="panel-body">
+                                    <form name="lasSuscripciones">
+                                        <table width="100%">
+                                            <tr>
+                                                <td><lang><h5>Lista de correos</h5></lang></td>
+                                                <td>&nbsp;&nbsp;</td>
+                                                <td>
+                                                    <textarea id="txtCorreos" class="form-control" ng-model="reporteSuscripciones.copy.correos"  placeholder="Escriba un email por línea" rows="2" cols="50" required ></textarea>
+                                                </td>
+                                                <td>
+                                                    &nbsp;
+                                                    <button class="btn btn-primary" ng-disabled="!lasSuscripciones.$valid" ng-click="obtenerListaSuscripciones()"><lang>Buscar</lang></button>
+                                                </td>
+                                            </tr>
+                                            <tr ng-if="reporteActivo">
+                                                <td colspan="4" align="center">
+                                                    <br>
+                                                    <table width="100%" tabula="SuscripcionesCorreo" url="../boletines/BoletinesCtrl.php?act=reporteSuscripcionesPorCorreo&correos={{correosReporte}}" observa-y-recarga="recargaId" tamanio-inicial="5" post-carga="verificaSeleccionados(filas,extra)" >
+                                                        <tr>
+                                                            <td colspan="7" align="center">
+                                                                <tabula-paginador dataset="tabulas['SuscripcionesCorreo']" maxbotones="5"></tabula-paginador>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th tabula-encabezado="bca_nombre" titulo="<lang>Categoría</lang>" ordenar filtrar></th>
+                                                            <th tabula-encabezado="bjr_nombre" titulo="<lang>Grupo</lang>" ordenar filtrar></th>
+                                                            <th tabula-encabezado="bjr_nombre" titulo="<lang>Suscripción</lang>" ordenar filtrar></th>
+                                                            <th tabula-encabezado="bjr_nombre" titulo="<lang>Correo</lang>" ordenar filtrar></th>
+                                                            <th ng-if="permisoAdministrador">
+                                                                <li class="fa fa-trash-o fa-green fa-fw" mde-click="activaConfirmacionEliminacion(pos,2)" tooltip="<lang>Eliminar todo</lang>"></li>
+                                                            </th>
+                                                            <th>
+                                                                <li ng-if="!muestraTodosBuscados" class="fa fa-toggle-on fa-green fa-fw" ng-click="seleccionaTodosBuscados(1)" tooltip-placement="left" tooltip="<lang>Ninguno</lang>"></li>
+                                                                <li ng-if="muestraTodosBuscados" class="fa fa-toggle-off fa-green fa-fw" ng-click="seleccionaTodosBuscados(0)" tooltip-placement="left" tooltip="<lang>Todos</lang>"></li>
+                                                            </th>
+                                                            <th></th>
+                                                        </tr>
+                                                        <tr ng-repeat="ct in tabulas['SuscripcionesCorreo'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                                            <td>{{ct.bca_nombre}}</td>
+                                                            <td><span ng-if="ct.bjr_padreId == 0">{{ct.bjr_nombre}}</span></td>
+                                                            <td><span ng-if="ct.bjr_padreId != 0">{{ct.bjr_nombre}}</span></td>
+                                                            <td>{{ct.bco_email}}</td>
+                                                            <td align="center"><a mde-click="activaEdicionSuscripcion(pos,ct,1)" tooltip-placement="left" tooltip="<lang>Editar</lang>" class="fa fa-edit fa-green fa-fw" style="text-decoration: none;"></a></td>
+                                                            <td align="center"><a ng-click="eliminarSuscripcion(ct, tabulas['SuscripcionesCorreo'].filas)" tooltip-placement="bottom" tooltip="<lang>Cancelar suscripción</lang>" class="fa fa-times-circle-o fa-green fa-fw" style="text-decoration: none;"></a></td>
+                                                            <td align="center"><a ng-click="seleccionarSuscripcionBuscados(ct)" tooltip-placement="left" tooltip="<lang>Seleccionar</lang>" class="{{ct.seleccionada}}" style="text-decoration: none;"></a></td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <div class="panel-title">
+                                        <i class="fa fa-users fa-fw"></i>
+                                        <lang>Suscripciones detectadas en más de una Categoría</lang>
+                                    </div>
+                                </div>
+                                <div class="panel-body">
+                                    <div ng-show="serieMarcadosLimpieza == ''"><h6><lang>Seleccione una categoría</lang></h6></div>
+                                    <div layout="column" layout-padding ng-show="serieMarcadosLimpieza != ''">
+                                        <div><button class="btn btn-info" ng-click="actualizaReporte()"><lang>Buscar</lang></button></div>
+                                        <div>
+                                            <table tabula="duplicados" url="../boletines/BoletinesCtrl.php?act=reporteSuscripcionesLimpieza&lista={{serieMarcadosLimpieza}}" campo="" tamanio-inicial="10" observa-y-recarga="duplicados.recargaId">
+                                                <tr>
+                                                    <td colspan="2" align="center"><tabula-paginador dataset="tabulas['duplicados']"></tabula-paginador></td>
+                                                </tr>
+                                                <tr>
+                                                    <th tabula-encabezado="bco_email" titulo="<lang>Email</lang>" ordenar filtrar></th>
+                                                    <th flex><lang>Asociaciones</lang></th>
+                                                </tr>
+                                                <tr ng-repeat="pr in tabulas['duplicados'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                                                    <td align="left">&nbsp;{{pr.bco_email}}</td>
+                                                    <td>
+                                                        <div layout="row">
+                                                            <div layout="row" layout-align="center center" ng-repeat="rel in pr.bcj_relacion">
+                                                                <div >{{rel.jerarquia}}</div>
+                                                                <div><i class="fa fa-close fa-red fa-fw" ng-click="eliminarSuscripcionDuplicada(pr.bcj_correoId, rel.id)"></i></div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </tab>
+        <tab class="title-tab">
+            <tab-heading><lang>De-suscripción</lang></tab-heading>
+            <div class="contenidosTabs">
+                <h6><lang>Detalle de De-suscripciones del sitio</lang></h6>
+                <div flex="50" layout="row">
+                    <table style="width:100%" tabula="desuscritos" url="../boletines/BoletinesCtrl.php?act=reporteDesuscritosLimpieza" observa-y-recarga="limpiaDesuscritos.recarga" tamanio-inicial="15">
+                        <tr>
+                            <td align="center"><button class="btn btn-info" ng-click="limpiaDesuscritos.recarga=limpiaDesuscritos.recarga+1;"><i class="fa fa-refresh fa-fw"></i></button></td>
+                            <td align="left"><tabula-paginador dataset="tabulas['desuscritos']"></tabula-paginador></td>
+                            <td><button ng-if="tabulas['desuscritos'].filas.length > 0" class="btn btn-success" ng-click="limpiarDesuscritosTodos()"><lang>Limpiar Todo</lang></button></td>
+                        </tr>
+                        <tr>
+                            <th tabula-encabezado="bor_correo" titulo="<lang>Correo</lang>" ordenar filtrar ></th>
+                            <th tabula-encabezado="boj_nombre" titulo="<lang>Jerarquía</lang>" ordenar filtrar ></th>
+                            <th >&nbsp;</th>
+                        </tr>
+                        <tr ng-repeat="pr in tabulas['desuscritos'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                            <td width="70%">{{pr.bor_correo}}</td>
+                            <td>{{pr.boj_nombre}}</td>
+                            <td><nobr><li class="fa fa-trash-o fa-green fa-fw" tooltip="<lang>Eliminar</lang>" ng-click="limpiarDesuscripcion(pr)"></li></nobr></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </tab>
+    </tabset>
+</div>
+<!-- Modales -->
+<!-- Modal de edición de suscripción-->
+<modal-popup titulo="<lang>Editar Suscripción</lang>" evento="{{edita.evento}}" icono="fa fa-edit fa-fw" width="600" abrir="edita.activa">
+    <form name="miSuscripcion">
+        <table width="95%">
+            <tr>
+                <td><strong><lang>Nombre</lang></strong></td>
+                <td><input placeholder="<lang>nombre</lang>" class="form-control" type="text" ng-maxlength="200" ng-model="edita.nombre"></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Identificación</lang></strong></td>
+                <td><input type="text" ng-model="edita.identificacion" placeholder="<lang>identificación</lang>" class="form-control" ng-minlength="10" cedula ng-model="n.susIdentificacion" numbers-only></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Correo</lang></strong></td>
+                <td><input type="email" ng-model="edita.email" class="form-control" ng-maxlength="100" required></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Fecha Nacimiento</lang></strong></td>
+                <td><timestamp-editor timestamp="edita.fechaNacimiento" formato="yyyy-MM-dd"></timestamp-editor></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Teléfono</lang></strong></td>
+                <td><input type="text" class="form-control" ng-model="edita.telefono" ng-maxlength="10" numbers-only></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Celular</lang></strong></td>
+                <td><input type="text" class="form-control" ng-model="edita.celular" ng-maxlength="10" numbers-only></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Empresa</lang></strong></td>
+                <td><input type="text" class="form-control" ng-model="edita.empresa" ng-maxlength="250"></td>
+            </tr>
+            <tr>
+                <td><strong><lang>Dirección</lang></strong></td>
+                <td><input type="text" class="form-control" ng-model="edita.direccion" ng-maxlength="300"></td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center"><br><button class="btn btn-primary" ng-disabled="!miSuscripcion.$valid" ng-click="editaSuscripcion(edita)"><lang>Guardar</lang></button></td>
+            </tr>
+        </table>
+    </form>
+</modal-popup>
+<!-- Modal de eliminación de suscripción-->
+<modal-popup titulo="<lang>Confirmar eliminación</lang>" evento="{{eliminaSuscripciones.evento}}" icono="fa fa-exclamation-circle fa-fw" width="350" abrir="eliminaSuscripciones.activa">
+    <lang>Está seguro de eliminar las suscripciones actuales?</lang>
+    <br>
+    <br>
+    <button class="btn btn-primary" ng-click="eliminaSuscripcionesReporte()"><lang>Aceptar</lang></button>
+</modal-popup>
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

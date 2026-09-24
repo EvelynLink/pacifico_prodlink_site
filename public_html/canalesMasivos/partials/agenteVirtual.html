@@ -1,0 +1,307 @@
+<style>
+    .panel-title {
+        color: black;
+    }
+</style>
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding>
+        <div class="miEncabezado">
+            <i class="fa fa-volume-control-phone fa-fw"></i>
+            Llamada manual
+        </div>
+    </div>
+</div>
+<div layout="column" style="display: flex; flex-direction: row; background-color: white; width: 100%; padding: 12px;">
+    <div style="width: 30%;">
+        <form>
+            <div class="form-group">
+                <label for="agente">
+                    Tel&eacute;fono llamar
+                *
+                </label>
+                <select
+                    id="agente"
+                    class="form-control"
+                    ng-model="llamada.numero_telefono_agente"
+                    ng-options="p.codigo as p.nombre for p in opciones.telefonos"
+                ></select>
+            </div>
+            <div class="form-group">
+                <label for="agente">
+                    Agente
+                *
+                </label>
+                <select
+                    id="agente"
+                    class="form-control"
+                    ng-model="llamada.generoAgente"
+                    ng-options="p.codigo as p.nombre for p in opciones.agentes"
+                ></select>
+            </div>
+            <div class="form-group">
+                <label for="tipoagente">
+                    Tipo de agente
+                *
+                </label>
+                <select
+                    id="tipoagente"
+                    class="form-control"
+                    ng-model="llamada.tipoAgente"
+                    ng-options="p.codigo as p.nombre for p in opciones.tipos"
+                ></select>
+            </div>
+            <div class="form-group">
+                <label for="telefono">
+                    Tel&eacute;fono
+                *
+                </label>
+                <div class="input-group">
+                    <div class="input-group-addon">+593</div>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="telefono"
+                        ng-model="llamada.telefono"
+                        maxlength="9"
+                        style="width: 125px;"
+                        placeholder="963252154"
+                    >
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="saludoChatbot">
+                    Saludo
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="saludoChatbot"
+                    ng-model="llamada.saludo"
+                    maxlength="500"
+                >
+                <p class="help-block">Deje vacio para usar el por defecto</p>
+            </div>
+            <div class="form-group">
+                <label for="sconversacionChatbot">
+                    Conversaci&oacute;n
+                </label>
+                <textarea
+                    class="form-control"
+                    rows="3"
+                    id="sconversacionChatbot"
+                    ng-model="llamada.conversacion"
+                ></textarea>
+                <p class="help-block">
+                    <b>(PROMPT)</b>
+                    Deje vacio para usar el por defecto
+                </p>
+            </div>
+            <div class="form-group">
+                <label for="nombreChatbot">
+                    Nombre
+                *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="nombreChatbot"
+                    ng-model="llamada.nombre"
+                    maxlength="100"
+                >
+            </div>
+            <div class="form-group">
+                <label for="cartera">
+                    Cartera
+                *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="cartera"
+                    ng-model="llamada.nombre_cartera"
+                    maxlength="100"
+                >
+            </div>
+            <div class="form-group">
+                <label for="cuotasvencidas">
+                    Nro. de cuotas vencidas
+                *
+                </label>
+                <input
+                    type="number"
+                    class="form-control"
+                    id="cuotasvencidas"
+                    ng-model="llamada.nro_cuotas_vencidas"
+                    style="width: 80px; text-align: right;"
+                >
+            </div>
+            <div class="form-group">
+                <label for="diasmora">
+                    D&iacute;as mora
+                *
+                </label>
+                <input
+                    type="number"
+                    class="form-control"
+                    id="diasmora"
+                    ng-model="llamada.dias_mora"
+                    style="width: 80px; text-align: right;"
+                >
+            </div>
+            <div class="form-group">
+                <label for="montovencido">
+                    Monto vencido
+                *
+                </label>
+                <div class="input-group">
+                    <div class="input-group-addon">$</div>
+                    <input
+                        type="number"
+                        class="form-control"
+                        id="montovencido"
+                        ng-model="llamada.monto_total_vencido"
+                        style="width: 120px; text-align: right;"
+                    >
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="diacorte">
+                    D&iacute;a de corte
+                *
+                </label>
+                <input
+                    type="number"
+                    class="form-control"
+                    id="diacorte"
+                    ng-model="llamada.dia_corte"
+                    style="width: 80px; text-align: right;"
+                    min="1"
+                    max="31"
+                >
+            </div>
+            <div class="form-group">
+                <label for="nroOperacion">
+                    Nro. de operaci&oacute;n
+                *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="nroOperacion"
+                    ng-model="llamada.nro_operacion"
+                    maxlength="100"
+                >
+            </div>
+            <div class="form-group">
+                <label for="direccion">
+                    Direcci&oacute;n
+                *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="direccion"
+                    ng-model="llamada.direccion"
+                    maxlength="200"
+                >
+            </div>
+            <div class="form-group">
+                <label for="rucEmpresa">
+                    RUC empresa
+                *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="rucEmpresa"
+                    ng-model="llamada.ruc_empresa"
+                    maxlength="100"
+                >
+            </div>
+            <div class="form-group">
+                <label for="nombreEmpresa">
+                    Nombre empresa
+                *
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="nombreEmpresa"
+                    ng-model="llamada.nombre_empresa"
+                    maxlength="100"
+                >
+            </div>
+            <div>
+                <button class="btn btn-primary" ng-click="hacerLlamada()">
+                    Llamar
+                </button>
+            </div>
+        </form>
+        <br>
+    </div>
+    <div style="width: 70%; margin-left: 24px;">
+        <h3>Llamadas realizadas</h3>
+        <table
+            tamanio-inicial="10"
+            tabula="llamadasRealizadas"
+            observa-y-recarga="recargarTabula"
+            url="../canalesMasivos/agenteVirtualCtrl.php?act=cargarTabula"
+            post-carga="cargoTabula(filas, extra)"
+        >
+            <tr>
+                <th>Acciones</th>
+                <th>Estado</th>
+                <th
+                    tabula-encabezado="fecha"
+                    titulo="Fecha"
+                    tipo="timestamp"
+                    ordenar
+                    filtrar
+                ></th>
+                <th>
+                    N&uacute;mero
+                </th>
+                <th>
+                    Mensaje
+                </th>
+            </tr>
+            <tr ng-repeat-start="(index, item) in tabulas['llamadasRealizadas'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+                <td align="center">
+                    <div>
+                        <li
+                            class="fa fa-eye fa-fw"
+                            title="Detalle"
+                            ng-click="obtenerDetalle(item)"
+                            ng-show="!item.mostrarDetalle"
+                        ></li>
+                        <li
+                            class="fa fa-eye-slash fa-fw"
+                            title="Ocultar"
+                            ng-click="item.mostrarDetalle=false;"
+                            ng-show="item.mostrarDetalle"
+                        ></li>
+                        <li
+                            class="fa fa-file-audio-o fa-fw"
+                            title="Obtener audio"
+                            ng-click="traerAudio(item)"
+                            ng-show="item.estado==='REALIZADA'"
+                        ></li>
+                        <li class="fa fa-trash-o fa-fw fa-red" title="Eliminar" ng-click="eliminarLlamada(item)"></li>
+                    </div>
+                </td>
+                <td>{{item.estado}}</td>
+                <td>{{item.fecha | fecha:"d/m/Y H:i:s"}}</td>
+                <td>{{item.parametros.telefono}}</td>
+                <td>{{item.mensaje}}</td>
+            </tr>
+            <tr ng-repeat-end ng-show="item.mostrarDetalle">
+                <td colspan="5">
+                    <pre>{{item.detalle | json}}</pre>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<!--wait-->
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

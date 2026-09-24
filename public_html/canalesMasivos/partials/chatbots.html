@@ -1,0 +1,963 @@
+
+<style>
+    .listCheck .colorCheckBT{
+        padding:3px 9px;
+
+    }
+    .btn-sm.btn {
+        padding: 5px 5px;
+    }
+    .md-input-focused .textoGrande{
+        font-size:20px;        
+    }
+    md-input-container{
+        margin-top: 25px;
+
+    }
+    md-list-item.md-3-line, md-list-item.md-3-line > .md-no-style{
+        min-height: 10px !important;   
+    }
+    .md-subheader .md-subheader-inner{
+        padding: 0;
+    }
+     md-tooltip {
+        font-family: Roboto, 'Helvetica Neue', sans-serif;
+        .md-background {
+            border-radius: inherit;
+        }
+        .md-content {
+            height: auto;
+            width: 400px;
+            max-width: 400px;
+            padding: 8px;
+            white-space: initial;
+        }
+    }
+    @media screen and (min-width: 600px) {
+        md-tooltip .md-content {
+            font-size: 14px;
+            height: auto;
+            width: auto;
+            padding: 8px;
+            max-width: auto;
+        }
+    }
+    .alertaMsg {
+        background: #fff6bf;
+        background-position: 15px 50%; /* x-pos y-pos */
+        text-align: left;
+        padding: 2px 5px 2px 5px;
+        border-top: 2px solid #FBC383;
+        border-bottom: 2px solid #FBC383;
+        color:#000000;
+    }
+</style>
+
+<div ng-controller="chatbots" ng-init="traerCarteras()">
+    <!--<h3><lang>Definición de Variables</lang></h3>-->
+    <!-- Wait -->
+    <div  class="modal-backdrop fade in" style="z-index:1300;background:black;opacity:0.7;" ng-if="waitWindows"></div>
+    <div style="position:absolute;left:50%;top:50%;width:50px;z-index:1301;padding:0px;" ng-if="waitWindows">
+        <span class="fa fa-spinner fa-inverse fa-fw fa-2x fa-spin"></span>
+    </div>
+
+    <div class="panel-config cabecera" layout="row" layout-align="start center" >
+        <div layout-padding>
+            <div class="miEncabezado" style="text-align: left;">
+                <span>
+                    <i class="fa fa-wechat fa-fw"></i>
+                    <lang> Chatbots </lang>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div ng-show="!reentrenarChatbot && !listaEntrenarChatbot && !listaAnalizarChatbot && !listaConfigurarChatbot" style="padding:10px">
+        <table observa-y-recarga='tabuVariable' tabula="variable" url="../canalesMasivos/chatbotsCtrl.php?act=obtieneVariables" class="table " border="1" tamanio-inicial='10' post-carga="traducirEstadoVariable(filas)">
+            <tr>
+                <th tabula-encabezado="chatNombre" titulo="<lang>Nombre</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="chatCartera" titulo="<lang>Cartera</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="chatCampania" titulo="<lang>Campaña</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="chatCanal" titulo="<lang>Canal</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="chatVersion" titulo="<lang>Versión</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="chatFecha" titulo="<lang>Fecha</lang>" filtrar ordenar></th>
+                <th tabula-encabezado="chatEstado" titulo="<lang>Estado</lang>" ></th>
+                <th><lang>Acciones</lang></th>
+            </tr>
+            <tr ng-repeat-start="chatbots in tabulas['variable'].filas" ng-show="!chatbots.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+
+                <td valign="middle">{{chatbots.chatNombre}}</td>
+                <td valign="middle">{{chatbots.chatCartera}}</td>
+                <td valign="middle">{{chatbots.chatCampania}}</td>
+                <td valign="middle">{{chatbots.chatCanal}}</td>
+                <td valign="middle">{{chatbots.chatVersion}}</td>
+                <td valign="middle">{{chatbots.chatFecha|fecha:'Y-m-d'}}</td>
+                <td> <md-switch ng-disabled="!chatbots.editame" ng-model="chatbots.chatEstado" aria-label="Disabled active switch" ></md-switch></td>
+            <td align="center">
+            <nobr>
+
+                <button  ng-disabled="" class="btn btn-primary btn-sm" ng-click="configurarChatbot(chatbots)"><i class="fa fa-cog" tooltip-placement='bottom' tooltip='<lang>Configurar</lang>'></i></button>
+                <button  ng-disabled="!chatbots.chatEstado"  class="btn btn-primary btn-sm" ng-click="entrenarChatbot(chatbots)"><i class="fa fa-comments-o fa-fw" tooltip-placement='bottom' tooltip='<lang>Entrenar Chatbot</lang>'></i></button>
+                <button  ng-disabled="!chatbots.chatEstado" class="btn btn-primary btn-sm" ng-click="analizarChatbot(chatbots)"><i class="fa fa-bar-chart-o fa-fw" tooltip-placement='bottom' tooltip='<lang>Analizar</lang>'></i></button>
+                <button  ng-disabled="!chatbots.chatEstado" class="btn btn-primary btn-sm" ng-click="enviarEntrenar(chatbots)" ><i class="fa fa-wheelchair-alt" tooltip-placement='bottom' tooltip='<lang>Enviar Entrenamiento</lang>'></i></button>
+                <button  ng-disabled="!chatbots.chatEstado" class="btn btn-primary btn-sm" ng-click="reentrenar(chatbots)" ><i class="fa fa-refresh" tooltip-placement='bottom' tooltip='<lang>Reentrenamiento</lang>'></i></button>
+                <!--<button  ng-disabled="!chatbots.chatEstado" class="btn btn-danger btn-sm" ng-click="borraChatbot(chatbots, tabulas['variable'].filas)" ><i class="fa fa-trash-o" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i></button>-->
+            </nobr>
+            </td>	
+            </tr>
+
+            <!--edicion-->
+            <tr ng-form="subformulario" ng-show="tabulas['variable'].extra.write && chatbots.editame" ng-init="inicializaItemVar(chatbots)" ng-class-odd="'odd'" ng-class-even="'even'">	
+                <!--                <td class="cCeleste">    
+                                    <input ng-disabled="" class='form-control' type='text' ng-model="chatbots.copy.chatNombre" required/>
+                                    <div class="alert alert-error" ng-show="chatbots.copy.errores.chatNombre">{{chatbots.copy.errores.chatNombre}}</div>
+                                </td>
+                -->
+
+
+                <td align="center">
+            <nobr>  
+                <a ng-show="verCheckGuardar" ng-show="subformulario.$valid" ng-click="guardaChatbot(chatbots);
+                    tabulas['variable'].extra.noEditable = !tabulas['variable'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                    <i class="fa fa-check fa-green"></i>
+                </a>
+                <a  ng-click="chatbots.editame = false;
+                    reinicializaItem(chatbots, tabulas['variable'].filas);
+                    tabulas['variable'].extra.noEditable = !tabulas['variable'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                    <i class="fa fa-times-circle fa-red"></i>
+                </a>    
+            </nobr>
+            </td>
+            </tr>
+
+            <tr ng-repeat-end ng-show="tabulas['variable'].extra.write && subformulario.$invalid">
+                <td colspan='3'>
+                    <div class="alert alert-success ng-scope">
+                        <lang>Complete el formulario para guardarlo</lang>
+                    </div>
+                </td>
+            </tr>
+
+
+            <tr>
+                <!--                <td align="center" colspan='1' ng-if="tabulas['variable'].extra.write">
+                                    <button ng-show="verBtnVar" class="btn btn-primary" ng-click="preparaNuevoGrupo(tabulas['variable'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Agregar nuevo</lang></button>
+                                </td>
+                -->
+                <td align="center" colspan='1'>
+                    <button ng-show="verBtnVar" class="btn btn-primary" ng-click="configurarChatbot(tabulas['variable'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Nuevo</lang></button>
+                </td>
+
+                <td colspan='8'>
+            <tabula-paginador dataset="tabulas['variable']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+            </td>
+            </tr>
+        </table>
+    </div>
+    <!--</div>-->
+
+
+
+    <!--------- Acciones Configurar Chatbot  --------------->
+
+    <!--<div class="modal-backdrop fade in" style="z-index:900;background:white;opacity:1;" ng-show="listaConfigurarChatbot" ng-cloak="Cargando..."></div>-->
+    <div style="position:absolute;left:0px;top:0px;width:100%;padding-top:44px;" ng-show="listaConfigurarChatbot">
+        <!--<h3>
+            <a href="javascript:void(0);" ng-click="deslistaConfigurarChatbot()"><lang>Chatbots</lang></a> 
+            <span ng-click="deslistaConfigurarChatbot()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                <i class="fa fa-chevron-left fa-fw fa-green"></i>{{detM3.chatNombre}}
+            </span>
+        </h3>-->
+        <div flex="99" class="panel-config gris" layout="row" layout-align="start center">
+            <div  layout-padding>
+                <div class="miEncabezado" style="text-align: center;">
+                    <a href="javascript:void(0);" ng-click="deslistaConfigurarChatbot()"><lang>Chatbots</lang></a> 
+                    <!--<a href="javascript:void(0);" ng-click="deslistaConfigurarChatbot()">{{detM3.chatNombre}}</a>-->
+                    <span ng-click="deslistaConfigurarChatbot()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                        <i class="fa fa-chevron-left fa-fw fa-green"></i>{{chatbots.chatNombre}}
+                    </span>
+                </div>
+            </div>
+            <span class="bordeEn"></span>        
+        </div>
+
+        <div class="panel-body">
+
+            <table> 
+                <td   class="border-left-title" style="width:30%;">
+                    <table width="40" class="table"  >
+                            <tr>
+                                <td><h5><lang>Nombre</lang></h5></td>
+                                <td><input type="text" class="form-control" ng-model="chatbots.copy.chatNombre"   required></td>
+                            </tr>
+
+                            <tr>
+                                <td>Cartera</td>
+                                <td>
+                                    <table width="100%">
+                                        <tr>
+                                            <td><h5></h5></td>
+                                            <td>
+                                                <select class='form-control' ng-model="chatbots.copy.chatCartera" style="width:200px;" required />
+                                                    <option ng-repeat="gr in tdatocartera" value="{{gr.cobCartera_nombre}}" ng-selected="chatbots.copy.chatCartera == gr.cobCartera_nombre">{{gr.cobCartera_nombre}}</option>
+                                                </select> 
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><h5><lang>Campaña</lang></h5></td>
+                                <td><input type="text" class="form-control" ng-model="chatbots.copy.chatCampania"   required></td>
+                            </tr>
+
+                            <tr>
+                                <td>Canal</td>
+                                <td>
+                                    <table width="100%">
+                                        <tr>
+                                            <td><h5></h5></td>
+                                            <td>
+                                                <select class='form-control' ng-model="chatbots.copy.chatCanal" style="width:200px;"/>
+                                                    <option ng-repeat="gr in tdatocanal" value="{{gr.nombre}}" ng-selected="chatbots.copy.chatCanal == gr.nombre">{{gr.nombre}}</option>
+                                                </select> 
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>API</td>
+                                <td>
+                                    <table width="100%">
+                                        <tr>
+                                            <td><h5></h5></td>
+                                            <td>
+                                                <select id="tipo" class="form-control" style="width: 95%"  >
+                                                    <option >Chatbot Periodo 7 Cobranza</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <br>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td><h5><lang>Versión</lang></h5></td>
+                                <td><input type="text" class="form-control" ng-model="chatbots.copy.chatVersion"   required></td>
+                            </tr>
+
+                            <tr>
+                                <td><h5><lang>Estado</lang></h5></td>
+                                <td>
+                                    <md-switch ng-disabled="" ng-model="chatbots.copy.chatEstado" aria-label="Disabled active switch" ng-change="onChangeTramoSaldo(chatbots, chatbots.copy.var_estado)"></md-switch>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><h5><lang>Descripción</lang></h5></td>
+                                <td>
+                                    <textarea class="form-control" ng-model="chatbots.copy.chatDescripcion" cols="50" rows="5"></textarea>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" align="center">
+                                    <br>
+                                    <button class="btn btn-success" ng-disabled="" ng-click="guardaChatbot(chatbots)"><lang>Guardar</lang></button>
+                                    <button class="btn btn-warning" ng-disabled="" ng-click="reinicializaItem(chatbots, tabulas['variable'].filas)"><lang>Cancelar</lang></button>
+
+                                </td>
+                            </tr>
+                    </table>
+                </td>
+                <td  class="border-left-title" style="width:30%;">
+                    <table> 
+
+                    </table>  
+                </td>
+            </table> 
+        </div>
+    </div>  
+    <!--------- Fin Acciones Configurar Chatbot  --------------->
+
+    <!---------------------------- Acciones Entrenar Chatbot ---------------------->
+
+<!--               Reentrenamiento de conversaciones no reconocidas                                                                    -->
+
+    <div style="position:absolute;left:0px;top:40px;width:100%;padding-top:44px;" ng-if="reentrenarChatbot">
+         <div flex="99" class="panel-config gris" layout="row" layout-align="start center">
+            <div  layout-padding>
+                <div class="miEncabezado" style="text-align: center;">
+                    <span>
+                        <lang> Entrenar</lang><lang> Chatbots </lang>
+                    </span>
+                    <span ng-click="deslistaReentrenarChatbot()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                        <i class="fa fa-chevron-left fa-fw fa-green"></i> {{reentrenarChatBotData.chatNombre}} <i class="fa fa-chevron-left fa-fw fa-green"></i> Reentrenamiento de Preguntas sin Respuestas
+                    </span>
+                </div>
+            </div>
+        </div>
+        <table observa-y-recarga='tabuReentrenar' tabula="variableR" url="../canalesMasivos/chatbotsCtrl.php?act=getReentrenar&coleccion={{reentrenarChatBotData.coleccionConversacion}}" class="table " border="1" tamanio-inicial='8'>
+            <tr>
+                <th style="width:60%" tabula-encabezado="declaracion-user" titulo="<lang>Pregunta</lang>" filtrar></th>
+                <th><lang>Fecha</lang></th>
+                <th><lang>Reentrenar</lang></th>
+                <th><lang>Acciones</lang></th>
+            </tr>
+            <tr ng-repeat-start="chbots in tabulas['variableR'].filas" ng-show="!chatbots.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                <td valign="middle">{{chbots['declaracion-user']}}</td>
+                <td align="center">
+                    {{chbots['fecha-declaracion-user'].milliseconds.substr(0,10)|fecha:"Y-m-d H:i:s"}}
+                </td>    
+                <td align="center">
+                    <button type="button" ng-click="reentrenarPregunta(chbots);" class="btn btn-success btn-sm">Como Pregunta</button>
+                    <button type="button" ng-click="reentrenarSinonimo(chbots);" class="btn btn-success btn-sm">Como Sinonimo</button>
+                </td>
+                <td align="center">
+                    <button class="btn btn-danger btn-sm" ng-click="borrarReentrenamiento(chbots)" ><i class="fa fa-trash-o" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i></button>
+                </td>
+            </tr>
+            <tr ng-repeat-end ng-show="subformulariomod.$invalid">
+                <td colspan="6">
+                    <div class="alert alert-success ng-scope">
+                        <lang>Complete el formulario para guardarlo</lang>
+                    </div>
+                </td>
+            </tr>
+            <td colspan='4'>
+                <tabula-paginador dataset="tabulas['variableR']" maxbotones="5" no-cambiar-tamanio></tabula-paginador>
+            </td>
+        </table>
+        <div flex="50"  ng-show="viewComoSinonimo">
+            <div class="modal-backdrop fade in" style="background:black;z-index:800;opacity:0.7;"></div>
+            <div style="position: fixed;left:15%;top:2%; height: 500px;width:930px;z-index:801;padding:10px;background:transparent;">
+                <div style="height:auto" class="panel panel-default">
+                    <div layout-padding>
+                        <div class="miEncabezado">
+                            <table width="100%">
+                                <tr>
+                                    <td width="95%" style="color: green;border-bottom: 1px solid"><h5><label>Registrar Pregunta como Sinónimo</label>: {{ComoSinonimo['declaracion-user']}}<br/></h5></td>
+                                    <td width="5%" align="center" style="border-left: 1px solid green;border-bottom: 1px solid"><h5><i tooltip="<lang>cerrar</lang>" class="fa fa-close fa-green fa-lg" ng-click="salirPreguntaSinonimo();"></i></h5></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div ng-if="!verSinonimosdePregunta" style="height: auto;" class="panel-body">
+                        <br/>
+                        <div style="height:300px;width:95%; overflow-y: scroll !important;">
+                            <table style="width:95%;" observa-y-recarga='tabuListaSinonimos' tabula="variable" url="../canalesMasivos/chatbotsCtrl.php" class="table " border="1" tamanio-inicial='1000'>
+                                <tr>
+                                    <th style="width:90%" tabula-encabezado="chatNombre" titulo="<lang>Lista de preguntas</lang>"></th>
+                                    <th><lang>Acciones</lang></th>
+                                </tr>
+                                <tr ng-repeat="res in reentrenarChatBotData.chatPreguntas track by $index" ng-show="!chatbots.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>
+                                        {{res.pregunta}}
+                                    </td>
+                                    <td style=" text-align: center">
+                                        <nobr>
+                                            <!--<button type="button" ng-click="viewSinonimo(res.sinonimos);" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='Editar'><i class="fa fa-eye fa-fw"></i></button>-->
+                                            <button type="button" ng-click="viewSinonimoPregunta(res.pregunta,res.sinonimos)" class="btn btn-success btn-sm" tooltip-placement='bottom' tooltip='Ver Sinonimos'><i class="fa fa-eye fa-fw"></i></button>
+                                            <button type="button" ng-click="registrarSinonimoPregunta(res)" class="btn btn-success btn-sm" tooltip-placement='bottom' tooltip='Registrar Sinonimo'><i class="fa fa-check fa-fw"></i></button>
+                                        </nobr>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div ng-if="verSinonimosdePregunta" style="height: auto;" class="panel-body">
+                        <br/>
+                        <span ng-click="viewSinonimoPreguntaSalir()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                            <i class="fa fa-chevron-left fa-fw fa-green"></i>Regresar a preguntas
+                        </span>
+                        <br/>
+                        <div style="height:300px;width:95%; overflow-y: scroll !important;">
+                            <table style="width:95%;" observa-y-recarga='tabuListaSinonimosReen' tabula="variable" url="../canalesMasivos/chatbotsCtrl.php" class="table " border="1" tamanio-inicial='1000'>
+                                <tr>
+                                    <th tabula-encabezado="chatNombre" titulo="Sinónimos de la pregunta: {{sinonimosReentrenar.titulo}}"></th>
+                                </tr>
+                                <tr ng-repeat="re in sinonimosReentrenar.data" ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>
+                                        {{re}}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <br/>
+                    <br/>
+                </div> 
+            </div> 
+        </div>
+    </div>
+    
+<!--                        Entrenamiento de chatbot                          -->
+    <div style="position:absolute;left:0px;top:40px;width:100%;padding-top:44px;" ng-if="listaEntrenarChatbot">
+
+        <div flex="99" class="panel-config gris" layout="row" layout-align="start center">
+            <div  layout-padding>
+                <div class="miEncabezado" style="text-align: center;">
+                    <span>
+                        <lang> Entrenar</lang><lang> Chatbots </lang>
+                    </span>
+                    <span ng-click="deslistaEntrenarChatbot()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                        <i class="fa fa-chevron-left fa-fw fa-green"></i>{{chatbots.chatNombre}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div ng-show="encabezado">
+            <!--<h3><label>PREGUNTAS</label></h3>-->
+            <div class="panel-body">
+                <md-content>
+                    <div>
+                        <md-input-container style="width:100%">
+                            <label class="textoGrande">Agregar Pregunta</label>
+                            <input ng-disabled="inputGrdPreg" ng-model="chatbots.chatPreguntas.pregunta" ng-keyup="$event.keyCode == 13 ? guardapreg(chatbots) : null" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                        </md-input-container>
+                        <button class="btn btn-success" ng-click="guardapreg(chatbots)"><lang>Agregar</lang></button>
+                        <br/>
+                    </div>&nbsp;
+                    <md-divider style="text-align: left !important" ></md-divider> 
+                </md-content>
+            </div>
+        </div>
+        <!----------- ----- -------------->
+        <table post-carga="postPregunta(filas)" observa-y-recarga='tabuEntrenar' tabula="variable1" url="../canalesMasivos/chatbotsCtrl.php?act=filtrarPreguntas&id={{chatbots.id}}" class="table " border="1" tamanio-inicial='1'>
+            <tr>
+                <th style="width:40%" tabula-encabezado="pregunta" titulo="<lang>Pregunta</lang>" filtrar></th>
+                <th tabula-encabezado="sinonimo" titulo="<lang>Sinónimo</lang>" filtrar></th>
+                <th tabula-encabezado="respuesta" titulo="<lang>Respuesta</lang>"></th>
+                <th><lang>Acciones</lang></th>
+            </tr>
+            <tr ng-repeat-start="chbots in tabulas['variable1'].filas" ng-show="!chatbots.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                <td valign="middle">
+                    <i ng-if="chbots.reentrenadoTime" class="fa fa-asterisk fa-red fa-fw" tooltip-placement='right' tooltip='Reentrenado'></i>
+                    {{chbots.pregunta}}
+                </td>
+                <td align="center" valign="middle">
+                    {{chbots.sinonimos.length}}
+                    <span>
+                        <i ng-click="entrenarSinonimo(chbots)" class="fa fa-gears fa-green fa-fw"></i>
+                    </span>
+                </td>
+                <td align="center" valign="middle">
+                    {{chbots.respuestas.length}}
+                    <span>
+                        <i ng-click="entrenarRespuesta(chbots)" class="fa fa-gears fa-green fa-fw"></i>
+                    </span>
+                </td>
+                <td align="center">
+                    <button type="button" ng-click="editarPregunta(chbots.pregunta, chbots.id);" class="btn btn-success btn-sm" tooltip-placement='bottom' tooltip='Editar'><i class="fa fa-pencil-square-o fa-fw"></i></button>
+                    <button class="btn btn-danger btn-sm" ng-click="borrapreg(chbots, $index, $index)" ><i class="fa fa-trash-o" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i></button>
+                </td>
+            </tr>
+            <tr ng-repeat-end ng-show="subformulariomod.$invalid">
+                <td colspan="6">
+                    <div class="alert alert-success ng-scope">
+                        <lang>Complete el formulario para guardarlo</lang></div>
+                </td>
+            </tr>
+        </table>
+
+        <!------------------preguntas----------------->
+
+        <div flex="50"  ng-show="editPregunta">
+            <div class="modal-backdrop fade in" style="background:black;z-index:800;opacity:0.7;"></div>
+            <div style="position: fixed;left:15%;top:2%; height: 500px;width:930px;z-index:801;padding:10px;background:transparent;">
+                <div style="height:auto" class="panel panel-default">
+                    <div class="panel-config cabecera" layout="row" layout-align="start center" >
+                        <div layout-padding>
+                            <div class="miEncabezado" style="text-align: left;">
+                                <label>Editar pregunta</label><br/>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="height: auto;" class="panel-body">
+                        <md-input-container style="width:50%">
+                            <label class="textoGrande">Pregunta</label>
+                            <input ng-model="laPregunta.input" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                        </md-input-container>
+                    </div>
+                    <br/>
+                    <br/>
+                    <button ng-disabled="laPregunta.input === ''" class="btn btn-success" ng-click="actualizaPregunta()"><lang>Guardar</lang></button>
+                    <button class="btn btn-danger" ng-click="salirPregunta()"><lang>Cerrar</lang></button>
+                    <br/>
+                </div> 
+            </div> 
+        </div>
+        <!------------------respuestas----------------->
+        <div>
+            <div flex="50"  ng-if="banderaFlex">
+                <div class="modal-backdrop fade in" style="background:black;z-index:800;opacity:0.7;"></div>
+                <div style="position: fixed;left:10%;top:2%; height: auto;width:1130px;z-index:801;padding:10px;background:transparent;">
+                    <div style="height:auto" class="panel panel-default">
+                        <div layout-padding>
+                            <div class="miEncabezado">
+                                <table width="100%">
+                                    <tr>
+                                        <td width="95%" style="color: green;border-bottom: 1px solid"><h5><label>Pregunta</label>: {{ch.pregunta}}<br/></h5></td>
+                                        <td width="5%" align="center" style="border-left: 1px solid green;border-bottom: 1px solid"><h5><i tooltip="<lang>cerrar</lang>" class="fa fa-close fa-green fa-lg" ng-click="entrenarRespuestaHide();"></i></h5></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div ng-if="!editResp" style="height: auto;" class="panel-body">
+                            <label>Construir Respuesta</label>
+                            <div>
+                                <select ng-change="input.respuesta = ''; input.respuestaAcc = '';" ng-model="input.tipoRespuesta">
+                                    <option value="texto">Texto</option>
+                                    <option value="boton">Boton</option>
+                                    <option value="calendario">Calendario</option>
+                                    <option value="notas">Notas</option>
+                                    <option value="enlace">Enlace</option>
+                                    <option value="evento">Evento</option>
+                                </select>
+                                <div ng-if="input.tipoRespuesta === 'notas'" flex="20">
+                                    <br/>
+                                    <autocomplete name="buscaUniversal" placeholder="<lang>Búsqueda universal</lang>" limit="10" url="../notas/NotasCtrl.php?act=buscarUniversalAutocomplete" resultado="searchSelected" accion="agregarRespNota(item)">
+                                        <ul ng-repeat="fila in autos['buscaUniversal'].filas" class="nav nav-pills nav-stacked">
+                                            <li autosuggestion ng-value="fila" ng-class="fila.estiloAutocomplete">
+                                                {{fila.titulo}}
+                                            </li>
+                                        </ul>		
+                                    </autocomplete>
+                                    <br/>
+                                </div>
+                                <md-input-container ng-if="input.tipoRespuesta === 'texto' || input.tipoRespuesta === 'boton' || input.tipoRespuesta === 'enlace'" style="width:50%">
+                                    <label ng-if="input.tipoRespuesta === 'texto'" class="textoGrande">Texto</label>
+                                    <label ng-if="input.tipoRespuesta === 'boton' || input.tipoRespuesta === 'enlace'" class="textoGrande">T&iacute;tulo</label>
+                                    <input ng-model="input.respuesta" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                </md-input-container>
+                                <label class="textoGrande" ng-if="input.tipoRespuesta === 'evento'">Ejecución del Evento : </label>
+                                <select ng-if="input.tipoRespuesta === 'evento'" ng-model="input.tipoRespuestaEvento">
+                                    <option value="cliente">Cliente</option>
+                                    <option value="servidor">Servidor</option>
+                                </select>
+                                <md-input-container ng-if="input.tipoRespuesta === 'boton' || input.tipoRespuesta === 'enlace' || input.tipoRespuesta === 'evento'" style="width:20%">
+                                    <label class="textoGrande" ng-if="input.tipoRespuesta === 'boton' || input.tipoRespuesta === 'evento'">Acci&oacute;n</label>
+                                    <label class="textoGrande" ng-if="input.tipoRespuesta === 'enlace'">url</label>
+                                    <input ng-model="input.respuestaAcc" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                </md-input-container>
+                                <button class="btn btn-success" ng-click="agregarResp()"><lang>Agregar</lang></button>
+                                <br/>
+                                <table style="width:95%" observa-y-recarga='tabuListaConstPreguntas' tabula="variable1" url="../canalesMasivos/chatbotsCtrl.php" class="table " border="1" tamanio-inicial='1'>
+                                    <tr>
+                                        <th style="width:90%" tabula-encabezado="chatNombre" titulo="<lang>Construcción de Respuesta</lang>"></th>
+                                        <th></th>
+                                    </tr>
+                                    <tr  ng-class-odd="'odd'" ng-class-even="'even'">
+                                        <td>
+                                            <span ng-repeat="item1 in resultadoRespuesta track by $index">
+                                                <span ng-show="item1.tipo === 'texto'">{{item1.contenido.texto}}</span>
+                                                <button ng-show="item1.tipo === 'boton'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item1.contenido.accion}}'>{{item1.contenido.titulo}}</button>
+                                                <button ng-show="item1.tipo === 'evento'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item1.contenido.accion}}'>Evento: {{item1.contenido.evento}}</button>
+                                                <button ng-show="item1.tipo === 'enlace'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item1.contenido.url}}'>{{item1.contenido.titulo}}</button>
+                                                <button ng-show="item1.tipo === 'nota'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='NotaId: {{item1.contenido.notaId}} | {{item1.contenido.titulo}}'><i class="fa fa-puzzle-piece fa-fw"></i></button>
+                                                <button ng-show="item1.tipo === 'calendario'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='Calendario'><i class="fa fa-calendar fa-fw"></i></button>
+                                            </span>
+                                        </td>
+                                        <td style=" text-align: center">
+                                            <i ng-click="limpiarRespuesta();" class="fa fa-times-circle fa-red fa-fw"></i>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <br/>
+                                <br/>
+                                <button class="btn btn-success" ng-click="guardaresp()"><lang>Guardar Respuesta</lang></button>
+                                <!--<button class="btn btn-danger" ng-click="entrenarRespuestaHide()"><lang>Cerrar</lang></button>-->
+                                &nbsp;
+                                <md-divider align="right" style="text-align: right !important" ></md-divider> 
+                            </div>
+                            <br/><br/>
+                            <table style="width:95%" observa-y-recarga='tabuListaPreguntas' tabula="variable" url="../canalesMasivos/chatbotsCtrl.php" class="table " border="1" tamanio-inicial='1000'>
+                                <tr>
+                                    <th style="width:90%" tabula-encabezado="chatNombre" titulo="<lang>Lista de respuestas</lang>"></th>
+                                    <th><lang>Acciones</lang></th>
+                                </tr>
+                                <tr ng-repeat="res in ch.respuestasJson track by $index" ng-show="!chatbots.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td>
+                                        <span ng-repeat="item in res track by $index">
+                                            <span ng-show="item.tipo === 'texto'">{{item.contenido.texto}}</span>
+                                            <button ng-show="item.tipo === 'boton'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item.contenido.accion}}'>{{item.contenido.titulo}}</button>
+                                            <button ng-show="item.tipo === 'evento'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item.contenido.accion}}'>Evento: {{item.contenido.evento}}</button>
+                                            <button ng-show="item.tipo === 'enlace'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item.contenido.url}}'>{{item.contenido.titulo}}</button>
+                                            <button ng-show="item.tipo === 'nota'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='NotaId: {{item.contenido.notaId}} | {{item.contenido.titulo}}'><i class="fa fa-puzzle-piece fa-fw"></i></button>
+                                            <button ng-show="item.tipo === 'calendario'" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='Calendario'><i class="fa fa-calendar fa-fw"></i></button>
+                                        </span>
+                                    </td>
+                                    <td style=" text-align: center">
+                                        <nobr>
+                                            <button type="button" ng-click="editarResp(res, $index);" class="btn btn-success btn-sm" tooltip-placement='bottom' tooltip='Editar'><i class="fa fa-pencil-square-o fa-fw"></i></button>
+                                            <button type="button" ng-click="borraresp(ch, $index, id)" class="btn btn-danger btn-sm" tooltip-placement='bottom' tooltip='Eliminar'><i class="fa fa-trash-o fa-fw"></i></button>
+                                        </nobr>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!--                 editar respuesta                 -->
+                        <div ng-if="editResp" style="height:450px;width:95%; overflow-y: scroll !important;" class="panel-body">
+                            <br/>
+                            <table style="width:100%" observa-y-recarga='respondeEditResp' tabula="variable1" url="../canalesMasivos/chatbotsCtrl.php" class="table " border="1" tamanio-inicial='1'>
+                                <tr>
+                                    <th style="width:40%" tabula-encabezado="chatNombre" titulo="<lang>Editar Respuesta</lang>"></th>
+                                    <th style="width:40%"></th>
+                                    <th style="width:10%"></th>
+                                    <th></th>
+                                </tr>
+                                <tr ng-repeat="item1 in editRespData track by $index" ng-class-odd="'odd'" ng-class-even="'even'">
+                                    <td >
+                                    <!--<td ng-show="item1.tipo === 'texto' && item1.nuevo === undefined">-->
+                                        <md-input-container ng-show="item1.tipo === 'texto' && item1.nuevo === undefined" style="width:50%;margin-bottom: 0;margin-top: 15px">
+                                            <label>Texto</label>
+                                            <input ng-model="item1.contenido.texto" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+<!--                                    </td>
+                                    <td ng-show="item1.tipo === 'boton' && item1.nuevo === undefined" >       -->
+
+                                        <button ng-show="item1.tipo === 'boton' && item1.nuevo === undefined" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item1.contenido.accion}}'>{{item1.contenido.titulo}}</button>
+                                        <md-input-container  ng-show="item1.tipo === 'boton' && item1.nuevo === undefined" style=margin-bottom: 0;margin-top: 15px">
+                                            <label>T&iacute;tulo</label>
+                                            <input ng-model="item1.contenido.titulo" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>   
+                                         <button ng-show="item1.tipo === 'evento' && item1.nuevo === undefined" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item1.contenido.accion}}'>Evento: {{item1.contenido.evento}}</button>
+                                         <label class="textoGrande" ng-show="item1.tipo === 'evento' && item1.nuevo === undefined" >Ejecución del Evento : </label>
+                                        <select ng-show="item1.tipo === 'evento' && item1.nuevo === undefined"  ng-model="item1.contenido.evento">
+                                            <option value="cliente">Cliente</option>
+                                            <option value="servidor">Servidor</option>
+                                        </select>
+                                     </td>  
+                                     <td>
+                                        <md-input-container  ng-show="item1.tipo === 'boton' && item1.nuevo === undefined" style="width:100%;margin-bottom: 0;margin-top: 15px">
+                                            <label>Acci&oacute;n</label>
+                                            <input ng-model="item1.contenido.accion" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+                                    <!--</td>-->
+                                    
+                                    <!--<td ng-show="item1.tipo === 'evento' && item1.nuevo === undefined" >-->       
+<!--                                        <button ng-show="item1.tipo === 'evento' && item1.nuevo === undefined" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='{{item1.contenido.accion}}'>Evento: {{item1.contenido.evento}}</button>-->
+<!--                                        <label class="textoGrande" ng-show="item1.tipo === 'evento' && item1.nuevo === undefined" >Ejecución del Evento : </label>
+                                        <select ng-show="item1.tipo === 'evento' && item1.nuevo === undefined"  ng-model="item1.contenido.evento">
+                                            <option value="cliente">Cliente</option>
+                                            <option value="servidor">Servidor</option>
+                                        </select>-->
+                                        <md-input-container ng-show="item1.tipo === 'evento' && item1.nuevo === undefined" style="margin-bottom: 0;margin-top: 15px">
+                                            <label>Acci&oacute;n</label>
+                                            <input ng-model="item1.contenido.accion" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+<!--                                    </td>
+                                    <td ng-show="item1.tipo === 'calendario' && item1.nuevo === undefined" >     
+                                        <button ng-show="item1.tipo === 'calendario' && item1.nuevo === undefined" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='Calendario'><i class="fa fa-calendar fa-fw"></i></button>
+<!--                                    </td>
+                                    <td ng-show="item1.tipo === 'nota' && item1.nuevo === undefined" >     -->
+                                        <button ng-show="item1.tipo === 'nota' && item1.nuevo === undefined" type="button" class="btn btn-primary btn-sm" tooltip-placement='bottom' tooltip='NotaId: {{item1.contenido.notaId}} | {{item1.contenido.titulo}}'><i class="fa fa-puzzle-piece fa-fw"></i></button>
+                                        <autocomplete ng-show="item1.tipo === 'nota' && item1.nuevo === undefined" style=" width: 400px" name="buscaUniversal" placeholder="<lang>Búsqueda universal</lang>" limit="10" url="../notas/NotasCtrl.php?act=buscarUniversalAutocomplete" resultado="searchSelected" accion="agregarRespNotaEdit(item)">
+                                            <ul ng-repeat="fila in autos['buscaUniversal'].filas" class="nav nav-pills nav-stacked">
+                                                <li autosuggestion ng-value="fila" ng-class="fila.estiloAutocomplete">
+                                                    {{fila.titulo}}
+                                                </li>
+                                            </ul>		
+                                        </autocomplete>
+<!--                                    </td>
+                                    <td ng-show="item1.nuevo === 1" >    -->
+                                        <select ng-show="item1.nuevo === 1" ng-model="item1.tipo">
+                                            <option value="texto">Texto</option>
+                                            <option value="boton">Boton</option>
+                                            <option value="calendario">Calendario</option>
+                                            <option value="notas">Notas</option>
+                                            <option value="enlace">Enlace</option>
+                                            <option value="evento">Evento</option>
+                                        </select>
+                                        <label class="textoGrande" ng-show="item1.nuevo === 1" ng-if="item1.tipo === 'evento'">Ejecución del Evento : </label>
+                                        <select ng-if="item1.tipo === 'evento'" ng-model="item1.contenido.evento">
+                                            <option value="cliente">Cliente</option>
+                                            <option value="servidor">Servidor</option>
+                                        </select>
+                                        <div ng-show="item1.nuevo === 1" ng-if="item1.tipo === 'notas'" flex="20">
+                                            <br/>
+                                            <autocomplete name="buscaUniversal" placeholder="<lang>Búsqueda universal</lang>" limit="10" url="../notas/NotasCtrl.php?act=buscarUniversalAutocomplete" resultado="searchSelected" accion="agregarRespNota(item)">
+                                                <ul ng-repeat="fila in autos['buscaUniversal'].filas" class="nav nav-pills nav-stacked">
+                                                    <li autosuggestion ng-value="fila" ng-class="fila.estiloAutocomplete">
+                                                        {{fila.titulo}}
+                                                    </li>
+                                                </ul>		
+                                            </autocomplete>
+                                            <br/>
+                                        </div>
+                                        <md-input-container ng-show="item1.nuevo === 1"  ng-if="item1.tipo === 'texto'"style="width:auto">
+                                            <label class="textoGrande">Texto</label>
+                                            <input ng-model="item1.contenido.texto" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+                                        <md-input-container ng-show="item1.nuevo === 1" ng-if="item1.tipo === 'boton' || item1.tipo === 'enlace'">
+                                            <label class="textoGrande">T&iacute;tulo</label>
+                                            <input ng-model="item1.contenido.titulo" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+                                        <md-input-container ng-show="item1.nuevo === 1" ng-if="item1.tipo === 'boton' || item1.tipo === 'evento'" >
+                                            <label class="textoGrande">Acci&oacute;n</label>
+                                            <input ng-model="item1.contenido.accion" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+                                        <md-input-container ng-show="item1.nuevo === 1" ng-if="item1.tipo === 'enlace'" >
+                                            <label class="textoGrande">url</label>
+                                            <input ng-model="item1.contenido.url" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+                                    </td>
+                                    <td>
+                                        <md-input-container style="width:100%;margin-bottom: 0;margin-top: 15px">
+                                            <label>Tooltip</label>
+                                            <input ng-model="item1.contenido.tooltip" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                        </md-input-container>
+                                    </td>
+                                    
+                                    <td style=" text-align: center">
+                                        <nobr>
+                                            <i ng-click="addUpResp($index);" tooltip="Instertar Anterior" class="fa fa-arrow-up fa-green fa-fw"></i>
+                                            <i ng-click="addDownResp($index);" tooltip="Instertar Siguiente" class="fa fa-arrow-down fa-green fa-fw"></i>
+                                            <i ng-click="eliminarRespuesta($index);" tooltip="Eliminar"  class="fa fa-times-circle fa-red fa-fw"></i>
+                                        </nobr>
+                                    </td>
+                                </tr>
+                            </table>
+                            <br/>
+                            &nbsp;
+                            <button class="btn btn-success" ng-click="guardaEditResp()"><lang>Guardar</lang></button>
+                            <button class="btn btn-danger" ng-click="cerrarEditResp()"><lang>Cerrar</lang></button>
+                            <br/>
+                            <br/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!------------------sinomimos----------------->
+
+
+            <div flex="50"  ng-if="sinonimo1" >
+                <div class="modal-backdrop fade in" style="z-index:800;background:black;opacity:0.7;"></div>
+                <div style="position: fixed;left:23%;top:5%;width:830px;z-index:801;padding:10px;background:transparent;">
+                    <div  class="panel panel-default">
+                        <div layout-padding>
+                            <div class="miEncabezado" style="text-align: left;">
+                                <table width="100%">
+                                    <tr>
+                                        <td width="95%" style="color: green;border-bottom: 1px solid"><h5><label>Pregunta</label>: {{ch.pregunta}}<br/></h5></td>
+                                        <td width="5%" align="center" style="border-left: 1px solid green;border-bottom: 1px solid"><h5><i tooltip="<lang>cerrar</lang>" class="fa fa-close fa-green fa-lg" ng-click="entrenarSinonimoHide();"></i></h5></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div  ng-if="!vistaEditSinonimo" style="height:500px" class="panel-body">
+                            <label>Lista de sinónimos</label>
+                            <md-content>
+                                <div>
+                                    <md-input-container style="width:100%">
+                                        <label class="textoGrande">Agregar sinónimo</label>
+                                        <input ng-model="input.sinonimo" ng-keyup="$event.keyCode == 13 ? guardasinonim() : null" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                                    </md-input-container>
+
+                                        <button class="btn btn-success" ng-click="guardasinonim()"><lang>Guardar Sinonimo</lang></button>
+                                        &nbsp;
+                                        <md-divider align="right" style="text-align: right !important" ></md-divider> 
+                                </div>
+                            </md-content>
+                            <br/>
+                            <br/>
+                            <div style="height:270px;width:95%; overflow-y: scroll !important;">
+                                <table style="width:95%;" observa-y-recarga='tabuListaSinonimos' tabula="variable" url="../canalesMasivos/chatbotsCtrl.php" class="table " border="1" tamanio-inicial='1000'>
+                                    <tr>
+                                        <th style="width:90%" tabula-encabezado="chatNombre" titulo="<lang>Lista de sinonimos</lang>"></th>
+                                        <th><lang>Acciones</lang></th>
+                                    </tr>
+                                    <tr ng-repeat="res in ch.sinonimos track by $index" ng-show="!chatbots.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                        <td>
+                                            {{res}}
+                                        </td>
+                                        <td style=" text-align: center">
+                                            <nobr>
+                                                <button type="button" ng-click="editSinonimo(res, $index);" class="btn btn-success btn-sm" tooltip-placement='bottom' tooltip='Editar'><i class="fa fa-pencil-square-o fa-fw"></i></button>
+                                                <button type="button" ng-click="borrasinonim(ch, $index, id)" class="btn btn-danger btn-sm" tooltip-placement='bottom' tooltip='Eliminar'><i class="fa fa-trash-o fa-fw"></i></button>
+                                            </nobr>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                         <!--                 editar respuesta                 -->
+                        <div ng-if="vistaEditSinonimo" style="height: auto;" class="panel-body">
+                            <br/>
+                            <md-input-container>
+                                <label class="textoGrande">Edición del sinónimo</label>
+                                <input ng-model="input.sinonimo" class="ng-pristine ng-valid md-input ng-empty ng-touched" style="border-top:0;border-left:0;border-right:0">
+                            </md-input-container>
+                            <br/><br/>
+                            <button ng-disabled="input.sinonimo===''" type="button" ng-click="guardaEditSinonimo()" class="btn btn-success btn-sm" tooltip-placement='bottom' tooltip='Actualizar'>Actualizar</button>
+                            <button type="button" ng-click="cancelEditSinonimo()" class="btn btn-danger btn-sm" tooltip-placement='bottom' tooltip='Cancelar'>Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--</div>-->
+
+
+        </div>
+
+        <!--</table>-->
+    </div>
+    <!----------- ----- -------------->
+    <!--
+    </div>-->
+
+    <!---------------------------- Fin Acciones Entrenar Chatbot ---------------------->
+
+
+    <!------------------------- Acciones Analizar Chatbot --------------------------->
+
+    <!--<div class="modal-backdrop fade in" style="z-index:900;background:white;opacity:1;" ng-show="listaAnalizarChatbot" ng-cloak="Cargando..."></div>-->
+
+    <div style="position:absolute;left:0px;top:0px;width:100%;padding-top:44px;" ng-if="listaAnalizarChatbot" >
+        <!--<h3>
+            <a href="javascript:void(0);" ng-click="deslistaAnalizarChatbot()"><lang>Chatbots</lang></a> 
+            <span ng-click="deslistaAnalizarChatbot()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                <i class="fa fa-chevron-left fa-fw fa-green"></i>{{detM3.chatNombre}}
+            </span>
+        </h3>-->
+        <div flex="99" class="panel-config gris" layout="row" layout-align="start center">
+            <div   layout-padding>
+                <div class="miEncabezado" style="text-align: center;">
+                    <a href="javascript:void(0);" ng-click="deslistaAnalizarChatbot()"><lang>Chatbots</lang></a> 
+                    <!--<a href="javascript:void(0);" ng-click="deslistaConfigurarChatbot()">{{detM3.chatNombre}}</a>-->
+                    <span ng-click="deslistaAnalizarChatbot()" tooltip-placement='right' tooltip='<lang>Regresar</lang>'>
+                        <i class="fa fa-chevron-left fa-fw fa-green"></i>{{detM3.chatNombre}}
+                    </span>
+                </div>
+            </div>
+            <span class="bordeEn"></span>
+            <!--Rango de fechas-->
+            <div flex layout="row" layout-align="center end">
+                <div flex="40" layout="row" layout-align="center end">
+                    <div class="input-group" style="display:flex">
+                        <input style="width:120px;" class="form-control" type="text" datepicker-popup="yyyy-MM-dd" is-open="abreFechaBuscador" ng-click="abreFechaBuscador = !abreFechaBuscador" ng-model="desdeDateBuscador" placeholder="Desde:" />
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button"><i class="fa fa-calendar"></i></button>
+                        </span>
+                    </div>&nbsp;&nbsp;
+                    <div class="input-group" style="display:flex">
+                        <input style="width:120px;" class="form-control" type="text" datepicker-popup="yyyy-MM-dd" is-open="abreFechaBuscador1" ng-click="abreFechaBuscador1 = !abreFechaBuscador1" ng-model="hastaDateBuscador" placeholder="Hasta:"></input>
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="button"><i class="fa fa-calendar"></i></button>
+                        </span>
+                    </div>&nbsp;&nbsp;
+                    <button type="button" class="btn btn-primary btn-sinRelleno" tooltip="Consultar fechas" ng-click="cargarFecha(desdeDateBuscador, hastaDateBuscador)" ><i class="fa fa-search"></i></button>&nbsp;&nbsp;
+                    <button type="button" class="btn btn-primary btn-sinRelleno" tooltip="Borrar fechas" ng-click="borrarFecha()" ><i class="fa fa-times-circle-o fa-red"></i></button>
+                </div>
+            </div>
+        </div>
+
+
+        <div ng-include src="'../comunes/loadTemplate.php?templateName=canalesMasivos/partials/GraficosChatbot.html'" ng-controller="GraficosChatbot" ></div>
+
+        <!--<div layout="row" layout-margin>
+            
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Conversaciones por Provincias</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/ConversacionesProvincias.jpg"/>
+                </div>            
+            </div>    
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Preguntas con Respuesta</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/PreguntasConRespuesta.jpg"/>
+                </div>            
+            </div> 
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Preguntas sin Respuesta</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/PreguntasSinRespuesta.jpg"/>
+                </div>            
+            </div> 
+        </div>
+        <div layout="row" layout-margin>
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Conversaciones por Provincias</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/DatosCaptados.jpg"/>
+                </div>            
+            </div>    
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Preguntas con Respuesta</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/Interaccion.jpg"/>
+                </div>            
+            </div>        
+        </div>
+    
+        <div layout="row" layout-margin>
+            <div flex="40" class="panel panel-default"> 
+                <div class="panel-heading">Alcance Facebook</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/Alcance.jpg"/>
+                </div>            
+            </div>    
+            <div flex="50" class="panel panel-default"> 
+                <div class="panel-heading">Clicks y Likes</div>
+                <div class="panel-body">
+                    <img width="100%" src="../canalesMasivos/img/likes.jpg"/>
+                </div>            
+            </div>        
+        </div>
+        <div layout="row" layout-margin>
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Medición Comentarios</div>
+                <div class="panel-body">
+                    <img width="80%" src="../canalesMasivos/img/MedicionComentarios.jpg"/>
+                </div>            
+            </div>    
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Alcance por Provincia</div>
+                <div class="panel-body">
+                    <img width="80%" src="../canalesMasivos/img/AlcanceProvincia.jpg"/>
+                </div>            
+            </div>  
+            <div flex="33" class="panel panel-default"> 
+                <div class="panel-heading">Alcance Total</div>
+                <div class="panel-body">
+                    <img width="80%" src="../canalesMasivos/img/AlcanceTotal.jpg"/>
+                </div>            
+            </div>  
+        </div>
+        <div layout-margin>
+            <div layout="row" class="panel panel-default" layout-padding>   
+                <div flex="40">
+                    <img width="100%" src="../canalesMasivos/img/Alcance.jpg"/>
+                </div>
+                <div flex="60">
+                    <table class="table tableModulos table SUBtableModulos tb">
+                        <tr>
+                            <th>Variable</th>
+                            <th>Predicción</th>
+                            <th>Realidad</th>
+                            <th>Resumen</th>
+                        </tr>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                    </table>    
+                </div>
+            </div>        
+        </div>-->
+
+
+    </div>  
+
+</div>
+<!------------------------- Fin Acciones Analizar Chatbot --------------------------->
+<!-- _FIN_DE_ARCHIVO -->

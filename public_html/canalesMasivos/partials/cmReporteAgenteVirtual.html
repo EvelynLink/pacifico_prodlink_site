@@ -1,0 +1,1345 @@
+<div class="gen-canalesMasivos-1783007084-8721">
+    <div class="gen-canalesMasivos-1783007084-5006">
+        <!--#region FILTROS-->
+        <!--#region FILTROS MULTISELECCION-->
+        <div ng-show="permisos.soyDesarrollo" class="gen-canalesMasivos-1781102279-5768">
+            <div class="gen--2038">
+                &nbsp;
+                <li class="fa fa-filter fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                &nbsp;
+            </div>
+            <div class="gen-contenedor-flexible-4413">
+                <div class="gen-centrado-flexible-7330">
+                    <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                    <select
+                        id="filtroTiempo"
+                        class="form-control gen-boton-principal-4655"
+                        ng-model="filtroTiempo"
+                        ng-change="traerParametrizacion(false)"
+                    >
+                        <option value="hora">Ultima hora</option>
+                        <option value="dia">Este d&iacute;a</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="semanaanterior">Semana anterior</option>
+                        <option value="mes">Este mes</option>
+                        <option value="mesanterior">Mes anterior</option>
+                        <option value="rango">Rango de tiempo</option>
+                        <!--<option value="todo">Todo</option>-->
+                    </select>
+                </div>
+                <div ng-show="filtroTiempo==='rango'" class="gen-centrado-flexible-5590">
+                    <input
+                        id="fechaDesde"
+                        class="form-control gen-boton-accion-1172"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaDesde"
+                        ng-click="abreFechaDesde = !abreFechaDesde"
+                        ng-model="fechaDesde"
+                        placeholder="Desde"
+                    >
+                </div>
+                <div ng-show="filtroTiempo==='rango'" class="gen-centrado-flexible-5590">
+                    <input
+                        id="fechaHasta"
+                        class="form-control select-filtro gen-boton-accion-1172"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaHasta"
+                        ng-click="abreFechaHasta = !abreFechaHasta"
+                        ng-model="fechaHasta"
+                        placeholder="Hasta"
+                    >
+                </div>
+                <div class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-hashtag fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <md-select
+                        class="form-control gen-ancho-fijo-8255"
+                        ng-model="filtroLote"
+                        multiple
+                        placeholder="Fecha programación"
+                        ng-change="cambioFiltro('lote')"
+                    >
+                        <md-option ng-value="p.id" ng-repeat="p in listas.lotes">{{p.nombre}}</md-option>
+                    </md-select>
+                </div>
+                <div class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-briefcase fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <md-select
+                        class="form-control gen-ancho-fijo-8255"
+                        ng-model="filtroCartera"
+                        multiple
+                        placeholder="Cartera"
+                        ng-change="cambioFiltro('cartera')"
+                    >
+                        <md-option ng-value="p.id" ng-repeat="p in listas.carteras">{{p.nombre}}</md-option>
+                    </md-select>
+                </div>
+                <div class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-tags fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <md-select
+                        class="form-control gen-ancho-fijo-8255"
+                        ng-model="filtroCampania"
+                        multiple
+                        placeholder="Campaña"
+                        ng-change="cambioFiltro('campania')"
+                    >
+                        <md-option ng-value="p.id" ng-repeat="p in listas.campanias">{{p.nombre}}</md-option>
+                    </md-select>
+                </div>
+                <div class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-tags fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <md-select
+                        class="form-control gen-ancho-fijo-8255"
+                        ng-model="filtroProducto"
+                        multiple
+                        placeholder="Producto"
+                        ng-change="cambioFiltro('producto')"
+                    >
+                        <md-option ng-value="p.id" ng-repeat="p in listas.productos">{{p.nombre}}</md-option>
+                    </md-select>
+                </div>
+                <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-connectdevelop fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <md-select
+                        class="form-control gen-ancho-fijo-8255"
+                        ng-model="filtroProveedor"
+                        multiple
+                        placeholder="Proveedor"
+                        ng-change="cambioFiltro('proveedor')"
+                    >
+                        <md-option ng-value="p.id" ng-repeat="p in listas.proveedores">{{p.nombre}}</md-option>
+                    </md-select>
+                </div>
+                <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1781102279-7824">
+                    <li class="fa fa-fw fa-phone fa-15x gen-canalesMasivos-1781102279-5296"></li>
+                    <md-select
+                        class="form-control gen-ancho-fijo-8255"
+                        ng-model="filtroTelefonica"
+                        multiple
+                        placeholder="Telefonía"
+                        ng-change="cambioFiltro('telefonia')"
+                    >
+                        <md-option ng-value="p.id" ng-repeat="p in listas.telefonicas">{{p.nombre}}</md-option>
+                    </md-select>
+                </div>
+                <div class="gen-centrado-flexible-2006">
+                    <button class="btn btn-primary gen-fondo-gris-8909" ng-click="traerParametrizacion(true)">
+                        Filtrar
+                    </button>
+                    <li
+                        ng-show="filtroLote.length > 0 || filtroCampania.length > 0|| filtroCartera.length > 0 || filtroProveedor.length > 0 || filtroTelefonica.length > 0 || filtroProducto.length > 0"
+                        class="fa fa-fw fa-remove fa-red"
+                        title="Limpiar selectores"
+                        ng-click="quitarFiltro('todo')"
+                    ></li>
+                </div>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region FILTROS APLICADOS-->
+        <div class="gen-canalesMasivos-1783007084-9267">
+            <div ng-show="filtrosAplicados.tiempo.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.lote.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.lote.titulo}}
+                    <li ng-click="quitarFiltro('lote')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.proveedor.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.proveedor.titulo}}
+                    <li ng-click="quitarFiltro('proveedor')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.telefonica.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.telefonica.titulo}}
+                    <li ng-click="quitarFiltro('telefonica')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.cartera.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.cartera.titulo}}
+                    <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.campania.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.campania.titulo}}
+                    <li ng-click="quitarFiltro('campania', true)" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.producto.activo" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge">
+                    {{filtrosAplicados.producto.titulo}}
+                    <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" class="gen-canalesMasivos-1783007084-8416">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#endregion-->
+        <div class="gen-canalesMasivos-1783007084-1088">
+            <span class="titulo-pantalla gen-canalesMasivos-1783007084-7780">{{titulo}}</span>
+            <div class="display-flex">
+                <i class="fa fa-fw fa-refresh fa-15x" title="Actualizar datos ahora" ng-click="actualizarTabula()"></i>
+                <select
+                    title="Actualizar automáticamente"
+                    id="tiempoAct"
+                    class="form-control"
+                    ng-model="tiempoActualizar"
+                    ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                    ng-change="cambiarTiempoActualiza()"
+                ></select>
+            </div>
+        </div>
+        <!--#region GRAFICOS-->
+        <div ng-show="permisos.soyDesarrollo" class="gen-canalesMasivos-1783007094-4203">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" ng-model="mostrarDesarrollo" class="gen-canalesMasivos-1783007094-3913">
+                    Vista desarrollo
+                </label>
+            </div>
+        </div>
+        <!--seccion desarrollo-->
+        <div class="titulo-seccion" ng-if="permisos.soyDesarrollo && mostrarDesarrollo && !sinGestion">
+            <h2>Operaci&oacute;n proveedor</h2>
+        </div>
+        <div ng-if="permisos.soyDesarrollo && mostrarDesarrollo" class="contenedor-ultimas-llamadas">
+            <div class="contenedor-detalle-ultima">
+                <p class="centrado-en-negrita">
+                    {{ultimasLlamadas["fecha"] | fecha:"d/m/Y H:i:s"}}
+                    <br>
+                    {{ultimasLlamadas["totalLlamadas"]}} llamadas lanzadas
+                    <br>
+                    <button class="btn btn-primary" ng-click="devolverTotalesLlamadasDia()">
+                        Distribuci&oacute;n llamadas
+                    </button>
+                </p>
+            </div>
+            <div class="contenedor-ultimas-llamadas-4" ng-show="ultimasLlamadas['totalLlamadas']>0">
+                <div class="contenedor-detalle-ultima" ng-show="ultimasLlamadas['totalLlamadas']>0">
+                    <label>Por proveedor</label>
+                    <ul>
+                        <li ng-repeat="(k,l) in  ultimasLlamadas['xProveedor']">
+                            <small title="{{k}}">{{k | textoExtenso:27}}</small>
+                            :&nbsp;
+                            <b>{{l}}</b>
+                        </li>
+                    </ul>
+                </div>
+                <div class="contenedor-detalle-ultima" ng-show="ultimasLlamadas['totalLlamadas']>0">
+                    <label>Por agente</label>
+                    <ul>
+                        <li ng-repeat="(k,l) in  ultimasLlamadas['xAgente']">
+                            <small title="{{k}}">{{k | textoExtenso:27}}</small>
+                            :&nbsp;
+                            <b>{{l}}</b>
+                        </li>
+                    </ul>
+                </div>
+                <div class="contenedor-detalle-ultima">
+                    <label>Por cartera</label>
+                    <ul>
+                        <li ng-repeat="(k,l) in  ultimasLlamadas['xCartera']">
+                            <small title="{{k}}">{{k | textoExtenso:27}}</small>
+                            &nbsp;
+                            <b>{{l}}</b>
+                        </li>
+                    </ul>
+                </div>
+                <div class="contenedor-detalle-ultima" ng-show="ultimasLlamadas['totalLlamadas']>0">
+                    <label>Por campa&ntilde;a</label>
+                    <ul>
+                        <li ng-repeat="(k,l) in  ultimasLlamadas['xCampania']">
+                            <small title="{{k}}">{{k | textoExtenso:27}}</small>
+                            :&nbsp;
+                            <b>{{l}}</b>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div ng-if="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1783007094-7230">
+            <div>
+                <label ng-click="verDetalleErrores=!verDetalleErrores" class="como-link">
+                    Detalle errores
+                    <li class="fa fa-fw fa-chevron-down" ng-show="!verDetalleErrores" title="Ver detalle de errores"></li>
+                    <li class="fa fa-fw fa-chevron-up" ng-show="verDetalleErrores" title="Ocultar detalle de errores"></li>
+                </label>
+            </div>
+            <div class="gen-canalesMasivos-1783007084-9267" ng-show="verDetalleErrores">
+                <div class="contenedor-cuadros-2 gen-canalesMasivos-1783007094-7523" ng-show="!sinGestion">
+                    <div class="contenedor-totales-2" title="{{c[3]}}" ng-repeat="c in cuadrosLlamadas">
+                        <div ng-show="!cargandoGraficos" class="gen-canalesMasivos-1783007084-7298">
+                            <b>
+                                <small>{{c[0] | textoExtenso:17}}</small>
+                            </b>
+                        </div>
+                        <span ng-style="{color:c[4]}" class="numero gen-canalesMasivos-1783007084-1444" ng-show="!cargandoGraficos">
+                            <large>{{c[1]}}</large>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+                <!--<div style="width: 35%;" class="contenedor-grafico">
+                    <nvd3 style="width: 100%;" options="opcionesTotalGeneral" data="dataGraficoTotalGeneral"></nvd3>
+                </div>-->
+            </div>
+            <div ng-if="!sinGestion && verDetalleErrores" class="gen-canalesMasivos-1783007094-4591">
+                <div class="contenedor-grafico gen-canalesMasivos-1783007094-7361">
+                    <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1783007094-6332">
+                        <p ng-repeat="c in concurrencias" class="badge">
+                            {{c.nombre}}: {{c.valor}} concurrencias
+                        </p>
+                    </div>
+                    <nvd3 options="opcionesLineaLlamadas" data="dataGraficoLineaLlamada" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+            </div>
+            <div ng-if="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1783007094-4591">
+                <div class="contenedor-grafico w-25">
+                    <nvd3 options="opcionesProveedores" data="dataGraficoProveedores" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+                <div class="contenedor-grafico w-25">
+                    <nvd3 options="opcionesAtendidoProveedores" data="dataGraficoAtendidaProveedores" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+                <div class="contenedor-grafico w-25">
+                    <nvd3 options="opcionesTelefonicas" data="dataGraficoTelefonicas" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+                <div class="contenedor-grafico w-25">
+                    <nvd3 options="opcionesAtendidoTelefonicas" data="dataGraficoAtendidaTelefonicas" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+            </div>
+            <div ng-if="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1783007094-4591">
+                <div class="contenedor-grafico gen-canalesMasivos-1783007094-7361">
+                    <nvd3 options="opcionesBarras" data="dataGraficoTop" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+            </div>
+            <div class="gen-canalesMasivos-1783007094-6606">
+                <!-- <div class="list-group" style="width: 100%; margin: 6px; word-break: break-all;">
+                    <label ng-click="verAlertasJambonz=!verAlertasJambonz" class="como-link">
+                        Alertas Jambonz&nbsp;
+                        <span class="badge" title="Total de alertas hoy">{{totalAlertasJambonz}}</span>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verAlertasJambonz && alertasJambonz.length>0" title="Ver últimas 5 alertas de hoy"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verAlertasJambonz && alertasJambonz.length>0" title="Ocultar detalle de alertas"></li>
+                    </label>
+                    <div ng-repeat="a in alertasJambonz" class="contenedor-alerta" ng-show="verAlertasJambonz">
+                        <span href="#" class="list-group-item">
+                            {{a.fechaLocal}} - {{a.message}} &nbsp;
+                            <li class="fa fw fa-chevron-up" ng-show="a.mostrar" ng-click="a.mostrar=!a.mostrar"></li>
+                            <li class="fa fw fa-chevron-down" ng-show="!a.mostrar" ng-click="a.mostrar=!a.mostrar"></li>
+                        </span>
+                        <pre ng-show="a.mostrar">
+                            {{a | json}}
+                        </pre>
+                    </div>
+                </div> -->
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogGenera=!verLogGenera" class="como-link">
+                        Servicio Genera Llamadas LINK&nbsp;
+                        <small ng-if="logGenera.length > 0">{{logGenera[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogGenera && logGenera.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogGenera && logGenera.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogGenera">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logGenera track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogActualiza=!verLogActualiza" class="como-link">
+                        Servicio Actualiza Llamadas LINK&nbsp;
+                        <small ng-if="logActualiza.length > 0">{{logActualiza[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogActualiza && logActualiza.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogActualiza && logActualiza.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogActualiza">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logActualiza track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogActualiza2=!verLogActualiza2" class="como-link">
+                        Servicio Actualiza Llamadas LINK 2&nbsp;
+                        <small ng-if="logActualiza2.length > 0">{{logActualiza2[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogActualiza2 && logActualiza2.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogActualiza2 && logActualiza2.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogActualiza2">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logActualiza2 track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogTipifica=!verLogTipifica" class="como-link">
+                        Servicio Tipifica Llamadas LINK&nbsp;
+                        <small ng-if="logTipifica.length > 0">{{logTipifica[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogTipifica && logTipifica.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogTipifica && logTipifica.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogTipifica">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logTipifica track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogTipificaWs=!verLogTipificaWs" class="como-link">
+                        Servicio Tipifica Whatsapp&nbsp;
+                        <small ng-if="logTipificaWs.length > 0">{{logTipificaWs[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogTipificaWs && logTipificaWs.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogTipificaWs && logTipificaWs.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogTipificaWs">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logTipificaWs track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogCalidad=!verLogCalidad" class="como-link">
+                        Servicio Calidad Llamadas&nbsp;
+                        <small ng-if="logCalidad.length > 0">{{logCalidad[0]}}</small>
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogCalidad && logCalidad.length>0" title="Ver el último log"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogCalidad && logCalidad.length>0" title="Ocultar log"></li>
+                    </label>
+                    <ul class="contenedor-alerta" ng-show="verLogCalidad">
+                        <li>
+                            <a href="javascript:void(0);" ng-click="obtenerAlertasJambonz()">Actualizar logs</a>
+                        </li>
+                        <li ng-show="$index>0" ng-repeat="a in logCalidad track by $index">
+                            {{a}}
+                        </li>
+                    </ul>
+                </div>
+                <div class="list-group gen-canalesMasivos-1783007094-2369">
+                    <span>Marcador ElevenLabs | &Uacute;ltima ejecuci&oacute;n: {{marcadorElevenlabs["fecha"]}}, total: {{(marcadorElevenlabs["llamadas_ok"] + marcadorElevenlabs["llamadas_error"])}}, llamadas ok: {{marcadorElevenlabs["llamadas_ok"]}}, llamadas error: {{marcadorElevenlabs["llamadas_error"]}}</span>
+                </div>
+                <div class="gen-canalesMasivos-1783007094-2369">
+                    <label ng-click="verLogLk=!verLogLk" class="como-link">
+                        Servicios LiveKit&nbsp;
+                        <li class="fa fa-fw fa-chevron-down" ng-show="!verLogLk" title="Ver estado"></li>
+                        <li class="fa fa-fw fa-chevron-up" ng-show="verLogLk" title="Ocultar estado"></li>
+                    </label>
+                    <div ng-show="verLogLk" class="gen-canalesMasivos-1783007084-6258">
+                        <div class="list-group gen-canalesMasivos-1783007094-8062">
+                            <label>
+                                Agentes LiveKit activos
+                            </label>
+                            <ul class="contenedor-alerta">
+                                <li ng-repeat="a in agentesLinea track by $index">
+                                    <span class="fa fa-fw fa-check fa-green"></span>
+                                    {{a}}
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="list-group gen-canalesMasivos-1783007094-8062">
+                            <label>
+                                Servicios LiveKit
+                            </label>
+                            <ul class="contenedor-alerta">
+                                <li ng-repeat="a in estadoServiciosLk track by $index">
+                                    <span class="fa fa-fw fa-check fa-green" ng-show="a.online"></span>
+                                    <span class="fa fa-fw fa-close fa-red" ng-show="!a.online"></span>
+                                    {{a.nombre}}&nbsp;
+                                    <small>{{a.time | fecha:"d/m/Y H:i:s"}}</small>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--#region SIN GESTION-->
+        <div ng-show="sinGestion" class="gen-canalesMasivos-1783007094-7767">
+            <h3>Esperando asignación para gestionar</h3>
+            <br>
+            <i class="fa fa-spinner fa-fw fa-spin fa-2x"></i>
+        </div>
+        <!--#endregion-->
+        <!--seccion resultado gestion-->
+        <div class="titulo-seccion" ng-if="(permisos.soySupervisor || permisos.soyDesarrollo) && !sinGestion">
+            <h2>Resultado de gesti&oacute;n</h2>
+        </div>
+        <div ng-if="(permisos.soySupervisor || permisos.soyDesarrollo) && !sinGestion" class="gen-canalesMasivos-1783007094-4904">
+            <span class="badge" ng-repeat="c in dataGraficos.campanias">
+                {{c}}
+            </span>
+        </div>
+        <div ng-if="(permisos.soySupervisor || permisos.soyDesarrollo) && !sinGestion" class="gen-canalesMasivos-1783007094-8677">
+            <div class="gen-canalesMasivos-1783007094-9991">
+                <div ng-repeat="cuadro in dataTotalesGestion.cuadros" class="contenedor-totales gen-canalesMasivos-1783007094-8412">
+                    <div ng-show="!cargandoTotales" class="gen-canalesMasivos-1783007084-7298">
+                        <b>
+                            <small>{{cuadro[0]}}</small>
+                        </b>
+                    </div>
+                    <span class="numero gen-canalesMasivos-1783007094-8894" ng-show="!cargandoTotales">
+                        <large>{{cuadro[1]}}</large>
+                        <p class="subtitulo-cuadro">{{cuadro[3]}}</p>
+                        <div class="gen-canalesMasivos-1783007094-3125">
+                            <div
+                                ng-repeat="c in cuadro[4]"
+                                ng-style="{'background-color': c[0]}"
+                                title="{{c[1]}}"
+                                class="gen-canalesMasivos-1783007094-1063"
+                            ></div>
+                        </div>
+                    </span>
+                    <div ng-show="cargandoTotales">
+                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico gen-canalesMasivos-1783007094-7518">
+                <nvd3 options="opcionesTipificacion" data="dataGraficos.dataGraficoTipificaciones" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+            </div>
+        </div>
+        <!--seccion operaciones-->
+        <div class="titulo-seccion" ng-if="!sinGestion">
+            <h2>Gesti&oacute;n de llamadas</h2>
+        </div>
+        <div ng-show="!sinGestion" class="gen-canalesMasivos-1783007094-5988">
+            <div class="gen-canalesMasivos-1783007094-8082">
+                <div class="gen-canalesMasivos-1783007094-5070">
+                    <svg id="gaugeProgreso"></svg>
+                    <span class="gen-canalesMasivos-1783007094-3718">
+                        <b>Progreso</b>
+                    </span>
+                </div>
+                <div class="gen-canalesMasivos-1783007094-5070">
+                    <svg id="gaugeExito"></svg>
+                    <span class="gen-canalesMasivos-1783007094-3718">
+                        <b>Atendido</b>
+                    </span>
+                </div>
+            </div>
+            <div class="contenedor-cuadros">
+                <div ng-repeat="cuadro in dataGraficos.cuadrosTotales" class="contenedor-totales">
+                    <div ng-show="!cargandoGraficos" class="gen-canalesMasivos-1783007084-7298">
+                        <b>
+                            <small>{{cuadro[0] | textoExtenso:14}}</small>
+                        </b>
+                    </div>
+                    <span ng-style="{color:cuadro[4]}" class="numero gen-canalesMasivos-1783007084-1444" ng-show="!cargandoGraficos">
+                        <large>{{cuadro[1]}}</large>
+                        <!--<br ng-if="cuadro[5]!==undefined && cuadro[5]!==''">
+                        <small ng-if="cuadro[5]!==undefined && cuadro[5]!==''" class="pequenio">
+                            <b>{{cuadro[5]}}</b>
+                        </small>-->
+                        <p class="subtitulo-cuadro gen-canalesMasivos-1781099115-9339">{{cuadro[3]}}</p>
+                    </span>
+                    <div ng-show="cargandoGraficos">
+                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="!sinGestion" class="gen-canalesMasivos-1783007094-7230">
+            <div class="gen-canalesMasivos-1783007094-4591">
+                <div class="contenedor-grafico gen-canalesMasivos-1783007094-7361" ng-if="permisos.soyDesarrollo">
+                    <div class="gen-canalesMasivos-1783007094-2735">
+                        <p class="badge gen-canalesMasivos-1783007094-6388">
+                            {{duracionOperacion}}
+                        </p>
+                        <p class="badge gen-canalesMasivos-1783007094-6388">{{mensajeProcesando}}</p>
+                    </div>
+                    <li class="fa fa-fw fa-question-circle-o gen-canalesMasivos-1783007094-6009" title="{{promedioLlamadas}}"></li>
+                    <nvd3 options="opcionesLinea" data="dataGraficoDia" class="gen-canalesMasivos-1783007094-3640"></nvd3>
+                </div>
+            </div>
+            <div class="gen-canalesMasivos-1783007084-9267">
+                <div class="contenedor-grafico">
+                    <nvd3 options="opcionesPie" data="dataGraficos.dataGraficoProgramadasEstado" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+                <div class="contenedor-grafico">
+                    <nvd3 options="opcionesSentimiento" data="dataGraficos.dataGraficoSentimientos" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+                <div class="contenedor-grafico">
+                    <nvd3 options="opcionesFinalizacion" data="dataGraficos.dataGraficoFinalizacion" class="gen-canalesMasivos-1781099115-6089"></nvd3>
+                </div>
+            </div>
+        </div>
+        <!--#endregion-->
+    </div>
+    <!--#region TABULA LLAMADAS-->
+    <div ng-show="!sinGestion" class="gen-canalesMasivos-1781099115-6089">
+        <div class="gen-canalesMasivos-1783007084-1100">
+            <label name="tituloDetalle" class="como-link" ng-click="mostrar()">
+                Detalle de llamadas
+                <li class="fa fw fa-chevron-up" title="Ocultar detalle" ng-show="mostrarTabulaDetalle"></li>
+                <li class="fa fw fa-chevron-down" title="Mostrar detalle de cada llamada" ng-show="!mostrarTabulaDetalle"></li>
+            </label>
+        </div>
+        <div id="tabulaDetalle">
+            <table
+                ng-show="mostrarTabulaDetalle"
+                tamanio-inicial="20"
+                tabula="llamadasProgramadas"
+                observa-y-recarga="recargarTabula"
+                url="../canalesMasivos/cmReporteAgenteVirtualCtrl.php?act=cargarTabula&filtroLote={{filtroLote}}&filtroCartera={{filtroCartera}}&filtroCampania={{filtroCampania}}&filtroProducto={{filtroProducto}}&filtroProveedor={{filtroProveedor}}&filtroTelefonica={{filtroTelefonica}}&filtroTiempo={{filtroTiempo}}&filtroDesde={{filtroDesde}}&filtroHasta={{filtroHasta}}"
+                post-carga="cargoTabula(filas, extra)"
+            >
+                <tr>
+                    <th>&nbsp;</th>
+                    <th
+                        ng-if="permisos.soyDesarrollo && mostrarDesarrollo"
+                        tabula-encabezado="av_proveedor"
+                        titulo="Proveedor"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_estadoEnvio"
+                        titulo="Estado"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_fecha"
+                        titulo="Fecha asignación"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_fechaGeneraLlamada"
+                        titulo="Fecha llamada"
+                        tipo="timestamp"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_duracionSegundos"
+                        titulo="Duración"
+                        tipo="numero"
+                        ordenar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_telefono"
+                        titulo="Número"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_cedula"
+                        titulo="Cédula"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_nombre"
+                        titulo="Nombre"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_producto"
+                        titulo="Producto"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <!--<th
+                    tabula-encabezado="av_lote"
+                    titulo="Fecha<br>Programación"
+                    tipo="timestamp"
+                    ordenar
+                    filtrar
+                ></th>-->
+                    <th
+                        tabula-encabezado="av_carteraNombre"
+                        titulo="Cartera"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_campaniaNombre"
+                        titulo="Campaña"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_tipificacion.respuesta1"
+                        titulo="Tipificación 1"
+                        ordenar
+                        filtrar
+                    ></th>
+                    <th
+                        tabula-encabezado="av_tipificacion.respuesta2"
+                        titulo="Tipificación 2"
+                        ordenar
+                        filtrar
+                    ></th>
+                </tr>
+                <tr ng-repeat="(index, item) in tabulas['llamadasProgramadas'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+                    <td align="center" class="gen-canalesMasivos-1781099115-4756">
+                        <div>
+                            <li
+                                class="fa fa-search-plus fa-fw"
+                                title="Detalle"
+                                ng-click="mostrarDetalle(pos, item)"
+                                ng-show="item.av_estadoEnvio==='ATENDIDA' || item.av_estadoEnvio==='NO ATENDIDA' || item.av_estadoEnvio==='MARCAR LUEGO' || item.av_estadoEnvio==='ERROR GENERAR LLAMADA'"
+                            ></li>
+                            <li class="fa fa-search-plus fa-fw fa-grey gen-canalesMasivos-1783007094-4175" title="Detalle" ng-show="item.av_estadoEnvio==='EN PROGRESO' || item.av_estadoEnvio==='PENDIENTE' || item.av_estadoEnvio==='INICIADA'"></li>
+                            <li
+                                title="Reintentar llamada"
+                                class="fa fa-fw fa-volume-control-phone"
+                                ng-click="generarLlamada(item)"
+                                ng-if="permisos.soyDesarrollo && mostrarDesarrollo && (item.av_estadoEnvio==='ERROR GENERAR LLAMADA' || item.av_estadoEnvio==='NO ATENDIDA' || item.av_estadoEnvio==='MARCAR LUEGO')"
+                            ></li>
+                        </div>
+                    </td>
+                    <td ng-if="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1781099115-4756">
+                        {{item.av_proveedor}}
+                        <br>
+                        <small>({{item.av_proveedorSip}})</small>
+                    </td>
+                    <td title="{{((item.av_estadoEnvio==='NO ATENDIDA' || item.av_estadoEnvio==='ERROR GENERAR LLAMADA' || item.av_estadoEnvio==='MARCAR LUEGO' || item.av_estadoEnvio==='DESPROGRAMADA' || item.av_estadoEnvio==='DESPROGRAMADA AUTOMATICA') ? (item.av_error!=='' ? item.av_error : 'Desprogramada') : '')}} {{(item.av_reintentos > 0 ? '(reintentos ' + (item.av_reintentos-1) + ')' : '')}}" class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_estadoEnvio}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_fecha | fecha:"d/m/y H:i:s"}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>
+                            {{item.av_fechaGeneraLlamada!==undefined && item.av_fechaGeneraLlamada > 0 ?
+                    (item.av_fechaGeneraLlamada | fecha:"d/m/y H:i:s") : ""}}
+                        </small>
+                    </td>
+                    <td align="center" class="gen-canalesMasivos-1781099115-4756">
+                        <!--<small>
+                            {{item.av_fechaFinLlamada!==undefined && item.av_fechaFinLlamada > 0 ?
+                    (item.av_fechaFinLlamada | fecha:"d/m/y H:i:s") : ""}}
+                            <br>
+                            {{item.av_duracionSegundos}}
+                        </small>-->
+                        {{item.av_duracionSegundos!==undefined && item.av_duracionSegundos!=="" ? item.av_duracionSegundos : ""}}
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_telefono}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_cedula}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_nombre}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_producto}}</small>
+                    </td>
+                    <!--<td style="vertical-align: middle;">{{item.av_lote | fecha:"d/m/Y H:i"}}</td>-->
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_carteraNombre}}</small>
+                    </td>
+                    <td title="{{item.av_campaniaNombre}}" class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_campaniaNombre | textoExtenso:26}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_tipificacion.respuesta1 !== undefined && item.av_tipificacion.respuesta1!=='' ? item.av_tipificacion.respuesta1 : ''}}</small>
+                    </td>
+                    <td class="gen-canalesMasivos-1781099115-4756">
+                        <small>{{item.av_tipificacion.respuesta2 !== undefined && item.av_tipificacion.respuesta2!=='' ? item.av_tipificacion.respuesta2 : ''}}</small>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <button class="btn btn-primary" ng-click="actualizarTabula()">
+                            Actualizar
+                        </button>
+                    </td>
+                    <td colspan="1" align="center">
+                        <tabula-exportar dataset="tabulas['llamadasProgramadas']"></tabula-exportar>
+                    </td>
+                    <td colspan="10" align="center">
+                        <tabula-paginador dataset="tabulas['llamadasProgramadas']" maxbotones="5"></tabula-paginador>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!--#endregion-->
+    <!--#region MODAL DETALLE LLAMADA-->
+    <modal-popup
+        titulo="{{verDetalle.titulo}}"
+        evento="{{verDetalle.evento}}"
+        icono="fa fa-file-audio-o fa-fw"
+        width="800"
+        abrir="verDetalle.activo"
+        class="gen-canalesMasivos-1781099115-7252"
+    >
+        <!--<span class="badge">{{verDetalle.detalle.duracionSegundos}}</span>-->
+        <div class="form-group gen-canalesMasivos-1783007094-7048" ng-show="permisos.soyDesarrollo">
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" ng-model="mostrarDesarrollo" class="gen-canalesMasivos-1783007094-3913">
+                    Vista desarrollo
+                </label>
+            </div>
+        </div>
+        <div class="gen-canalesMasivos-1783007084-6258">
+            <div class="gen-canalesMasivos-1783007094-3581">
+                <audio controls autoplay ng-if="verDetalle.detalle.audio!==undefined && verDetalle.detalle.audio!==''">
+                    <source ng-src="{{verDetalle.detalle.audio}}" type="audio/mpeg">
+                    Your browser does not support the audio element.
+                </audio>
+                <span class="badge gen-canalesMasivos-1783007094-7296" ng-if="verDetalle.detalle.audio===undefined || verDetalle.detalle.audio===''">Sin audio registrado</span>
+            </div>
+            <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo && verDetalle.detalle.proveedor==='RETELL'" class="gen-canalesMasivos-1783007094-3581">
+                <a href="{{verDetalle.detalle.archivoJson}}" target="_blank">Archivo detalle proveedor</a>
+            </div>
+        </div>
+        <div class="form-group gen-canalesMasivos-1783007084-1444" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="prove">
+                Proveedor
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="prove"
+                ng-model="verDetalle.detalle.proveedor"
+                readonly
+            >
+        </div>
+        <div class="form-group gen-canalesMasivos-1783007084-1444" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="provet">
+                Proveedor telefon&iacute;a
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="provet"
+                ng-model="verDetalle.detalle.proveedorSip"
+                readonly
+            >
+        </div>
+        <div class="form-group gen-canalesMasivos-1783007084-1444" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="elid">
+                ID proveedor
+            </label>
+            <br>
+            <a ng-show="verDetalle.detalle.eliminadoProveedor==='NO' && verDetalle.detalle.proveedor==='RETELL'" href="https://dashboard.retellai.com/callHistory?history={{verDetalle.detalle.id}}" target="_blank">{{verDetalle.detalle.id}}</a>
+            <input
+                ng-show="verDetalle.detalle.eliminadoProveedor==='NO' && verDetalle.detalle.proveedor==='LINK'"
+                type="text"
+                class="form-control gen-canalesMasivos-1783007094-9854"
+                id="elid"
+                ng-model="verDetalle.detalle.id"
+                readonly
+            >
+            <input
+                ng-show="verDetalle.detalle.eliminadoProveedor==='SI'"
+                type="text"
+                class="form-control"
+                id="elid"
+                ng-model="verDetalle.detalle.id"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="resumen">
+                Tel&eacute;fono origen
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1781099115-1883"
+                id="costo"
+                ng-model="verDetalle.detalle.telefonoOrigen"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="resumen">
+                Costo proveedor
+            </label>
+            <div class="input-group">
+                <div class="input-group-text">$</div>
+                <input
+                    type="text"
+                    class="form-control gen-canalesMasivos-1783007084-1738"
+                    id="costo"
+                    ng-model="verDetalle.detalle.costo"
+                    readonly
+                >
+            </div>
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="tokesn">
+                Tokens LLM utilizados
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007084-1738"
+                id="tokesn"
+                ng-model="verDetalle.detalle.tokens"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="reintentos">
+                N&uacute;mero de reintentos
+            </label>
+            <div class="gen-canalesMasivos-1781099115-5828">
+                <input
+                    type="text"
+                    class="form-control gen-canalesMasivos-1783007084-1738"
+                    id="reintentos"
+                    ng-model="verDetalle.detalle.reintentos"
+                    readonly
+                >
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarReintentos && verDetalle.detalle.reintentosDetalle.length > 0" ng-click="verDetalle.detalle.mostrarReintentos=!verDetalle.detalle.mostrarReintentos"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarReintentos && verDetalle.detalle.reintentosDetalle.length > 0" ng-click="verDetalle.detalle.mostrarReintentos=!verDetalle.detalle.mostrarReintentos"></li>
+            </div>
+        </div>
+        <div ng-show="verDetalle.detalle.mostrarReintentos">
+            <ul class="list-group">
+                <li class="list-group-item" ng-repeat="(x, i) in verDetalle.detalle.reintentosDetalle">
+                    <small ng-show="x==0">
+                        (Llamada original)
+                        <br>
+                    </small>
+                    <b>{{i.fecha | fecha:"d/m/Y H:i:s"}}</b>
+                    &nbsp;|&nbsp;Respuesta: {{i.error}}&nbsp;|&nbsp;Estado registrado:&nbsp;{{i.estado}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group" ng-show="verDetalle.detalle.proveedor==='RETELL'">
+            <label for="resumen">
+                Resumen
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="resumen"
+                ng-model="verDetalle.detalle.resumen"
+                readonly
+                title="{{verDetalle.detalle.tengoTraduccion ? verDetalle.detalle.resumenOriginal : ''}}"
+            ></textarea>
+        </div>
+        <div class="form-group">
+            <label for="exito">
+                El agente piensa que tuvo exito
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1781102279-3410"
+                id="exito"
+                value="{{verDetalle.detalle.analisisExito}}"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="sentimiento">
+                Sentimiento
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1781102279-3410"
+                id="sentimiento"
+                ng-model="verDetalle.detalle.sentimiento"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-if="verDetalle.detalle.error!==null && verDetalle.detalle.error!==''">
+            <label for="error">
+                Mensaje error
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007094-6557"
+                id="error"
+                ng-model="verDetalle.detalle.error"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="permisos.soyDesarrollo && mostrarDesarrollo">
+            <label for="calllog">
+                Log
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="calllog"
+                ng-model="verDetalle.detalle.callLog"
+                readonly
+            ></textarea>
+        </div>
+        <div class="form-group">
+            <label for="fechaLlamada">
+                Fecha agente inicia la llamada
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007084-1071"
+                id="fechaLlamada"
+                value="{{(verDetalle.detalle.fechaInicio / 1000) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="verDetalle.detalle.fechaInicio!==verDetalle.detalle.fechaContesta">
+            <label for="fechaContesta">
+                Fecha usuario contesta
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007084-1071"
+                id="fechaContesta"
+                value="{{(verDetalle.detalle.fechaContesta / 1000) | fecha:'d/m/Y H:i:s'}}"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="fechaFinLlamada">
+                Fecha finaliza la llamada
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007084-1071"
+                id="fechaFinLlamada"
+                value="{{(verDetalle.detalle.fechaFin / 1000) | fecha:'d/m/Y H:i:s'}}"
+                ng-show="verDetalle.detalle.fechaFin!==''"
+                readonly
+            >
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007084-1071"
+                id="fechaFinLlamada"
+                value=""
+                ng-show="verDetalle.detalle.fechaFin===''"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="duracion">
+                Duraci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control gen-canalesMasivos-1783007084-9723"
+                id="duracion"
+                value="{{verDetalle.detalle.duracionSegundos}}"
+                readonly
+            >
+        </div>
+        <div class="gen-canalesMasivos-1783007084-8105">
+            <label for="error">
+                Transcripci&oacute;n
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarTranscripcion" ng-click="verDetalle.detalle.mostrarTranscripcion=!verDetalle.detalle.mostrarTranscripcion"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarTranscripcion" ng-click="verDetalle.detalle.mostrarTranscripcion=!verDetalle.detalle.mostrarTranscripcion"></li>
+            </label>
+            <div ng-show="verDetalle.detalle.mostrarTranscripcion" class="gen-canalesMasivos-1783007084-9454">
+                <div ng-repeat="item in verDetalle.detalle.transcripcion" class="gen-canalesMasivos-1783007084-1587">
+                    <div ng-class="{textoAgente: item.direccion==='agente', textoCliente: item.direccion==='cliente'}">
+                        <div ng-class="{contenedorAgente: item.direccion==='agente', contenedorCliente: item.direccion==='cliente'}" class="gen-canalesMasivos-1783007084-2412">
+                            <span ng-show="item.direccion==='agente'">
+                                <b>Agente virtual</b>
+                            </span>
+                            <span ng-show="item.direccion==='cliente'">
+                                <b>{{verDetalle.detalle.telefono}}</b>
+                            </span>
+                            <span class="gen-canalesMasivos-1783007084-7151">{{item.mensaje}}</span>
+                            <div ng-if="item.interlocutorInterrumpe && item.mensajeOriginal!==''" class="gen-canalesMasivos-1783007094-5597">
+                                <b>Interlocutor iterrumpe, texto original:</b>
+                                <br>
+                                <span>{{item.mensajeOriginal}}</span>
+                            </div>
+                            <span ng-show="item.fechaHora!==undefined" ng-class="{horaAgente: item.direccion==='agente', horaCliente: item.direccion==='cliente'}">
+                                <small>{{item.fechaHora}}</small>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-show="verDetalle.detalle.transcripcion.length == 0">No hay transcripci&oacute;n</div>
+        </div>
+        <div class="gen-canalesMasivos-1783007084-8105">
+            <label for="error">
+                Valores din&aacute;micos
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarDinamicos" ng-click="verDetalle.detalle.mostrarDinamicos=!verDetalle.detalle.mostrarDinamicos"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarDinamicos" ng-click="verDetalle.detalle.mostrarDinamicos=!verDetalle.detalle.mostrarDinamicos"></li>
+            </label>
+            <ul class="list-group" ng-show="verDetalle.detalle.mostrarDinamicos">
+                <li class="list-group-item" ng-repeat="(i, v) in verDetalle.detalle.datosDinamicos">
+                    <b>{{i}}</b>
+                    :&nbsp;{{v}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group">
+            <label for="finalizacion">
+                Motivo finalizaci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="finalizacion"
+                value="{{verDetalle.detalle.finalizacion}}"
+                readonly
+            >
+        </div>
+        <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1783007084-8105">
+            <label for="error">
+                Variables extra&iacute;das
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarExtraidas" ng-click="verDetalle.detalle.mostrarExtraidas=!verDetalle.detalle.mostrarExtraidas"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarExtraidas" ng-click="verDetalle.detalle.mostrarExtraidas=!verDetalle.detalle.mostrarExtraidas"></li>
+            </label>
+            <ul class="list-group" ng-show="verDetalle.detalle.mostrarExtraidas">
+                <li class="list-group-item" ng-repeat="(i, v) in verDetalle.detalle.variables_dinamicas_analisis">
+                    <b>{{i}}</b>
+                    :&nbsp;{{v}}
+                </li>
+            </ul>
+        </div>
+        <div ng-show="permisos.soyDesarrollo && mostrarDesarrollo" class="gen-canalesMasivos-1783007084-8105">
+            <label for="calidad">
+                An&aacute;lisis calidad
+                <li class="fa fw fa-chevron-up" ng-show="verDetalle.detalle.mostrarCalidad" ng-click="verDetalle.detalle.mostrarCalidad=!verDetalle.detalle.mostrarCalidad"></li>
+                <li class="fa fw fa-chevron-down" ng-show="!verDetalle.detalle.mostrarCalidad" ng-click="verDetalle.detalle.mostrarCalidad=!verDetalle.detalle.mostrarCalidad"></li>
+            </label>
+            <ul class="list-group" ng-show="verDetalle.detalle.mostrarCalidad">
+                <li class="list-group-item" ng-repeat="(i, v) in verDetalle.detalle.analisis_calidad">
+                    <b>{{i}}</b>
+                    :&nbsp;{{v}}
+                </li>
+            </ul>
+        </div>
+        <div class="form-group">
+            <label for="finalizacion">
+                Tipificaci&oacute;n
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="finalizacion"
+                value="{{verDetalle.detalle.tipificacion}}"
+                readonly
+            >
+        </div>
+        <div class="form-group">
+            <label for="analisis">
+                An&aacute;lisis
+            </label>
+            <textarea
+                class="form-control"
+                rows="3"
+                id="analisis"
+                ng-model="verDetalle.detalle.analisis"
+                readonly
+            ></textarea>
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+    <!--#region MODAL DISTRIBUCION LLAMADAS-->
+    <modal-popup
+        titulo="Distribución de llamadas"
+        evento="{{verDistribucion.evento}}"
+        icono="fa fa-volume-control-phone fa-fw"
+        width="1200"
+        abrir="verDistribucion.activo"
+        class="gen-canalesMasivos-1781099115-7252"
+    >
+        <div>
+            <tabset>
+                <tab heading="Por proveedor">
+                    <table class="table SUBtableModulos tb table-striped">
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Pendientes</th>
+                            <th>Por marcar</th>
+                            <th>Marcar luego</th>
+                            <th>Atendidas</th>
+                            <th>Error</th>
+                            <th>Desprogramado</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr ng-repeat="(k,i) in distribucionLlamadas.proveedor">
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{k}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente_marcar"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["marcar_luego"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["atendida"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["error"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["desprogramada"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["total"]}}</td>
+                        </tr>
+                    </table>
+                </tab>
+                <tab heading="Por cartera">
+                    <table class="table SUBtableModulos tb table-striped">
+                        <tr>
+                            <th>Cartera</th>
+                            <th>Pendientes</th>
+                            <th>Por marcar</th>
+                            <th>Marcar luego</th>
+                            <th>Atendidas</th>
+                            <th>Error</th>
+                            <th>Desprogramado</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr ng-repeat="(k,i) in distribucionLlamadas.cartera">
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{k}} ({{i["id"]}}) - {{i["proveedor"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente_marcar"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["marcar_luego"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["atendida"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["error"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["desprogramada"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["total"]}}</td>
+                        </tr>
+                    </table>
+                </tab>
+                <tab heading="Por campa&ntilde;a">
+                    <table class="table SUBtableModulos tb table-striped">
+                        <tr>
+                            <th>Campa&ntilde;a</th>
+                            <th>Estado</th>
+                            <th>Pendientes</th>
+                            <th>Por marcar</th>
+                            <th>Marcar luego</th>
+                            <th>Atendidas</th>
+                            <th>Error</th>
+                            <th>Desprogramado</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr ng-repeat="(k,i) in distribucionLlamadas.campania">
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{k}} ({{i["id"]}}) - {{i["proveedor"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["estado"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente_marcar"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["marcar_luego"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["atendida"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["error"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["desprogramada"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["total"]}}</td>
+                        </tr>
+                    </table>
+                </tab>
+                <tab heading="Por agente">
+                    <table class="table SUBtableModulos tb table-striped">
+                        <tr>
+                            <th>Agente</th>
+                            <th>Pendientes</th>
+                            <th>Por marcar</th>
+                            <th>Marcar luego</th>
+                            <th>Atendidas</th>
+                            <th>Error</th>
+                            <th>Desprogramado</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr ng-repeat="(k,i) in distribucionLlamadas.agente">
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{k}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["pendiente_marcar"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["marcar_luego"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["atendida"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["error"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["desprogramada"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}" align="center">{{i["total"]}}</td>
+                        </tr>
+                    </table>
+                </tab>
+                <tab heading="Por proveedor SIP">
+                    <table class="table SUBtableModulos tb table-striped">
+                        <tr>
+                            <th>Proveedor</th>
+                            <th>Pendientes</th>
+                            <th>Por marcar</th>
+                            <th>Marcar luego</th>
+                            <th>Atendidas</th>
+                            <th>Error</th>
+                            <th>Desprogramado</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr ng-repeat="(k,i) in distribucionLlamadas.proveedorSip">
+                            <td>{{k}}</td>
+                            <td align="center">{{i["pendiente"]}}</td>
+                            <td align="center">{{i["pendiente_marcar"]}}</td>
+                            <td align="center">{{i["marcar_luego"]}}</td>
+                            <td align="center">{{i["atendida"]}}</td>
+                            <td align="center">{{i["error"]}}</td>
+                            <td align="center">{{i["desprogramada"]}}</td>
+                            <td align="center">{{i["total"]}}</td>
+                        </tr>
+                    </table>
+                </tab>
+                <tab heading="Programaciones">
+                    <ul>
+                        <li ng-repeat="(fecha, carteras) in distribucionLlamadas.fechasProgramadas">
+                            <strong>{{fecha}}</strong>
+                            <ul>
+                                <li ng-repeat="(cartera, campanias) in carteras">
+                                    {{cartera}}
+                                    <ul>
+                                        <li ng-repeat="(campania, proveedores) in campanias">
+                                            {{campania}}:
+                                            <ul>
+                                                <li ng-repeat="(proveedor, valor) in proveedores">
+                                                    {{proveedor}}:
+                                                    <b>{{valor}}</b>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </tab>
+                <tab heading="Detalle carteras">
+                    <table class="table SUBtableModulos tb table-striped">
+                        <tr>
+                            <th>Cartera</th>
+                            <th>Campa&ntilde;a</th>
+                            <th>Agente</th>
+                            <th>Proveedor</th>
+                        </tr>
+                        <tr ng-repeat="i in distribucionLlamadas.detalleCampanias">
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{i["cartera"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{i["campania"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{i["agente"]}}</td>
+                            <td ng-class="{'proveedor-link': i['proveedor']==='LINK', 'proveedor-retell': i['proveedor']==='RETELL', 'proveedor-elevenlabs': i['proveedor']==='ELEVENLABS'}">{{i["proveedor"]}}</td>
+                        </tr>
+                    </table>
+                </tab>
+            </tabset>
+            <button class="btn btn-primary" ng-click="devolverTotalesLlamadasDia()">
+                Actualizar
+            </button>
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+    <wait-window activar="cargando"></wait-window>
+</div>
+<!-- _FIN_DE_ARCHIVO -->

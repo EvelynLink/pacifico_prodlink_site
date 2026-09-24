@@ -1,0 +1,846 @@
+<div style="display: flex; flex-direction: column; align-items: center; vertical-align: middle; justify-content: center; width: 100%; height: 100%; padding: 8px; ">
+    <div style="display: flex; flex-direction: column; padding-top: 12px; width: 99%;">
+        <!--#region FILTROS-->
+        <div style="width: 100%; display: flex; margin-bottom: 18px;  border: solid 1px #cbcbcb; border-radius: 4px;">
+            <div style="height: 65px; display: flex; justify-content: center; align-items: center; vertical-align: middle; background-color: #cbcbcb;">
+                &nbsp;
+                <li class="fa fa-filter fa-15x" style="cursor: default;"></li>
+                &nbsp;
+            </div>
+            <div style="padding: 12px; display: flex;">
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle;">
+                    <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                    <select
+                        ng-disabled="cargando"
+                        id="filtroTiempo"
+                        class="form-control"
+                        ng-model="filtroTiempo"
+                        ng-change="traerParametrizacion()"
+                    >
+                        <option value="hora">Última hora</option>
+                        <option value="dia">Este d&iacute;a</option>
+                        <option value="ayer">Ayer</option>
+                        <option value="semana">Esta semana</option>
+                        <option value="semanaanterior">Semana anterior</option>
+                        <option value="mes">Este mes</option>
+                        <option value="mesanterior">Mes anterior</option>
+                        <option value="rango">Rango de tiempo</option>
+                        <option value="asigActual">Asignaci&oacute;n contable [mes actual]</option>
+                        <option value="asigAnterior">Asignaci&oacute;n contable [mes anterior]</option>
+                        <!--<option value="todo">Todo</option>-->
+                    </select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaDesde"
+                        class="form-control"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaDesde"
+                        ng-click="abreFechaDesde = !abreFechaDesde"
+                        ng-model="fechaDesde"
+                        placeholder="Desde"
+                        style="width: 120px;"
+                        ng-change="aplicarRangoFechas()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 6px;" ng-show="filtroTiempo==='rango'">
+                    <input
+                        id="fechaHasta"
+                        class="form-control select-filtro"
+                        type="text"
+                        datepicker-popup="dd/MM/yyyy"
+                        is-open="abreFechaHasta"
+                        ng-click="abreFechaHasta = !abreFechaHasta"
+                        ng-model="fechaHasta"
+                        placeholder="Hasta"
+                        style="width: 120px;"
+                        ng-change="aplicarRangoFechas()"
+                    >
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-briefcase fa-15x" style="cursor: default;"></li>
+                    <select
+                        ng-disabled="cargando"
+                        id="filtroCartera"
+                        class="form-control select-filtro"
+                        ng-model="filtroCartera"
+                        ng-options="p.id as p.nombre for p in listas.carteras"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div ng-if="filtroCartera!=='todo'" style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tachometer fa-15x" style="cursor: default;"></li>
+                    <select
+                        ng-disabled="cargando"
+                        id="filtroPeriodo"
+                        class="form-control select-filtro"
+                        ng-model="listas.filtroPeriodo"
+                        ng-change="traerParametrizacion()"
+                        ng-options="p.id as p.nombre for p in periodo"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-left: 12px;">
+                    <li class="fa fa-fw fa-tags fa-15x" style="cursor: default;"></li>
+                    <select
+                        ng-disabled="cargando"
+                        id="filtroCampania"
+                        class="form-control select-filtro"
+                        ng-model="filtroCampania"
+                        ng-options="p.id as p.nombre for p in listas.campanias"
+                        ng-change="traerParametrizacion()"
+                    ></select>
+                </div>
+                <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle;margin-left: 10px;">
+                    <li class="fa fa-fw fa-exchange fa-15x"></li>
+                    <select
+                        ng-disabled="cargando"
+                        id="filtroCanal"
+                        class="form-control"
+                        ng-model="filtroCanal"
+                        ng-change="traerParametrizacion()"
+                    >
+                        <option selected value="todo">Todos los canales</option>
+                        <option value="llamada">Llamadas</option>
+                        <option value="wp">WhatsApp</option>
+                        <option value="mail">Correo electr&oacute;nico</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <!--#region FILTROS APLICADOS-->
+        <div style="display: flex; width: 100%;">
+            <div ng-show="filtrosAplicados.tiempo.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.tiempo.titulo}}
+                    <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.cartera.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.cartera.titulo}}
+                    <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="filtrosAplicados.campania.activo" style="padding-right: 8px;">
+                <span class="badge">
+                    {{filtrosAplicados.campania.titulo}}
+                    <li ng-click="quitarFiltro('campania')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+            <div ng-show="cuantosAplicados>1" style="padding-right: 8px;">
+                <span class="badge" ng-click="quitarFiltro('todo')">
+                    {{filtrosAplicados.todo.titulo}}
+                    <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+                </span>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--#region TITULO-->
+        <div style="display: flex; justify-content: center; align-items: center; vertical-align: middle; padding-top: 12px; padding-bottom: 12px; position: sticky; top: 0; background-color: white; z-index: 8;">
+            <span class="titulo-pantalla" style="flex: 1; text-align: center; ">{{titulo}}</span>
+            <div style="display: flex;">
+                <i class="fa fa-fw fa-refresh fa-15x" title="Actualizar datos ahora" ng-click="traerParametrizacion()"></i>
+                <select
+                    title="Actualizar automáticamente"
+                    id="tiempoAct"
+                    class="form-control input-sm select-filtro"
+                    ng-model="tiempoActualizar"
+                    ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                    ng-change="setTiempoActualizar()"
+                ></select>
+            </div>
+            <br>
+            <div style="display: flex;" ng-show="permisos.soyDesarrollo">
+                <i class="fa fa-tw fa-th fa-15x" title="Operaciones por día" ng-click="viewdias();"></i>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region seccion resultado general-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Resultados generales&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes"></li>
+                </h2>
+            </div>
+            <div class="flex-columna-centrado" style="width: 100%;">
+                <div style="display: flex; width: 100%;">
+                    <!--<div class="contenedor-grafico" style="width: 50%;">
+                        <div class="flex-columna-centrado">
+                            <svg id="gaugeProgresoTotal"></svg>
+                            <span style="color: #686552; padding-top: 8px;">
+                                <b>Progreso general</b>
+                            </span>
+                        </div>
+                        <div style="margin-top: 12px; width: 100%; padding: 8px;">
+                            <nvd3 style="width: 100%;" options="opcionesBarraTotales" data="graficos.barrasTotales"></nvd3></div>
+                    </div>-->
+                    <div style="width: 100%;">
+                        <!--<div class="flex-row-centrado" style="justify-content: start; vertical-align: middle; align-items: center; align-content: center; width: 100%; padding-bottom: 8px;">
+                            <label class="checkbox-inline" ng-repeat="c in listas.canales" title="{{c.checked ? 'Incluye las gestiones de ' + c.nombre + ' en el total' : 'No se incluye las gestiones de ' + c.nombre + ' en el total'}}">
+                                <input
+                                    type="checkbox"
+                                    ng-model="c.checked"
+                                    ng-change="cambioCheck()"
+                                    style="accent-color: #cbcbcb;"
+                                >
+                                <small>{{c.nombre}}</small>
+                            </label>
+                        </div>-->
+                        <div class="contenedor-cuadros-general" style="grid-template-columns: repeat(7, 1fr);">
+                            <div ng-repeat="cuadro in totales.gestion" class="contenedor-totales" style="width: 205px;">
+                                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                                    <b>
+                                        <small>{{cuadro["nombre"]}}</small>
+                                    </b>
+                                </div>
+                                <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']!=='0,0' && !cargandoGraficos">
+                                    <large>{{cuadro["porcentaje"]}}%</large>
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                                </span>
+                                <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']==='0,0' && !cargandoGraficos">
+                                    <large>N/D</large>
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                                </span>
+                                <span style="margin-top: -10px;" class="numero" ng-show="cuadro['monto']!==undefined && !cargandoGraficos">
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["monto"]}}</p>
+                                    <md-tooltip md-direction="bottom" style="font-size: 10px;">{{cuadro["montoTooltip"]}}</md-tooltip>
+                                </span>
+                                <!-- <span style="margin-top: -10px;" class="numero"
+                                    ng-show="cuadro['nombre']==='Cartera gestionada' && !cargandoGraficos">
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">Capital: {{cuadro["montoCapital"]}}
+                                    </p>
+                                    <md-tooltip md-direction="bottom"
+                                        style="font-size: 10px;">{{cuadro["montoCapitalTooltip"]}}</md-tooltip>
+                                </span> -->
+                                <div ng-show="cargandoGraficos">
+                                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                                </div>
+                            </div>
+                            <div ng-show="efectividad['capital']!==undefined && !cargandoGraficos" class="contenedor-totales" style="width: 205px;">
+                                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                                    <b>
+                                        <small>Saldo Capital</small>
+                                    </b>
+                                </div>
+                                <span style="padding-top: 4px;" class="numero">
+                                    <large>{{efectividad["porcentaje"]}}%</large>
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                                </span>
+                                <span style="margin-top: -10px;" class="numero">
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">
+                                        Capital:
+                                        ${{efectividad["capital"]}}
+                                    </p>
+                                    <md-tooltip md-direction="bottom" style="font-size: 10px;">${{efectividad["capitalTooltip"]}}</md-tooltip>
+                                </span>
+                                <span style="margin-top: -10px;" class="numero">
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">
+                                        Recaudo:
+                                        ${{efectividad["recaudo"]}}
+                                    </p>
+                                    <md-tooltip md-direction="bottom" style="font-size: 10px;">${{efectividad["recaudoTooltip"]}}</md-tooltip>
+                                </span>
+                                <div ng-show="cargandoGraficos">
+                                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex;">
+                            <div class="contenedor-cuadros-general" style="margin-top: 8px; grid-template-columns: repeat(3, 1fr);">
+                                <div ng-repeat="cuadro in totales.tipificacion" class="contenedor-totales" style="width: 205px;">
+                                    <div style="text-align: center;" ng-show="!cargandoGraficos">
+                                        <b>
+                                            <small>{{cuadro["nombre"]}}</small>
+                                        </b>
+                                    </div>
+                                    <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                                        <large>{{cuadro["porcentaje"]}}%</large>
+                                        <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                                    </span>
+                                    <div ng-show="cargandoGraficos">
+                                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="contenedor-cuadros-general" style="margin-left: 10px; margin-top: 8px; grid-template-columns: repeat(3, 1fr);">
+                                <div ng-repeat="cuadro in totales.intensidad" class="contenedor-totales" style="width: 205px;">
+                                    <div style="text-align: center;" ng-show="!cargandoGraficos">
+                                        <b>
+                                            <small>{{cuadro["nombre"]}}</small>
+                                        </b>
+                                    </div>
+                                    <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                                        <large>{{cuadro["total"]}}</large>
+                                        <p class="subtitulo-cuadro" style="font-size: 10px;">
+                                            <span ng-repeat="t in cuadro['tooltip']">
+                                                {{t}}
+                                                <br>
+                                            </span>
+                                        </p>
+                                    </span>
+                                    <div ng-show="cargandoGraficos">
+                                        <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="contenedor-cuadros-general" style="grid-template-columns: repeat(6, 1fr); margin-top: 8px;" ng-show="permisos.soyDesarrollo">
+                            <div ng-repeat="cuadro in totales.cumplimiento" class="contenedor-totales" style="width: 205px;">
+                                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                                    <b>
+                                        <small>{{cuadro["nombre"]}}</small>
+                                    </b>
+                                </div>
+                                <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']!=='0,0' && !cargandoGraficos">
+                                    <large>{{cuadro["porcentaje"]}}%</large>
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                                </span>
+                                <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']==='0,0' && !cargandoGraficos">
+                                    <large>N/D</large>
+                                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                                </span>
+                                <div ng-show="cargandoGraficos">
+                                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--<div ng-if="permisos.soyDesarrollo" style="width: 100%;">
+                    <div class="titulo-seccion">
+                        <h2>
+                            Compromisos de pago
+                        </h2>
+                    </div>
+                    <nvd3 style="width: 100%;" options="opcionesCompromisos" data="graficos.compromisos"></nvd3>
+                </div>-->
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region seccion llamadas agentes virtuales-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Gesti&oacute;n por llamada telef&oacute;nica&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes"></li>
+                </h2>
+                <span>
+                    <small>(Agentes vituales)</small>
+                </span>
+            </div>
+            <div class="contenedor-badges-campanias">
+                <span ng-repeat="c in secciones.llamadasAV.campanias">
+                    &nbsp;
+                    <span class="badge">
+                        {{c}}
+                    </span>
+                </span>
+            </div>
+            <div style="display: flex; width: 100%;">
+                <div class="flex-row-centrado" style="width: 20%;">
+                    <div class="flex-columna-centrado">
+                        <svg id="gaugeProgreso"></svg>
+                        <span style="color: #686552; padding-top: 8px;">
+                            <b>Progreso</b>
+                        </span>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-general" style="width: 80%;">
+                    <div ng-repeat="cuadro in secciones.llamadasAV.totales" class="contenedor-totales">
+                        <div style="text-align: left;" ng-show="!cargandoGraficos">
+                            <b>
+                                <small>{{cuadro["nombre"] | textoExtenso:14}}</small>
+                            </b>
+                        </div>
+                        <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                            <large>{{cuadro["total"]}}</large>
+                            <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico" style="width: 100%; position: relative; margin-top: 12px; position: relative;">
+                <li class="fa fa-fw fa-question-circle-o" title="{{promedios.llamadas}}" style="position: absolute; top: 5; left: 5;"></li>
+                <nvd3 style="width: 100%;" options="opcionesLineaLlamadas" data="graficos.lineaLlamadas"></nvd3>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region seccion correos-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Gesti&oacute;n por correo electr&oacute;nico&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes"></li>
+                </h2>
+            </div>
+            <div class="contenedor-badges-campanias">
+                <span ng-repeat="c in secciones.correo.campanias">
+                    &nbsp;
+                    <span class="badge">
+                        {{c}}
+                    </span>
+                </span>
+            </div>
+            <div style="display: flex; width: 100%;">
+                <div class="flex-row-centrado" style="width: 20%;">
+                    <div class="flex-columna-centrado">
+                        <svg id="gaugeProgresoCorreo"></svg>
+                        <span style="color: #686552; padding-top: 8px;">
+                            <b>Progreso</b>
+                        </span>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-general" style="width: 80%;">
+                    <div ng-repeat="cuadro in secciones.correo.totales" class="contenedor-totales">
+                        <div style="text-align: left;" ng-show="!cargandoGraficos">
+                            <b>
+                                <small>{{cuadro["nombre"] | textoExtenso:14}}</small>
+                            </b>
+                        </div>
+                        <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                            <large>{{cuadro["total"]}}</large>
+                            <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico" style="width: 100%; position: relative; margin-top: 12px; position: relative;">
+                <li class="fa fa-fw fa-question-circle-o" title="{{promedios.correos}}" style="position: absolute; top: 5; left: 5;"></li>
+                <nvd3 style="width: 100%;" options="opcionesLineaLlamadas" data="graficos.lineaCorreos"></nvd3>
+            </div>
+        </div>
+        <!--#endregion-->
+        <!--#region seccion whatsapp-->
+        <div class="contenedor-seccion">
+            <div class="titulo-seccion">
+                <h2>
+                    Gesti&oacute;n por WhatsApp&nbsp;
+                    <li class="fa fa-fw fa-file-excel-o" ng-click="mostrarModalReportes()" title="Generar reportes"></li>
+                </h2>
+            </div>
+            <div class="contenedor-badges-campanias">
+                <span ng-repeat="c in secciones.whatsapp.campanias">
+                    &nbsp;
+                    <span class="badge">
+                        {{c}}
+                    </span>
+                </span>
+            </div>
+            <div style="display: flex; width: 100%;">
+                <div class="flex-row-centrado" style="width: 20%;">
+                    <div class="flex-columna-centrado">
+                        <svg id="gaugeProgresoWhatsapp"></svg>
+                        <span style="color: #686552; padding-top: 8px;">
+                            <b>Progreso</b>
+                        </span>
+                    </div>
+                </div>
+                <div class="contenedor-cuadros-general" style="width: 80%;">
+                    <div ng-repeat="cuadro in secciones.whatsapp.totales" class="contenedor-totales" title="{{cuadro['extra']!==undefined ? cuadro['extra'] : ''}}">
+                        <div style="text-align: left;" ng-show="!cargandoGraficos">
+                            <b>
+                                <small>{{cuadro["nombre"] | textoExtenso:14}}</small>
+                            </b>
+                        </div>
+                        <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                            <large>{{cuadro["total"]}}</large>
+                            <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                        </span>
+                        <div ng-show="cargandoGraficos">
+                            <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="contenedor-grafico" style="width: 100%; position: relative; margin-top: 12px; position: relative;">
+                <li class="fa fa-fw fa-question-circle-o" title="{{promedios.whatsapp}}" style="position: absolute; top: 5; left: 5;"></li>
+                <nvd3 style="width: 100%;" options="opcionesLineaLlamadas" data="graficos.lineaWhatsapp"></nvd3>
+            </div>
+        </div>
+        <!--#endregion-->
+        <div style="width: 100%; height: 50px;"></div>
+    </div>
+</div>
+<!-- <div style="width: 100%;" layout="row" layout-align="space-around start">
+    <div flex="50" style="width: 70%;" layout="column" layout-align="start center">
+        /* cartera gestionada */
+        <div class="contenedor-totales" style="width: 420px;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{totales['gestion'][0]['nombre']}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][0]['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{totales['gestion'][0]['porcentaje']}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][0]['tooltip']}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][0]['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][0]['tooltip']}}</p>
+            </span>
+            <span style="margin-top: -10px;" class="numero"
+                ng-show="totales['gestion'][0]['monto']!==undefined && !cargandoGraficos">
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][0]['monto']}}</p>
+                <md-tooltip md-direction="bottom"
+                    style="font-size: 10px;">{{totales['gestion'][0]['montoTooltip']}}</md-tooltip>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+
+        </div>
+        /* fin cartera gestionada */
+
+        <div layout="row" layout-align="space-between center" style="margin-top: 20px; margin-bottom: 20px;">
+            /*cartera gestionada con contacto  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][1]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][1]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][1]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][1]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][1]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][1]['tooltip']}}</p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin cartera gestionada con contacto */
+
+            /*Compromisos de pago registrados  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][3]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][3]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][3]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][3]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][3]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][3]['tooltip']}}</p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin Compromisos de pago registrados */
+        </div>
+
+        <div layout="row" layout-align="space-between center">
+            /*Cartera gestionada pagada  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][4]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][4]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][4]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][4]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][4]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][4]['tooltip']}}</p>
+                </span>
+                <span style="margin-top: -10px;" class="numero"
+                    ng-show="totales['gestion'][4]['monto']!==undefined && !cargandoGraficos">
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][4]['monto']}}</p>
+                    <md-tooltip md-direction="bottom"
+                        style="font-size: 10px;">{{totales['gestion'][4]['montoTooltip']}}</md-tooltip>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin Cartera gestionada pagada */
+
+            /*Efectividad  */
+            <div class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{totales['gestion'][6]['nombre']}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][6]['porcentaje']!=='0,0' && !cargandoGraficos">
+                    <large>{{totales['gestion'][6]['porcentaje']}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]['tooltip']}}</p>
+                </span>
+                <span style="padding-top: 4px;" class="numero"
+                    ng-show="totales['gestion'][6]['porcentaje']==='0,0' && !cargandoGraficos">
+                    <large>N/D</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]['tooltip']}}</p>
+                </span>
+                <span style="margin-top: -10px;" class="numero" ng-show=" !cargandoGraficos">
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]["recaudo"]}}</p>
+                    <md-tooltip md-direction="bottom"
+                        style="font-size: 10px;">{{totales['gestion'][6]["recaudoTooltip"]}}</md-tooltip>
+                </span>
+                <span style="margin-top: -10px;" class="numero" ng-show="!cargandoGraficos">
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][6]["capital"]}}</p>
+                    <md-tooltip md-direction="bottom"
+                        style="font-size: 10px;">{{totales['gestion'][6]["capitalTooltip"]}}</md-tooltip>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+            /* fin Efectividad */
+        </div>
+    </div>
+
+    <div flex="50" style="width: 100%;" layout="column" layout-align="start center">
+        /*Cartera no gestionada  */
+        <div class="contenedor-totales" style="width: 420px;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{totales['gestion'][2]['nombre']}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][2]['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{totales['gestion'][2]['porcentaje']}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][2]['tooltip']}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][2]['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][2]['tooltip']}}</p>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+
+        </div>
+        /* fin Cartera no gestionada */
+
+        /*Cartera no gestionada pagada  */
+        <div class="contenedor-totales" style="width: 205px;margin-top: 20px;margin-bottom: 20px;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{totales['gestion'][5]['nombre']}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][5]['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{totales['gestion'][5]['porcentaje']}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][5]['tooltip']}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero"
+                ng-show="totales['gestion'][5]['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{totales['gestion'][5]['tooltip']}}</p>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+        </div>
+        /* fin Cartera no gestionada pagada */
+
+        <div
+            style="width: 800px; display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle; border: solid 1px #41b7f2; background-color: #f5f5fa; text-align: center; height: 1px; font-size: 14px; margin-bottom: 20px;">
+        </div>
+
+        /* cuadros tipificacion */
+        <div style="display: flex;">
+            <div ng-repeat="cuadro in totales.tipificacion" class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{cuadro["nombre"]}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                    <large>{{cuadro["porcentaje"]}}%</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+
+            <div ng-repeat="cuadro in totales.intensidad" class="contenedor-totales" style="width: 205px;">
+                <div style="text-align: center;" ng-show="!cargandoGraficos">
+                    <b>
+                        <small>{{cuadro["nombre"]}}</small>
+                    </b>
+                </div>
+                <span style="padding-top: 4px;" class="numero" ng-show="!cargandoGraficos">
+                    <large>{{cuadro["total"]}}</large>
+                    <p class="subtitulo-cuadro" style="font-size: 10px;">
+                        <span ng-repeat="t in cuadro['tooltip']">
+                            {{t}}
+                            <br>
+                        </span>
+                    </p>
+                </span>
+                <div ng-show="cargandoGraficos">
+                    <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+                </div>
+            </div>
+        </div>
+        /* fin cuadros tipificacion */
+    </div>
+</div>
+
+<div style="width: 100%;" layout="column" layout-align="center center" ng-show="permisos.soyDesarrollo"
+    style="margin-top: 20px;margin-bottom: 20px;">
+    <div
+        style="width: 70%; display: flex; flex-direction: column; justify-content: center; align-items: center; vertical-align: middle; border: solid 1px #41b7f2; background-color: #f5f5fa; text-align: center; height: 1px; font-size: 14px; margin-bottom: 20px;margin-top: 20px;">
+    </div>
+
+    <div layout="row" layout-align="center center">
+        <div ng-repeat="cuadro in totales.cumplimiento" class="contenedor-totales"
+            style="width: 205px;align-self: normal;">
+            <div style="text-align: center;" ng-show="!cargandoGraficos">
+                <b>
+                    <small>{{cuadro["nombre"]}}</small>
+                </b>
+            </div>
+            <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']!=='0,0' && !cargandoGraficos">
+                <large>{{cuadro["porcentaje"]}}%</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+            </span>
+            <span style="padding-top: 4px;" class="numero" ng-show="cuadro['porcentaje']==='0,0' && !cargandoGraficos">
+                <large>N/D</large>
+                <p class="subtitulo-cuadro" style="font-size: 10px;">{{cuadro["tooltip"]}}</p>
+            </span>
+            <div ng-show="cargandoGraficos">
+                <li class="fa fa-spinner fa-fw fa-spin fa-2x"></li>
+            </div>
+        </div>
+    </div>
+</div> -->
+<modal-popup
+    titulo="Descarga de reportes"
+    evento="{{modalReportes.evento}}"
+    icono="fa fa-file-excel-o fa-fw"
+    width="400"
+    abrir="modalReportes.activo"
+    style="color: black;"
+>
+    <div>
+        <p>
+            <button
+                type="button"
+                class="btn btn-primary btn-lg btn-block"
+                ng-click="descargarReporteGeneral()"
+                ng-disabled="espere.general"
+            >
+                {{espere.general ? 'Generando...' : 'Reporte gesti&oacute;n
+                general'}}
+            </button>
+        </p>
+        <p>
+            <button
+                type="button"
+                class="btn btn-primary btn-lg btn-block"
+                ng-click="descargarReporteLlamadas()"
+                ng-disabled="espere.llamadas"
+            >
+                {{espere.llamadas ? 'Generando...' : 'Reporte gesti&oacute;n con llamadas
+                telef&oacute;nicas'}}
+            </button>
+        </p>
+        <p>
+            <button
+                type="button"
+                class="btn btn-primary btn-lg btn-block"
+                ng-click="descargarReporteCorreos()"
+                ng-disabled="espere.correos"
+            >
+                {{espere.correos ? 'Generando...' : 'Reporte gesti&oacute;n con correos
+                electr&oacute;nicos'}}
+            </button>
+        </p>
+        <p>
+            <button
+                type="button"
+                class="btn btn-primary btn-lg btn-block"
+                ng-click="descargarReporteWhatsapp()"
+                ng-disabled="espere.whatsapp"
+            >
+                {{espere.whatsapp ? 'Generando...' : 'Reporte gesti&oacute;n con
+                WhatsApp'}}
+            </button>
+        </p>
+    </div>
+</modal-popup>
+<div ng-if="verDias" class="modal-backdrop fade in" style="z-index:1;background:black;opacity:0.7;"></div>
+<div ng-if="verDias" class="panel panel-primary" style="position: fixed;z-index:2;margin:20px auto; width:1300px;height: auto; margin-top: 15px;left: 50%; top: 50%;transform: translate(-50%, -50%);">
+    <div class="panel-heading" layout="row" layout-align="space-between center">
+        <div>Operaciones por día</div>
+        <button class="btn btn-success" ng-click="cerrarDias();" tabindex="0">
+            <span>Cerrar</span>
+        </button>
+    </div>
+    <div class="panel-body" layout="column" layout-align="space-between stretch">
+        <div style="margin-top: -15px;height: 340px;display: block;overflow-y: scroll;">
+            <table
+                width="100%"
+                style="font-size: 11px"
+                class="table table-condensed table-hover  tableModulos"
+                align="center"
+            >
+                <thead>
+                    <tr>
+                        <th style="vertical-align: middle;text-align: center" class="header TOPSUBtitulo">Día</th>
+                        <th style="vertical-align: middle;text-align: center" class="header TOPSUBtitulo">Premora</th>
+                        <th style="vertical-align: middle;text-align: center" class="header TOPSUBtitulo">
+                            Nuevas Premora
+                        </th>
+                        <th style="vertical-align: middle;text-align: center" class="header TOPSUBtitulo">Vencida</th>
+                        <th style="vertical-align: middle;text-align: center" class="header TOPSUBtitulo">
+                            Nuevas Vencida
+                        </th>
+                        <th style="vertical-align: middle;text-align: center" class="header TOPSUBtitulo">Total</th>
+                    </thead>
+                    <tr ng-repeat="fila in tablaDias">
+                        <td style="text-align: center">
+                            {{fila.dia}}
+                        </td>
+                        <td style="text-align: center">
+                            {{fila.premora}}
+                        </td>
+                        <td style="text-align: center">
+                            {{fila.nuevoPremora}}
+                        </td>
+                        <td style="text-align: center">
+                            {{fila.vencida}}
+                        </td>
+                        <td style="text-align: center">
+                            {{fila.nuevoVencida}}
+                        </td>
+                        <td style="text-align: center">
+                            {{fila.total}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <wait-window activar="cargando"></wait-window>

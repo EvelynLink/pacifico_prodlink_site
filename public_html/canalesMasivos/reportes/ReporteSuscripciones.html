@@ -1,0 +1,51 @@
+<reporte-cabecera nombre="<lang>Reporte Suscripciones</lang>">
+    <lang>No se han definido filtros para éste reporte</lang>
+</reporte-cabecera>
+<div class="contenedor-tabs tabscuadradas" layout-padding>
+    <table class="ng-scope" width="95%" align="center">
+        <tr>
+            <td>
+                <table style="width:100%" tabula="Suscripciones" url="../boletines/BoletinesCtrl.php?act=procesarReporte&reporte=rpSuscripciones&acc=getData" tamanio-inicial="30" observa-y-recarga="reporte.suscripciones" wait-tabula="waitWindow">
+                    <tr>
+                        <td><button class="btn btn-info" ng-click="reporte.suscripciones=reporte.suscripciones+1"><i class="fa fa-refresh fa-fw"></i></button></td>
+                        <td align="center"><tabula-exportar dataset="tabulas['Suscripciones']"></tabula-exportar></td>
+                        <td colspan="100" align="center"><tabula-paginador dataset="tabulas['Suscripciones']"></tabula-paginador></td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th tabula-encabezado="bsc_fechaCreacion" titulo="<lang>Fecha Suscripción</lang>" tipo="timestamp" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_email" titulo="<lang>Correo</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_nombre" titulo="<lang>Nombre</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_identificacion" titulo="<lang>Identificación</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bjr_nombre" titulo="<lang>Jerarquía</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bca_nombre" titulo="<lang>Categoría</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_fechaNacimientoFrmt" titulo="<lang>Fecha Nacimiento</lang>" ordenar></th>
+                        <th tabula-encabezado="bco_telefono" titulo="<lang>Teléfono</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_celular" titulo="<lang>Celular</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_empresa" titulo="<lang>Empresa</lang>" ordenar filtrar></th>
+                        <th tabula-encabezado="bco_direccion" titulo="<lang>Dirección</lang>" ordenar filtrar></th>
+                    </tr>
+                    <tr ng-repeat="ct in tabulas['Suscripciones'].filas" style="border-top:4px;font-size: 13px;" ng-class-odd="'odd'" ng-class-even="'even'">
+                        <td><i class="fa fa-close fa-red fa-fw" ng-click="eliminarCorreoYasociaciones(ct.bco_id)"></i></td>
+                        <td align="center">{{ct.bsc_fechaCreacion | fecha:'Y-m-d'}}</td>
+                        <td>{{ct.bco_email}}</td>
+                        <td>{{ct.bco_nombre}}</td>
+                        <td>{{ct.bco_identificacion}}</td>
+                        <td>{{ct.bjr_nombre}}</td>
+                        <td>{{ct.bca_nombre}}</td>
+                        <td align="center">{{ct.bco_fechaNacimientoFrmt}}</td>
+                        <td>{{ct.bco_telefono}}</td>
+                        <td>{{ct.bco_celular}}</td>
+                        <td>{{ct.bco_empresa}}</td>
+                        <td>{{ct.bco_direccion}}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</div>
+<!-- Pie de reporte -->
+<reporte-pie></reporte-pie>
+<!-- Wait window -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

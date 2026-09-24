@@ -1,0 +1,927 @@
+<style type="text/css">
+    .listCheck .colorCheckBT{
+        padding:3px 9px;
+    }
+    .checkTd .md-container {
+        text-align: center
+    }
+    .t-light {
+        color: #CECECE
+    }
+    .mask {
+        background: black none repeat scroll 0 0;
+        bottom: 0;
+        color: #ffffff;
+        height: 100%;
+        left: 0;
+        opacity: 0.7;
+        padding-left: 0;
+        padding-top: 15%;
+        position: fixed;
+        right: 0;
+        text-align: center;
+        top: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+    .app_table tr td {
+        padding: 2px
+    }
+    .fa-mygreen {
+        color : #42B72A
+    }
+    .fa-myred {
+        color : #EF1717
+    }
+    .status_dot {
+        animation: beat .15s 4 alternate;
+        transform-origin: center;
+    }
+    @keyframes beat{
+        to { transform: scale(1.4); }
+    }
+    .alert-error {
+        font-size: 12px !important
+    }
+    .app_table, .business_table, .adaccount_table, .campaign_table, .adset_table {
+        width:  100%;
+        font-size: 13px
+    }
+    /*special table*/
+    .debugger_table {
+        border-collapse: collapse;
+        width: 100%
+    }
+    .debugger_table th, .debugger_table td {
+        border: 1px solid #ccc;
+        padding: 5px;
+        text-align: left;
+        font-size: 13px
+    }
+    .debugger_table tr:nth-child(even) {
+        background-color: #eee;
+    }
+    .debugger_table tr:nth-child(odd) {
+        background-color: #fff;
+    }
+</style>
+<!--<div ng-init='createStructure()'>-->
+<div>
+    <div class="mask" ng-if="mask.op">
+        <i class="fa fa-refresh fa-spin"></i>{{mask.text}}
+    </div>
+    <div class="panel-config cabecera" layout="row" layout-align="start center" >
+        <div flex="25" layout-padding>
+            <div class="miEncabezado" style="text-align: center;">
+                <i class="fa fa-facebook-square fa-fw"></i><lang>Configuración de Facebook</lang>
+            </div>
+        </div>
+        <span class="bordeEn"></span>
+        <div flex="70"></div>
+    </div>
+
+    <!-- INICIO DIV PARA ALERT DE MENSAJES MULTIPROPOSITOS -->
+    <div class="row" ng-if="messageAlert.show">
+        <div  class="modal-backdrop fade in" style="z-index:1200;background:black;opacity:0.7;"></div>
+        <div style="position:fixed;left:25%;top:20%;width:600px;z-index:1201;padding:10px;background:transparent;">
+            <div class="panel panel-primary">
+                <div class="panel-heading">{{messageAlert.title}}
+                    <a style="z-index:1000;background:white;opacity:0.7;" class='pull-right' ng-click="closeAlert()" title="Cerrar"><i class="fa fa-times"></i></a>
+                </div>
+                <div class="panel-body" align="center">
+                    <div ng-if="!messageAlert.custom" align='center' class="col-md-12">
+                        <br/><div ng-bind-html="messageAlert.message | to_trusted"></div><br/>
+                    </div>
+                    <div ng-if="messageAlert.custom" align='center' class="col-md-12">
+                        <br/><div>
+                            <form name="form_audience" style="text-align: left">
+                                <div class="form-group">
+                                    <label for="name"><lang>Nombre</lang></label>
+                                    <input class="form-control" type="text" maxlength="100" ng-model="form.audience.data.name" placeholder="Publico de prueba">
+                                    <br/>
+                                    <label for="currency"><lang>Moneda</lang></label>
+                                    <select class='form-control' name="currency" ng-options="currency.code as currency.name+' ('+currency.code+')' for currency in formData.currencies track by currency.code" ng-model="form.audience.data.currency"></select>
+                                    <br/>
+                                    <label for="timezone"><lang>Zona horaria</lang></label>
+                                    <select class='form-control' name="timezone" ng-options="timezone.code as timezone.name for timezone in formData.timezones track by timezone.code" ng-model="form.audience.data.timezone"></select>
+                                    <br/>
+                                    <label for="description"><lang>Descripción</lang></label>
+                                    <textarea class="form-control" maxlength="200" ng-model="form.audience.data.description" placeholder="Publico desde CRM para contacto de antiguos clientes"></textarea>
+                                    <br/>
+                                </div>
+                            </form>
+                        </div><br/>
+                    </div>
+                    <!--ACCIONES DE ALERT-->
+                    <div ng-show='messageAlert.ops && !messageAlert.noOps'>
+                        <br/>
+                        <button ng-click="closeAlert()" class="md-raised md-warn md-button md-ink-ripple">
+                            NO, GRACIAS
+                        </button>
+                        <button ng-click="reciveOpAlert()" class="md-raised md-primary md-button md-ink-ripple">
+                            PROCEDER
+                        </button>
+                    </div>
+                    <div ng-show='!messageAlert.ops && !messageAlert.noOps'>
+                        <br/>
+                        <button ng-click="closeAlert()" class="md-raised md-warn md-button md-ink-ripple">
+                            ACEPTAR
+                        </button>
+                    </div>
+    <!--                <div>
+                        <br/><i class="fa fa-info-circle"></i><font style="font-size: 12px; color: #666">Las asignaciones seleccionadas serán eliminadas de forma permanente del sistema</font>
+                    </div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FIN DIV PARA ALERT DE MENSAJES MULTIPROPOSITOS -->
+
+    <!--CONTENT-->
+    <div style="background-color:#F5F5F5; min-height: 500px">
+        <div flex="90" style="margin: 0 auto" class="panel-body contenedor-tabs">
+            <tabset>
+                <tab heading="Aplicaciones">
+                    <div class="contenidosTabs">
+
+                        <table class="ng-scope" width="100%">
+                            <tr>
+                                <td valign="top" class="col-xs-8 col-md-4" style="width:70%" >
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-plug fa-green fa-fw"></i>
+                                                <lang>Conexión de Aplicaciones</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <table tabula="apptab" url="../boletines/BoletinesRedesConfCtrl.php?act=verifyApps" class="table " border="1" tamanio-inicial='10' post-carga="structureApp(filas)">
+                                                    <tr>
+                                                        <th style="width: 9%" tabula-encabezado="id" titulo="<lang>Identificador</lang>"  ordenar></th>
+                                                        <th style="width: 12%" tabula-encabezado="secret" titulo="Clave"  ordenar></th>
+                                                        <th style="width: 15%" tabula-encabezado="version" titulo="<lang>Version</lang>"  ordenar></th>
+                                                        <th style="width: 20%" tabula-encabezado="token" titulo="<lang>Token de acceso</lang>"  ordenar></th>
+                                                        <th style="width: 5%" tabula-encabezado="status" titulo="<lang>Conexión</lang>"  ordenar></th>
+                                                        <th style="width: 10%"><lang>Acciones</lang></th>
+                                                    </tr>
+                                                    <tr ng-repeat-start="app in tabulas['apptab'].filas track by $index" ng-show="!app.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td style="font-size: 12px">{{app.id}}</td>
+                                                        <td style="font-size: 12px"><md-tooltip md-direction="down">{{app.secret_full}}</md-tooltip>{{app.secret}}</td>
+                                                        <td style="font-size: 11px">{{app.version}}</td>
+                                                        <td style="font-size: 12px"><md-tooltip md-direction="down">{{app.token_full}}</md-tooltip>{{app.token}}</td>
+                                                        <td style="text-align: center"><i id="state_dot_app" ng-class="app.light.class"><md-tooltip md-direction="right">{{app.light.text}}</md-tooltip></i></td>
+                                                        <td style="width:18%" data-title="'<lang>Acciones</lang>'">
+                                                            <nobr>
+                                                                <!--botón para editar app-->
+                                                                <i class="fa fa-pencil-square-o fa-green fa-12x" ng-show="tabulas['apptab'].extra.write" ng-click="app.editame = !app.editame" tooltip-placement='bottom' tooltip='<lang>Editar</lang>'></i>
+                                                                <!-- botón para visualizar app -->
+                                                                <i class="fa fa-eye fa-green fa-12x" ng-show="tabulas['apptab'].extra.write" ng-click="showApp($index)" tooltip-placement='bottom' tooltip='<lang>Ver aplicación</lang>'></i>
+                                                                <!-- botón para eliminar app -->
+                                                                <i class="fa fa-trash-o fa-green fa-12x" ng-show="tabulas['apptab'].extra.write" ng-click="deleteApp(app, tabulas['apptab'].filas, $index)" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--FORMULARIO DE EDICION-->
+                                                    <tr ng-form="appform" ng-if="tabulas['apptab'].extra.write && app.editame" ng-init="inicializaItem(app);"  ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td>
+                                                            <input class="form-control" style="width: 100px" ng-model="app.copy.id">
+                                                            <div class="alert alert-error" ng-show="app.copy.errores.id">{{app.copy.errores.id}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <input class="form-control" style="width: 100px" ng-model="app.copy.secret_full">
+                                                            <div class="alert alert-error" ng-show="app.copy.errores.secret">{{app.copy.errores.secret}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <input class="form-control" style="width: 100px" ng-model="app.copy.version">
+                                                            <div class="alert alert-error" ng-show="app.copy.errores.version">{{app.copy.errores.version}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <input class="form-control" style="width: 100px" ng-model="app.copy.token_full">
+                                                            <div class="alert alert-error" ng-show="app.copy.errores.token">{{app.copy.errores.token}}</div>
+                                                        </td>
+                                                        <td></td>
+                                                        <!--ACCIONES DE FORMULARIO DE EDICION-->
+                                                        <td>
+                                                            <nobr>
+                                                                <a style="outline: none" ng-show="appform.$valid" ng-click="saveForm('app', app, $index); tabulas['apptab'].extra.noEditable = !tabulas['apptab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                                                                <i class="fa fa-check fa-green fa-12x"></i></a>
+                                                                <a style="outline: none" ng-click="app.editame = false; reinicializaItem(app, tabulas['apptab'].filas); tabulas['apptab'].extra.noEditable = !tabulas['apptab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                                                                <i class="fa fa-times-circle fa-red fa-12x"></i></a>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--ALERT PARA FORMULARIO-->
+                                                    <tr ng-repeat-end ng-show="tabulas['apptab'].extra.write && appform.$invalid">
+                                                        <td colspan='6'>
+                                                            <div class="alert alert-success ng-scope">
+                                                                <lang>Complete el formulario para guardarlo</lang></div>
+                                                        </td>
+                                                    </tr>
+                                                    <!--HERRAMIENTAS ADICIONALES-->
+                                                    <tr>
+                                                        <td colspan='3'>
+                                                            <button class="btn btn-primary" ng-click="prepareNewApp(tabulas['apptab'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Añadir conexión</lang></button></td>
+                                                        <td colspan='3'>
+                                                            <tabula-paginador dataset="tabulas['apptab']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td rowspan="2" valign="top" style="width:30%;max-width:200px;padding-right: 10px solid green;padding-left: 10px;">
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-rocket fa-green fa-fw"></i>
+                                                <lang>Información de Aplicación</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <div ng-repeat="it in form.app">
+                                                    <div ng-if="it.content.op">
+                                                        <table ng-if="it.content.data.id !==undefined" class='app_table'>
+                                                            <tr>
+                                                                <td style="text-align: center"><img alt="Logo de aplicación" class="width: 100px" src='{{it.content.data.logo_url}}'></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style="text-align: center"><span style="color: #666; font-weight: bold; font-size: 25px !important">{{it.content.data.name}}</span></td>
+                                                            </tr>
+                                                            <tr><td><br/></td></tr>
+                                                            <tr>
+                                                                <td>Categoria:&nbsp;<b>{{it.content.data.category}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Sub-categoria:&nbsp;<b>{{it.content.data.subcategory}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Usuario administrador:&nbsp;<b>{{it.content.data.user}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Plataformas soportadas:&nbsp;<b>{{it.content.data.supported_platforms}}</b></td>
+                                                            </tr>
+                                                        </table>
+                                                        <!--{{it.content.data.length}}-->
+                                                        <span ng-if="it.content.data.id ===undefined" style="font-size: 13px; color: #AAAAAA">Seleccione una Aplicación con conexión</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td valign="top" class="col-xs-8 col-md-4" style="width:70%" >
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-key fa-green fa-fw"></i>
+                                                <lang>Depuración de Token</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <table class="debugger_table">
+                                                    <tr ng-if="form.token.op" ng-repeat="(key, value) in form.token.data">
+                                                        <th>{{key}}</th>
+                                                        <td>{{value}}</td>
+                                                    </tr>
+                                                    <tr ng-show="!form.token.op">
+                                                        <td>
+                                                            <span style="font-size: 13px; color: grey; text-align: center">{{form.token.message}}</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </tab>
+                <tab heading="Negocios">
+                    <div class="contenidosTabs">
+
+                        <table class="ng-scope" width="100%">
+                            <tr>
+                                <td valign="top" class="col-xs-8 col-md-4" style="width:70%" >
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-plug fa-green fa-fw"></i>
+                                                <lang>Conexión de Negocios</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <table tabula="businesstab" url="../boletines/BoletinesRedesConfCtrl.php?act=verifyBusiness" class="table " border="1" tamanio-inicial='10' post-carga="structureBusiness(filas)">
+                                                    <tr>
+                                                        <th style="width: 40%" tabula-encabezado="id" titulo="<lang>Identificador</lang>"  ordenar></th>
+                                                        <th style="width: 40%" tabula-encabezado="secret" titulo="<lang>Aplicación</lang>"  ordenar></th>
+                                                        <th style="width: 10%" tabula-encabezado="status" titulo="<lang>Conexión</lang>"  ordenar></th>
+                                                        <th style="width: 10%"><lang>Acciones</lang></th>
+                                                    </tr>
+                                                    <tr ng-repeat-start="business in tabulas['businesstab'].filas track by $index" ng-show="!business.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td style="font-size: 12px">{{business.id}}</td>
+                                                        <td style="font-size: 12px"><md-tooltip md-direction="down">La aplicación implica un token de acceso que puedes cambiar desde la pestaña Aplicación</md-tooltip>{{business.parent_name}}</td>
+                                                        <td style="text-align: center"><i id="state_dot_business" ng-class="business.light.class"><md-tooltip md-direction="right">{{business.light.text}}</md-tooltip></i></td>
+                                                        <td style="width:18%" data-title="'<lang>Acciones</lang>'">
+                                                            <nobr>
+                                                                <!--botón para editar business-->
+                                                                <i class="fa fa-pencil-square-o fa-green fa-12x" ng-show="tabulas['businesstab'].extra.write" ng-click="business.editame = !business.editame" tooltip-placement='bottom' tooltip='<lang>Editar</lang>'></i>
+                                                                <!-- botón para visualizar business -->
+                                                                <i class="fa fa-eye fa-green fa-12x" ng-show="tabulas['businesstab'].extra.write" ng-click="showBusiness($index)" tooltip-placement='bottom' tooltip='<lang>Ver empresa</lang>'></i>
+                                                                <!-- botón para eliminar business -->
+                                                                <i class="fa fa-trash-o fa-green fa-12x" ng-show="tabulas['businesstab'].extra.write" ng-click="deleteBusiness(business, tabulas['businesstab'].filas, $index)" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--FORMULARIO DE EDICION-->
+                                                    <tr ng-form="businessform" ng-if="tabulas['businesstab'].extra.write && business.editame" ng-init="inicializaItem(business);"  ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td>
+                                                            <input class="form-control" style="width: 200px" ng-model="business.copy.id">
+                                                            <div class="alert alert-error" ng-show="business.copy.errores.id">{{business.copy.errores.id}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-control" style='width:200px' ng-options="sb.content.data.id as sb.content.data.name for sb in form.app | filter: {connected : true}" ng-model="business.copy.app_id"></select>
+                                                            <div class="alert alert-error" ng-show="business.copy.errores.app_id">{{business.copy.errores.app_id}}</div>
+                                                        </td>
+                                                        <td></td>
+                                                        <!--ACCIONES DE FORMULARIO DE EDICION-->
+                                                        <td>
+                                                            <nobr>
+                                                                <a style="outline: none" ng-show="businessform.$valid" ng-click="saveForm('business', business, $index); tabulas['businesstab'].extra.noEditable = !tabulas['businesstab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                                                                <i class="fa fa-check fa-green fa-12x"></i></a>
+                                                                <a style="outline: none" ng-click="business.editame = false; reinicializaItem(business, tabulas['businesstab'].filas); tabulas['businesstab'].extra.noEditable = !tabulas['businesstab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                                                                <i class="fa fa-times-circle fa-red fa-12x"></i></a>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--ALERT PARA FORMULARIO-->
+                                                    <tr ng-repeat-end ng-show="tabulas['businesstab'].extra.write && businessform.$invalid">
+                                                        <td colspan='4'>
+                                                            <div class="alert alert-success ng-scope">
+                                                                <lang>Complete el formulario para guardarlo</lang></div>
+                                                        </td>
+                                                    </tr>
+                                                    <!--HERRAMIENTAS ADICIONALES-->
+                                                    <tr>
+                                                        <td colspan='1'>
+                                                            <button class="btn btn-primary" ng-click="prepareNewBusiness(tabulas['businesstab'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Añadir conexión</lang></button></td>
+                                                        <td colspan='3'>
+                                                            <tabula-paginador dataset="tabulas['businesstab']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td valign="top" style="width:30%;max-width:200px;adding-right: 10px solid green;padding-left: 10px;">
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-briefcase fa-green fa-fw"></i>
+                                                <lang>Información de Negocio</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <div ng-repeat="it in form.business">
+                                                    <div ng-if="it.content.op">
+                                                        <table ng-if="it.content.data.id !==undefined" class='business_table'>
+                                                            <tr>
+                                                                <td style="text-align: center"><img alt="Logo de empresa" class="width: 100px" src='{{it.content.data.profile_picture_uri}}'></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td style="text-align: center"><span style="color: #666; font-weight: bold; font-size: 25px !important">{{it.content.data.name}}</span></td>
+                                                            </tr>
+                                                            <tr><td><br/></td></tr>
+                                                            <tr>
+                                                                <td>Fecha de creación:&nbsp;<b>{{it.content.data.created_time}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Metodo de pago registrado:&nbsp;<b>{{it.content.data.payment_account_id}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Cuentas publicitarias:&nbsp;<b>{{it.content.data.adaccounts}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Página asociada:&nbsp;<a href="{{it.content.data.link}}" target="_blank">Click aqui</a></td>
+                                                            </tr>
+                                                        </table>
+                                                        <!--{{it.content.data.length}}-->
+                                                        <span ng-if="it.content.data.id ===undefined" style="font-size: 13px; color: #AAAAAA">Seleccione un Negocio con conexión</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </tab>
+                <tab heading="Cuentas publicitarias">
+                    <div class="contenidosTabs">
+
+                        <table class="ng-scope" width="100%">
+                            <tr>
+                                <td valign="top" class="col-xs-8 col-md-4" style="width:70%" >
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-plug fa-green fa-fw"></i>
+                                                <lang>Conexión de Cuentas Publicitarias</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <table tabula="adaccounttab" url="../boletines/BoletinesRedesConfCtrl.php?act=verifyAdaccount" class="table " border="1" tamanio-inicial='10' post-carga="structureAdaccount(filas)">
+                                                    <tr>
+                                                        <th style="width: 40%" tabula-encabezado="id" titulo="<lang>Identificador</lang>"  ordenar></th>
+                                                        <th style="width: 40%" tabula-encabezado="business_id" titulo="<lang>Negocio</lang>"  ordenar></th>
+                                                        <th style="width: 10%" tabula-encabezado="status" titulo="<lang>Conexión</lang>"  ordenar></th>
+                                                        <th style="width: 10%"><lang>Acciones</lang></th>
+                                                    </tr>
+                                                    <tr ng-repeat-start="adaccount in tabulas['adaccounttab'].filas track by $index" ng-show="!adaccount.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td style="font-size: 12px">{{adaccount.id}}</td>
+                                                        <td style="font-size: 12px"><md-tooltip md-direction="down">Negocio o Negocio registrado en facebook propietaria de esta cuenta publicitaria</md-tooltip>{{adaccount.parent_name}}</td>
+                                                        <td style="text-align: center"><i id="state_dot_adaccount" ng-class="adaccount.light.class"><md-tooltip md-direction="right">{{adaccount.light.text}}</md-tooltip></i></td>
+                                                        <td style="width:18%" data-title="'<lang>Acciones</lang>'">
+                                                            <nobr>
+                                                                <!--botón para editar adaccount-->
+                                                                <i class="fa fa-pencil-square-o fa-green fa-12x" ng-show="tabulas['adaccounttab'].extra.write" ng-click="adaccount.editame = !adaccount.editame" tooltip-placement='bottom' tooltip='<lang>Editar</lang>'></i>
+                                                                <!-- botón para visualizar adaccount -->
+                                                                <i class="fa fa-eye fa-green fa-12x" ng-show="tabulas['adaccounttab'].extra.write" ng-click="showAdaccount($index)" tooltip-placement='bottom' tooltip='<lang>Ver cuenta publicitaria</lang>'></i>
+                                                                <!-- botón para eliminar adaccount -->
+                                                                <i class="fa fa-trash-o fa-green fa-12x" ng-show="tabulas['adaccounttab'].extra.write" ng-click="deleteAdaccount(adaccount, tabulas['adaccounttab'].filas, $index)" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--FORMULARIO DE EDICION-->
+                                                    <tr ng-form="adaccountform" ng-if="tabulas['adaccounttab'].extra.write && adaccount.editame" ng-init="inicializaItem(adaccount);"  ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td>
+                                                            <input class="form-control" style="width: 200px" ng-model="adaccount.copy.id">
+                                                            <div class="alert alert-error" ng-show="adaccount.copy.errores.id">{{adaccount.copy.errores.id}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-control" style='width:200px' ng-options="sb.content.data.id as sb.content.data.name for sb in form.business | filter: {connected : true}" ng-model="adaccount.copy.business_id"></select>
+                                                            <div class="alert alert-error" ng-show="adaccount.copy.errores.business_id">{{adaccount.copy.errores.business_id}}</div>
+                                                        </td>
+                                                        <td></td>
+                                                        <!--ACCIONES DE FORMULARIO DE EDICION-->
+                                                        <td>
+                                                            <nobr>
+                                                                <a style="outline: none" ng-show="adaccountform.$valid" ng-click="saveForm('adaccount', adaccount, $index); tabulas['adaccounttab'].extra.noEditable = !tabulas['adaccounttab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                                                                <i class="fa fa-check fa-green fa-12x"></i></a>
+                                                                <a style="outline: none" ng-click="adaccount.editame = false; reinicializaItem(adaccount, tabulas['adaccounttab'].filas); tabulas['adaccounttab'].extra.noEditable = !tabulas['adaccounttab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                                                                <i class="fa fa-times-circle fa-red fa-12x"></i></a>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--ALERT PARA FORMULARIO-->
+                                                    <tr ng-repeat-end ng-show="tabulas['adaccounttab'].extra.write && adaccountform.$invalid">
+                                                        <td colspan='4'>
+                                                            <div class="alert alert-success ng-scope">
+                                                                <lang>Complete el formulario para guardarlo</lang></div>
+                                                        </td>
+                                                    </tr>
+                                                    <!--HERRAMIENTAS ADICIONALES-->
+                                                    <tr>
+                                                        <td colspan='1'>
+                                                            <button class="btn btn-primary" ng-click="prepareNewAdaccount(tabulas['adaccounttab'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Añadir conexión</lang></button></td>
+                                                        <td colspan='3'>
+                                                            <tabula-paginador dataset="tabulas['adaccounttab']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td valign="top" style="width:30%;max-width:200px;adding-right: 10px solid green;padding-left: 10px;">
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-bullhorn fa-green fa-fw"></i>
+                                                <lang>Información de Cuenta Publicitaria</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <div ng-repeat="it in form.adaccount">
+                                                    <div ng-if="it.content.op">
+                                                        <table ng-if="it.content.data.id !==undefined" class='adaccount_table'>
+                                                            <tr>
+                                                                <td style="text-align: center"><span style="color: #666; font-weight: bold; font-size: 25px !important">{{it.content.data.name}}</span></td>
+                                                            </tr>
+                                                            <tr><td><br/></td></tr>
+                                                            <tr>
+                                                                <td>Estado:&nbsp;<b>{{it.content.data.account_status}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha de creación:&nbsp;<b>{{it.content.data.created_time}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Monto gastado:&nbsp;<b>USD&nbsp;{{it.content.data.amount_spent}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Anunciante final:&nbsp;<b>{{it.content.data.end_advertiser_name}}</b></td>
+                                                            </tr>
+                                                        </table>
+                                                        <span ng-if="it.content.data.id ===undefined" style="font-size: 13px; color: #AAAAAA">Seleccione una Cuenta publicitaria con conexión</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </tab>
+<!--                <tab heading="Audiencias">
+                    <div class="contenidosTabs">
+                        <div layout="column">
+                            <div flex="99" >
+                                <div class="form-group">
+                                    <div layout="row"  layout-align="space-between center">
+                                        <label for="adaccount"><i class="fa fa-users fa-fw"></i>&nbsp;Audiencias&nbsp;<i id="state_dot_adaccount" ng-class="form.adaccount.light.class"><md-tooltip md-direction="right">{{form.adaccount.light.text}}</md-tooltip></i></label>
+                                        <button class="btn btn-success" ng-disabled="form.adaccount.buttonDis" ng-click="saveForm('adaccount');">&nbsp;&nbsp;<span ng-bind-html="form.adaccount.buttonText | to_trusted"></span>&nbsp;&nbsp;</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div layout="column">
+                            <div flex="99" ><br/>
+                                <table tabula="grupos" url="../boletines/BoletinesRedesConfCtrl.php?act=verifyAudiences" class="table " border="1" tamanio-inicial='10'>
+                                    <tr>
+                                        <th style="width: 9%" tabula-encabezado="id" titulo="<lang>Identificador</lang>"  ordenar></th>
+                                        <th style="width: 12%" tabula-encabezado="name" titulo="<lang>Nombre</lang>"  ordenar></th>
+                                        <th style="width: 20%" tabula-encabezado="data_source" titulo="<lang>Fuente de datos</lang>"  ordenar></th>
+                                        <th style="width: 20%" tabula-encabezado="delivery_status" titulo="<lang>Estado de entrega</lang>"  ordenar></th>
+                                        <th style="width: 10%" tabula-encabezado="description" titulo="<lang>Descripción</lang>"  ordenar></th>
+                                        <th style="width: 18%" tabula-encabezado="time_created" titulo="<lang>Fecha de creación</lang>"  ordenar></th>
+                                        <th style="width: 10%"><lang>Acciones</lang></th>
+                                    </tr>
+                                    <tr ng-repeat="aud in tabulas['grupos'].filas" ng-show="!aud.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                        <td style="font-size: 12px">{{aud.id}}</td>
+                                        <td style="font-size: 12px">{{aud.name}}</td>
+                                        <td style="font-size: 11px">{{aud.data_source}}</td>
+                                        <td style="font-size: 12px">{{aud.delivery_status}}</td>
+                                        <td style="font-size: 12px">{{aud.description}}</td>
+                                        <td style="font-size: 12px">{{aud.time_created}}</td>
+                                        <td style="width:18%" data-title="'<lang>Acciones</lang>'">
+                                            <nobr>
+                                                 botón para editar grupo 
+                                                <i class="fa fa-edit fa-12x" ng-show="tabulas['grupos'].extra.write && grupoCartera.cartera_id" ng-click="grupoCartera.editame = !grupoCartera.editame; cargaListRamasCartera();" tooltip-placement='bottom' tooltip='<lang>Editar</lang>'></i>
+                                                 botón para eliminar grupo 
+                                                <i class="fa fa-trash-o fa-12x" ng-show="tabulas['grupos'].extra.write && grupoCartera.cartera_id && !grupoCartera.modulos.length" ng-click="eliminaGrupo(grupoCartera, tabulas['grupos'].filas)" src='../c/im/ico/equis.gif' tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i>
+                                                 botón ver y editar variables configuracion particulares 
+                                                <i class="fa fa-cog fa-12x" ng-click="configGrupo(grupoCartera, tabulas['grupos'].filas)" src='../c/im/ico/equis.gif' tooltip-placement='bottom' tooltip='<lang>Configuraciones</lang>'></i>
+                                            </nobr>
+                                        </td>
+                                    </tr>
+                                    FORMULARIO DE EDICION
+                                    <tr ng-form="subform" ng-if="tabulas['grupos'].extra.write && aud.editame" ng-init="inicializaItem(aud);"  ng-class-odd="'odd'" ng-class-even="'even'">
+                                        <td>
+                                            <i><lang>Cartera</lang>:</i>
+                                            <select class='form-control' style="width:200px;" ng-options="cr.cobCartera_id as cr.cobCartera_nombre for cr in ListaCarteras" ng-model="aud.copy.cartera_id"></select>
+                                            <div class="alert alert-error" ng-show="aud.copy.errores.cartera_id">
+                                                {{aud.copy.errores.cartera_id}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <i><lang>Familia</lang>:</i>
+                                            <select class='form-control' style="width:200px;" ng-options="fm.prProcesos_id as fm.prProcesos_nombre for fm in ListaFamilias" ng-model="aud.copy.familia_id" ng-change="cargarProcesos(aud.copy.familia_id)" ng-init="cargarProcesos(aud.copy.familia_id)"></select>
+                                            <div class="alert alert-error" ng-show="aud.copy.errores.familia_id">
+                                                {{aud.copy.errores.familia_id}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <i><lang>Proceso</lang>:</i>
+                                            <select class='form-control' style="width:200px;" ng-options="pr.prProcesos_id as pr.prProcesos_nombre for pr in ListaProcesos" ng-model="aud.copy.proceso_id" ng-change="cargarVersiones(aud.copy.proceso_id)" ng-init="cargarVersiones(aud.copy.proceso_id)"></select>
+                                            <div class="alert alert-error" ng-show="aud.copy.errores.proceso_id">
+                                                {{aud.copy.errores.proceso_id}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <i><lang>Versión</lang>:</i>
+                                            <select class='form-control' style="width:200px;" ng-options="vr.prProcesos_id as vr.prProcesos_nombre for vr in ListaVersiones" ng-model="aud.copy.version_id"></select>
+                                            <div class="alert alert-error" ng-show="aud.copy.errores.version_id">
+                                                {{aud.copy.errores.version_id}}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <md-switch ng-disabled="!aud.editame" ng-model="aud.copy.estado" aria-label="Estado" ng-change="onChangeEstado(aud, aud.copy.estado)"></md-switch>
+                                            <div class="alert alert-error" ng-show="aud.copy.errores.estado">
+                                                {{aud.copy.errores.estado}}
+                                            </div>
+                                        </td>
+                                        ACCIONES DE FORMULARIO DE EDICION
+                                        <td>
+                                            <nobr>
+                                                <a  ng-show="subform.$valid" ng-click="guardaGrupoCartera(aud);
+                                                            tabulas['grupos'].extra.noEditable = !tabulas['grupos'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                                                <i class="fa fa-check fa-green fa-12x"></i></a>
+                                                <a  ng-click="aud.editame = false;
+                                                            reinicializaItem(aud, tabulas['grupos'].filas);
+                                                            tabulas['grupos'].extra.noEditable = !tabulas['grupos'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                                                <i class="fa fa-times-circle fa-red fa-12x"></i></a>
+                                            </nobr>
+                                        </td>
+                                    </tr>
+                                    ALERT PARA FORMULARIO
+                                    <tr ng-repeat-end ng-show="tabulas['grupos'].extra.write && subform.$invalid">
+                                        <td colspan='7'>
+                                            <div class="alert alert-success ng-scope">
+                                                <lang>Complete el formulario para guardarlo</lang></div>
+                                        </td>
+                                    </tr>
+                                    HERRAMIENTAS ADICIONALES
+                                    <tr>
+                                        <td colspan='5'>
+                                            <button class="btn btn-primary" ng-click="buildAudience()"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Añadir audiencia</lang></button></td>
+                                        <td colspan='2'>
+                                            <tabula-paginador dataset="tabulas['grupos']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </tab>-->
+                <tab heading="Campañas">
+                    <div class="contenidosTabs">
+
+                        <table class="ng-scope" width="100%">
+                            <tr>
+                                <td valign="top" class="col-xs-8 col-md-4" style="width:70%" >
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-plug fa-green fa-fw"></i>
+                                                <lang>Conexión de Campañas</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <table tabula="campaigntab" url="../boletines/BoletinesRedesConfCtrl.php?act=verifyCampaign" class="table " border="1" tamanio-inicial='10' post-carga="structureCampaign(filas)">
+                                                    <tr>
+                                                        <th style="width: 40%" tabula-encabezado="id" titulo="<lang>Identificador</lang>"  ordenar></th>
+                                                        <th style="width: 40%" tabula-encabezado="adaccount_id" titulo="<lang>Cuenta publicitaria</lang>"  ordenar></th>
+                                                        <th style="width: 10%" tabula-encabezado="status" titulo="<lang>Conexión</lang>"  ordenar></th>
+                                                        <th style="width: 10%"><lang>Acciones</lang></th>
+                                                    </tr>
+                                                    <tr ng-repeat-start="campaign in tabulas['campaigntab'].filas track by $index" ng-show="!campaign.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td style="font-size: 12px">{{campaign.id}}</td>
+                                                        <td style="font-size: 12px"><md-tooltip md-direction="down">Cuenta publicitaria propiedad de un negocio registrado</md-tooltip>{{campaign.parent_name}}</td>
+                                                        <td style="text-align: center"><i id="state_dot_campaign" ng-class="campaign.light.class"><md-tooltip md-direction="right">{{campaign.light.text}}</md-tooltip></i></td>
+                                                        <td style="width:18%" data-title="'<lang>Acciones</lang>'">
+                                                            <nobr>
+                                                                <!--botón para editar campaign-->
+                                                                <i class="fa fa-pencil-square-o fa-green fa-12x" ng-show="tabulas['campaigntab'].extra.write" ng-click="campaign.editame = !campaign.editame" tooltip-placement='bottom' tooltip='<lang>Editar</lang>'></i>
+                                                                <!-- botón para visualizar campaign -->
+                                                                <i class="fa fa-eye fa-green fa-12x" ng-show="tabulas['campaigntab'].extra.write" ng-click="showCampaign($index)" tooltip-placement='bottom' tooltip='<lang>Ver cuenta publicitaria</lang>'></i>
+                                                                <!-- botón para eliminar campaign -->
+                                                                <i class="fa fa-trash-o fa-green fa-12x" ng-show="tabulas['campaigntab'].extra.write" ng-click="deleteCampaign(campaign, tabulas['campaigntab'].filas, $index)" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--FORMULARIO DE EDICION-->
+                                                    <tr ng-form="campaignform" ng-if="tabulas['campaigntab'].extra.write && campaign.editame" ng-init="inicializaItem(campaign);"  ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td>
+                                                            <input class="form-control" style="width: 200px" ng-model="campaign.copy.id">
+                                                            <div class="alert alert-error" ng-show="campaign.copy.errores.id">{{campaign.copy.errores.id}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-control" style='width:200px' ng-options="sb.content.data.id as sb.content.data.name for sb in form.adaccount | filter: id : false : ''" ng-model="campaign.copy.adaccount_id"></select>
+                                                            <div class="alert alert-error" ng-show="campaign.copy.errores.adaccount_id">{{campaign.copy.errores.adaccount_id}}</div>
+                                                        </td>
+                                                        <td></td>
+                                                        <!--ACCIONES DE FORMULARIO DE EDICION-->
+                                                        <td>
+                                                            <nobr>
+                                                                <a style="outline: none" ng-show="campaignform.$valid" ng-click="saveForm('campaign', campaign, $index); tabulas['campaigntab'].extra.noEditable = !tabulas['campaigntab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                                                                <i class="fa fa-check fa-green fa-12x"></i></a>
+                                                                <a style="outline: none" ng-click="campaign.editame = false; reinicializaItem(campaign, tabulas['campaigntab'].filas); tabulas['campaigntab'].extra.noEditable = !tabulas['campaigntab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                                                                <i class="fa fa-times-circle fa-red fa-12x"></i></a>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--ALERT PARA FORMULARIO-->
+                                                    <tr ng-repeat-end ng-show="tabulas['campaigntab'].extra.write && campaignform.$invalid">
+                                                        <td colspan='4'>
+                                                            <div class="alert alert-success ng-scope">
+                                                                <lang>Complete el formulario para guardarlo</lang></div>
+                                                        </td>
+                                                    </tr>
+                                                    <!--HERRAMIENTAS ADICIONALES-->
+                                                    <tr>
+                                                        <td colspan='1'>
+                                                            <button class="btn btn-primary" ng-click="prepareNewCampaign(tabulas['campaigntab'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Añadir conexión</lang></button></td>
+                                                        <td colspan='3'>
+                                                            <tabula-paginador dataset="tabulas['campaigntab']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td valign="top" style="width:30%;max-width:200px;adding-right: 10px solid green;padding-left: 10px;">
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-folder fa-green fa-fw"></i>
+                                                <lang>Información de Campaña</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <div ng-repeat="it in form.campaign">
+                                                    <div ng-if="it.content.op">
+                                                        <table ng-if="it.content.data.id !==undefined" class='campaign_table'>
+                                                            <tr>
+                                                                <td style="text-align: center"><span style="color: #666; font-weight: bold; font-size: 25px !important">{{it.content.data.name}}</span></td>
+                                                            </tr>
+                                                            <tr><td><br/></td></tr>
+                                                            <tr>
+                                                                <td>Estado:&nbsp;<b>{{it.content.data.status}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Objetivo:&nbsp;<b>{{it.content.data.objective}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha de creación:&nbsp;<b>{{it.content.data.created_time}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha de Inicio:&nbsp;<b>{{it.content.data.start_time}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha Fin:&nbsp;<b>{{it.content.data.stop_time}}</b></td>
+                                                            </tr>
+                                                        </table>
+                                                        <span ng-if="it.content.data.id ===undefined" style="font-size: 13px; color: #AAAAAA">Seleccione una Campaña con conexión</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </tab>
+                <tab heading="Conjunto de anuncios">
+                    <div class="contenidosTabs">
+
+                        <table class="ng-scope" width="100%">
+                            <tr>
+                                <td valign="top" class="col-xs-8 col-md-4" style="width:70%" >
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-plug fa-green fa-fw"></i>
+                                                <lang>Conexión de Conjunto de anuncios</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <table tabula="adsettab" url="../boletines/BoletinesRedesConfCtrl.php?act=verifyAdset" class="table " border="1" tamanio-inicial='10' post-carga="structureAdset(filas)">
+                                                    <tr>
+                                                        <th style="width: 40%" tabula-encabezado="id" titulo="<lang>Identificador</lang>"  ordenar></th>
+                                                        <th style="width: 40%" tabula-encabezado="adaccount_id" titulo="<lang>Cuenta publicitaria</lang>"  ordenar></th>
+                                                        <th style="width: 10%" tabula-encabezado="status" titulo="<lang>Conexión</lang>"  ordenar></th>
+                                                        <th style="width: 10%"><lang>Acciones</lang></th>
+                                                    </tr>
+                                                    <tr ng-repeat-start="adset in tabulas['adsettab'].filas track by $index" ng-show="!adset.editame" ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td style="font-size: 12px">{{adset.id}}</td>
+                                                        <td style="font-size: 12px"><md-tooltip md-direction="down">Cuenta publicitaria propiedad de un negocio registrado</md-tooltip>{{adset.parent_name}}</td>
+                                                        <td style="text-align: center"><i id="state_dot_adset" ng-class="adset.light.class"><md-tooltip md-direction="right">{{adset.light.text}}</md-tooltip></i></td>
+                                                        <td style="width:18%" data-title="'<lang>Acciones</lang>'">
+                                                            <nobr>
+                                                                <!--botón para editar adset-->
+                                                                <i class="fa fa-pencil-square-o fa-green fa-12x" ng-show="tabulas['adsettab'].extra.write" ng-click="adset.editame = !adset.editame" tooltip-placement='bottom' tooltip='<lang>Editar</lang>'></i>
+                                                                <!--botón para visualizar adset--> 
+                                                                <i class="fa fa-eye fa-green fa-12x" ng-show="tabulas['adsettab'].extra.write" ng-click="showAdset($index)" tooltip-placement='bottom' tooltip='<lang>Ver cuenta publicitaria</lang>'></i>
+                                                                <!--botón para eliminar adset--> 
+                                                                <i class="fa fa-trash-o fa-green fa-12x" ng-show="tabulas['adsettab'].extra.write" ng-click="deleteAdset(adset, tabulas['adsettab'].filas, $index)" tooltip-placement='bottom' tooltip='<lang>Eliminar</lang>'></i>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--FORMULARIO DE EDICION-->
+                                                    <tr ng-form="adsetform" ng-if="tabulas['adsettab'].extra.write && adset.editame" ng-init="inicializaItem(adset);"  ng-class-odd="'odd'" ng-class-even="'even'">
+                                                        <td>
+                                                            <input class="form-control" style="width: 200px" ng-model="adset.copy.id">
+                                                            <div class="alert alert-error" ng-show="adset.copy.errores.id">{{adset.copy.errores.id}}</div>
+                                                        </td>
+                                                        <td>
+                                                            <select class="form-control" style='width:200px' ng-options="sb.content.data.id as sb.content.data.name for sb in form.adaccount | filter: id : false : ''" ng-model="adset.copy.adaccount_id"></select>
+                                                            <div class="alert alert-error" ng-show="adset.copy.errores.adaccount_id">{{adset.copy.errores.adaccount_id}}</div>
+                                                        </td>
+                                                        <td></td>
+                                                        <!--ACCIONES DE FORMULARIO DE EDICION-->
+                                                        <td>
+                                                            <nobr>
+                                                                <a style="outline: none" ng-show="adsetform.$valid" ng-click="saveForm('adset', adset, $index); tabulas['adsettab'].extra.noEditable = !tabulas['adsettab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Guardar</lang>'>
+                                                                <i class="fa fa-check fa-green fa-12x"></i></a>
+                                                                <a style="outline: none" ng-click="adset.editame = false; reinicializaItem(adset, tabulas['adsettab'].filas); tabulas['adsettab'].extra.noEditable = !tabulas['adsettab'].extra.noEditable;" tooltip-placement='bottom' tooltip='<lang>Cancelar</lang>'>
+                                                                <i class="fa fa-times-circle fa-red fa-12x"></i></a>
+                                                            </nobr>
+                                                        </td>
+                                                    </tr>
+                                                    <!--ALERT PARA FORMULARIO-->
+                                                    <tr ng-repeat-end ng-show="tabulas['adsettab'].extra.write && adsetform.$invalid">
+                                                        <td colspan='4'>
+                                                            <div class="alert alert-success ng-scope">
+                                                                <lang>Complete el formulario para guardarlo</lang></div>
+                                                        </td>
+                                                    </tr>
+                                                    <!--HERRAMIENTAS ADICIONALES-->
+                                                    <tr>
+                                                        <td colspan='1'>
+                                                            <button class="btn btn-primary" ng-click="prepareNewAdset(tabulas['adsettab'].filas)"><i class='fa fa-plus-circle fa-inverse'></i>&nbsp;<lang>Añadir conexión</lang></button></td>
+                                                        <td colspan='3'>
+                                                            <tabula-paginador dataset="tabulas['adsettab']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td valign="top" style="width:30%;max-width:200px;adding-right: 10px solid green;padding-left: 10px;">
+                                    <div  class="panel panel-default">
+                                        <div class="panel-heading" style="color: green;">
+                                            <i class="fa fa-folder fa-green fa-fw"></i>
+                                                <lang>Conjunto de Anuncios</lang>
+                                        </div>
+                                        <div class="panel-body">
+                                            <div class="container-fluid">
+                                                <div ng-repeat="it in form.adset">
+                                                    <div ng-if="it.content.op">
+                                                        <table ng-if="it.content.data.id !==undefined" class='adset_table'>
+                                                            <tr>
+                                                                <td style="text-align: center"><span style="color: #666; font-weight: bold; font-size: 25px !important">{{it.content.data.name}}</span></td>
+                                                            </tr>
+                                                            <tr><td><br/></td></tr>
+                                                            <tr>
+                                                                <td>Estado:&nbsp;<b>{{it.content.data.status}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Política de facturación:&nbsp;<b>{{it.content.data.billing_event}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Presupuesto diario:&nbsp;USD&nbsp;<b>{{it.content.data.daily_budget}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Presupuesto de por vida:&nbsp;USD&nbsp;<b>{{it.content.data.lifetime_budget}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Objetivo de optimización:&nbsp;<b>{{it.content.data.optimization_goal}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Campaña:&nbsp;<b>{{it.content.data.campaign_id}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td><b>Orientación:</b><br/>
+                                                                    <div ng-bind-html="it.content.data.targeting | to_trusted"></div>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha de creación:&nbsp;<b>{{it.content.data.created_time}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha de Inicio:&nbsp;<b>{{it.content.data.start_time}}</b></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>Fecha Fin:&nbsp;<b>{{it.content.data.end_time}}</b></td>
+                                                            </tr>
+                                                        </table>
+                                                        <span ng-if="it.content.data.id ===undefined" style="font-size: 13px; color: #AAAAAA">Seleccione un Conjunto de Anuncios con conexión</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </tab>
+<!--                <tab heading="Campañas">
+                    <div class="contenidosTabs">
+                        <div layout="column">
+                            <div flex="99" >
+                                <div class="form-group">
+                                    <div layout="row"  layout-align="space-between center">
+                                        <label for="app"><i class="fa fa-folder fa-fw"></i>&nbsp;Campañas&nbsp;<i class="fa fa-circle fa-red"></i></label>
+                                        <button class="btn btn-success" ng-disabled="!editarNota.$dirty" ng-click="saveForm('campaign');">&nbsp;&nbsp;<i class="fa fa-floppy-o fa-fw"></i><lang>Guardar</lang>&nbsp;&nbsp;</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div layout="row">
+                            <div flex="99" >
+                                <form name="editCampaign" style="padding:15px">
+                                    <div class="form-group">
+                                        <label for="inputId"><lang>ID</lang></label>
+                                        <input class="form-control" type="text" id="inputId" maxlength="200" ng-model="form.campaign.id" placeholder="221471805033842">
+                                    </div>
+                                    <div class="alert alert-info"><small>identificador único de la cuenta publicitaria propiedad de la empresa.</small></div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </tab>-->
+            </tabset>
+        </div>
+    </div>
+</div>
+<!-- _FIN_DE_ARCHIVO -->

@@ -1,0 +1,303 @@
+<div layout-padding>
+    <table width="100%">
+        <tr>
+            <td class="col-xs-8 col-md-4" valign="top" style="width:35%">
+                <div  class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <i class="fa fa-users fa-fw"></i>
+                            <lang>Grupos de asociación</lang>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div
+                                    jerarquia="jcategoria" 
+                                    url="../boletines/BoletinesCtrl.php?act=jSuscripcionEnvio" 
+                                    selector="seleccionaItem(item,seleccionadas)" nivel-maximo="5"
+                                    niveles-separados abrir-en="jerarquias['jcategoria'].key" drag-enabled="true" no-editable seleccion-multiple>
+                                    <div jerarquia-nodos ng-model="jerarquias['jcategoria']">
+                                        <li ng-repeat="item in jerarquias['jcategoria']" jerarquia-nodo ng-include="'../comunes/loadTemplate.php?templateName=comunes/partials/TemplateJerarquia.html'"></li>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </td>
+            <td valign="top">
+                <table width="100%">
+                    <tr>
+                        <td class="col-xs-8 col-md-4" valign="top" >
+                            <div  class="panel panel-default">
+                                <div class="panel-heading">
+                                    <a class="panel-title" ng-click="Suscribe = !Suscribe" style="text-decoration: none;">
+                                        <i class="fa fa-qrcode fa-fw"></i>
+                                        <lang>Suscripción</lang>
+                                    </a>
+                                </div>
+                                <div class="panel-body" ng-show="Suscribe" style="overflow-y: scroll; min-height: 170px; max-height: 250px;">
+                                    <table width="100%">
+                                        <tr>
+                                            <td>
+                                                <form name="misSuscripciones">
+                                                    <table width="100%">
+                                                        <tr>
+                                                            <td colspan="7">
+                                                                <div layout="row">
+                                                                    <textarea class="form-control" rows="3" placeholder="<lang>Pegue aquí su listado de correos (Use punto y coma para separar columnas de identificación y nombre).</lang>" ng-model="listaCopiado.correos" ng-paste="pegarListado()"></textarea>
+                                                                <i class="fa fa-paste fa-lg panel-title" tooltip-placement="top" tooltip="<lang>Pegue en el cuadro de texto</lang>"></i>
+                                                                    <div flex="10"></div>
+                                                                    <div>
+                                                                        <button class="btn btn-primary" ng-disabled="!misSuscripciones.$valid" mde-click="guardarSuscripciones(pos)" tooltip-placement="top" tooltip="<lang>Guardar</lang>">Suscribir</button>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr><td colspan="7"><br></td></tr>
+                                                        <tr>
+                                                            <td style="width:25px;"><lang><h5>#</h5></lang></td>
+                                                        <td><lang><h5>Email</h5></lang></td>
+                                                        <td style="width:10px"></td>
+                                                        <td><lang><h5>Identificación</h5></lang></td>
+                                                        <td style="width:10px"></td>
+                                                        <td><lang><h5>Nombre</h5></lang></td>
+                                                        </tr>
+                                                        <tr ng-form="subformulariomod" ng-class-odd="'odd'" ng-class-even="'even'" ng-repeat="n in listaNuevos">
+                                                            <td>{{n.id}}</td>
+                                                            <td>
+                                                                <input type='email' placeholder="<lang>email</lang>" ng-keydown="agregaNuevaFilaSuscripcion($event)" tooltip="Llene este campo" class="form-control" ng-model="n.susEmail" ng-maxlength="100" required/>
+                                                            </td>
+                                                            <td style="width:10px"></td>
+                                                            <td>
+                                                                <input type="text" placeholder="<lang>identificación</lang>" class="form-control" ng-minlength="10" ng-model="n.susIdentificacion" numbers-only />
+                                                            </td>
+                                                            <td style="width:10px"></td>
+                                                            <td>
+                                                                <input type='text' placeholder="<lang>nombre</lang>" class="form-control" ng-model="n.susNombre" ng-maxlength="200"/>
+                                                            </td>
+                                                            <td><a ng-show="n.id != 1" tooltip-placement="top" tooltip="<lang>Elimninar fila</lang>" ng-click="eliminaNuevaFilaSuscripcion(n.id);"><span class="fa fa-times-circle-o fa-green fa-fw"></span></a></td>
+                                                        </tr>
+                                                        <tr><td colspan="7"><br></td></tr>
+                                                    </table>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-xs-8 col-md-4" valign="top" >
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <div class="panel-title">
+                                        <i class="fa fa-check-square fa-fw"></i>
+                                        <lang>Lista de Suscripción</lang>
+                                    </div>
+                                </div>
+                                <div class="panel-body" ng-show="listaMarcadosVista">
+                                    <div ng-repeat="ls in listaMarcadosVista">
+                                        {{ls}}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="col-xs-8 col-md-4" valign="top" >          
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <a class="panel-title" ng-click="SuscribeAuto = !SuscribeAuto" style="text-decoration: none; cursor: pointer">
+                                        <i class="fa fa-envelope-o fa-fw"></i>
+                                        <lang>Suscripción Masiva</lang>
+                                    </a>
+                                </div>
+                                <div class="panel-body" ng-show="SuscribeAuto">
+                                    <table width="100%">
+                                        <tr>
+                                            <td>
+                                                <h5><lang>Adjuntar archivo para Suscripción Masiva</lang></h5>
+                                            </td>
+                                            <td>
+                                                <uploader url='../boletines/BoletinesCtrl.php' file-class="btn btn-primary" subir="subirSuscripciones" tabula-ver="reporteSuscripcioUpload"  ver="verUpload" eliminar="deleteUpload"  upload-away al-cerrar="asignaCarga(objFile)" etiqueta="Abrir" icono="fa fa-folder-open fa-inverse fa-fw">
+                                                </uploader>
+                                            </td>
+                                            <td>&nbsp;&nbsp;&nbsp;</td>
+                                            <td><b>[{{archivo.cuantos}}]</b><li class="fa fa-files-o fa-green fa-fw" tooltip="<lang>Archivos por cargar</lang>"></li></td>
+                                            <td>&nbsp;&nbsp;&nbsp;</td>
+                                            <td>
+                                                <button class="btn btn-success" ng-click="suscribeArchivo()"><lang>Cargar Suscritos</lang></button>
+                                                <li ng-if="archivo.activa" class="fa fa-refresh fa-fw fa-spin"></li>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <div id="DescripcionArchivo" class="bs bs-callout bs-callout-warning" style="font-size:12px">
+                                        <h4><lang>Recomendaciones</lang></h4>
+                                        <ol>
+                                            <li><lang>El archivo debe tener el formato correcto .txt (deliminado por |) o .csv (delimitado por punto y coma)</lang></li>
+                                            <li><lang>El archivo permite hasta 10000 líneas de suscritos.</lang></li>
+                                            <li><lang>El siguiente es un ejemplo de archivo con el formato apropiado</lang> <i class="fa fa-file-excel-o fa-2x" mde-click="activaEjemploCarga(pos)"></i></li>
+                                        </ol>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:1%" colspan="2">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="panel-title">
+                            <i class="fa fa-th fa-fw"></i>
+                            <lang>Suscripciones Actuales</lang>
+                        </div>
+                    </div>
+                    <div class="panel-body" ng-if="listaMarcados">
+                        <table ng-if="serieMarcados" width="100%" tabula="Suscripciones" url="../boletines/BoletinesCtrl.php?act=reporteSuscripciones&lista={{serieMarcados}}" campo="" tamanio-inicial="15" observa-y-recarga="recarga" post-carga="verificaSuscritos(filas,extra)">
+                        <tr>
+                            <td colspan="11">
+                                <table width="100%">
+                                    <tr>
+                                        <td align="center" style="border:0px;">
+                                                <tabula-paginador dataset="tabulas['Suscripciones']" maxbotones="5"></tabula-paginador>
+                                        </td>
+                                        <td align="left" style="border:0px;"><tabula-exportar dataset="tabulas['Suscripciones']"></tabula-exportar></td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th tabula-encabezado="bca_nombre" titulo="<lang>Categoría</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bjr_nombre" titulo="<lang>Jerarquía</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_nombre" titulo="<lang>Nombre</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_identificacion" titulo="<lang>Identificación</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_email" titulo="<lang>Correo</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_fechaNacimientoFrmt" titulo="<lang>Fecha Nacimiento</lang>" ordenar></th>
+                            <th tabula-encabezado="bco_telefono" titulo="<lang>Teléfono</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_celular" titulo="<lang>Celular</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_empresa" titulo="<lang>Empresa</lang>" ordenar filtrar></th>
+                            <th tabula-encabezado="bco_direccion" titulo="<lang>Dirección</lang>" ordenar filtrar></th>
+                            <th ng-if="permisoAdministrador">
+                                <li class="fa fa-trash-o fa-red fa-fw" mde-click="activaConfirmacionEliminacion(pos,1)" tooltip-placement="left" tooltip="<lang>Eliminar todo</lang>"></li>
+                                <br>                                    
+                                <li ng-if="!muestraTodos" class="fa fa-toggle-on fa-green fa-fw" ng-click="seleccionaTodos(1)" tooltip-placement="left" tooltip="<lang>Ninguno</lang>"></li>
+                                <li ng-if="muestraTodos" class="fa fa-toggle-off fa-green fa-fw" ng-click="seleccionaTodos(0)" tooltip-placement="left" tooltip="<lang>Todos</lang>"></li>
+                            </th>
+                        </tr>
+                        <tr ng-repeat="ct in tabulas['Suscripciones'].filas" style='border-top:4px;' ng-class-odd="'odd'" ng-class-even="'even'">
+                            <td>{{ct.bca_nombre}}</td>
+                            <td>{{ct.bjr_nombre}}</td>
+                            <td>{{ct.bco_nombre}}</td>
+                            <td>{{ct.bco_identificacion}}</td>
+                            <td>{{ct.bco_email}}</td>
+                            <td align="center">{{ct.bco_fechaNacimientoFrmt}}</td>
+                            <td>{{ct.bco_telefono}}</td>
+                            <td>{{ct.bco_celular}}</td>
+                            <td>{{ct.bco_empresa}}</td>
+                            <td>{{ct.bco_direccion}}</td>
+                            <td align="center" ng-if="permisoAdministrador">
+                                <a mde-click="activaEdicionSuscripcion(pos,ct,0)" tooltip-placement="left" tooltip="<lang>Editar</lang>" class="fa fa-edit fa-green fa-fw" style="text-decoration: none;"></a>
+                                <br>
+                                <a ng-click="eliminarSuscripcion(ct, tabulas['Suscripciones'].filas)" tooltip-placement="left" tooltip="<lang>Cancelar suscripción</lang>" class="fa fa-remove fa-red fa-fw" style="text-decoration: none;"></a>
+                                <br>
+                                <a ng-click="seleccionarSuscripcion(ct)" tooltip-placement="left" tooltip="<lang>Seleccionar</lang>" class="{{ct.seleccionada}}" style="text-decoration: none;"></a>
+                            </td>
+                        </tr>
+                        </table>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<!-- Modales -->
+<!-- Modal de ejemplo de archivo de carga de suscripción-->
+<modal-popup titulo="<lang>Formato</lang>" evento="{{archivo.evento}}" icono="fa fa-file-text-o fa-fw" width="710" abrir="archivo.ejemplo">
+    <table width="100%">
+        <tr>
+            <td>
+                <div class="bs-docs-section">
+                    <div class="bs-callout bs-callout-info" style="font-size:11px">
+                        <lang>correo@correo.com|Nombre Suscrito|Identificación de Suscrito|Fecha de nacimiento en formato YYYY-MM-DD|Teléfono de Suscrito|Celular|Empresa|Dirección</lang><br>
+                        <lang>correo@correo.com|Nombre Suscrito|Identificación de Suscrito|Fecha de nacimiento en formato YYYY-MM-DD|Teléfono de Suscrito|Celular|Empresa|Dirección</lang><br>
+                        <lang>correo@correo.com|Nombre Suscrito|Identificación de Suscrito|Fecha de nacimiento en formato YYYY-MM-DD|Teléfono de Suscrito|Celular|Empresa|Dirección</lang><br>
+                        <lang>correo@correo.com|Nombre Suscrito|Identificación de Suscrito|Fecha de nacimiento en formato YYYY-MM-DD|Teléfono de Suscrito|Celular|Empresa|Dirección</lang><br>
+                        <lang>correo@correo.com|Nombre Suscrito|Identificación de Suscrito|Fecha de nacimiento en formato YYYY-MM-DD|Teléfono de Suscrito|Celular|Empresa|Dirección</lang><br>
+                        <lang>correo@correo.com|Nombre Suscrito|Identificación de Suscrito|Fecha de nacimiento en formato YYYY-MM-DD|Teléfono de Suscrito|Celular|Empresa|Dirección</lang><br>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</modal-popup>
+<!-- Modal de presentación de errores de suscripción por pegado -->
+<modal-popup titulo="<lang>Error</lang>" evento="{{regPegadoEv}}" icono="fa fa-edit fa-fw" width="650" abrir="regPegado" on-close="cierraErroresPegado()">
+    <table width="100%">
+        <tr ng-show="erroresGuardado" class="alert alert-warning">
+            <td colspan="2" align="center">
+                <div ng-repeat="e in erroresGuardado">
+                    {{e}}
+                </div>
+            </td>
+        </tr>
+    </table>
+</modal-popup>
+<!-- Modal de edición de suscripción-->
+<modal-popup titulo="<lang>Editar Suscripción</lang>" evento="{{edita.evento}}" icono="fa fa-edit fa-fw" width="600" abrir="edita.activa">
+    <form name="miSuscripcion">
+        <table width="95%">
+            <tr>
+                <td style="font-size: 13px;width: 20%"><b><lang>Nombre</lang></b></td>
+                <td width="85%"><input placeholder="<lang>nombre</lang>" class="form-control" type="text" ng-maxlength="200" ng-model="edita.nombre"></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Identificación</lang></b></td>
+                <td><input ng-model="edita.identificacion" placeholder="<lang>identificación</lang>" class="form-control" ng-minlength="10" cedula ng-model="n.susIdentificacion" numbers-only></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Correo</lang></b></td>
+                <td><input type="email" ng-model="edita.email" class="form-control" ng-maxlength="100" required></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Fecha Nacimiento</lang></b></td>
+                <td><timestamp-editor timestamp="edita.fechaNacimiento" class="form-control" placeholder="<lang>Fecha de Nacimiento</lang>" formato="yyyy-MM-dd"></timestamp-editor></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Teléfono</lang></b></td>
+                <td><input class="form-control" ng-model="edita.telefono" placeholder="<lang>Teléfono</lang>" ng-maxlength="10" numbers-only></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Celular</lang></b></td>
+                <td><input class="form-control" ng-model="edita.celular" placeholder="<lang>Celular</lang>" ng-maxlength="10" numbers-only></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Empresa</lang></b></td>
+                <td><input class="form-control" ng-model="edita.empresa" placeholder="<lang>Empresa</lang>" ng-maxlength="250"></td>
+            </tr>
+            <tr>
+                <td style="font-size: 13px;"><b><lang>Dirección</lang></b></td>
+                <td><input type="text" class="form-control" ng-model="edita.direccion" placeholder="<lang>Dirección</lang>" ng-maxlength="300"></td>
+            </tr>
+            <tr>
+                <td colspan="2" align="center"><br><button class="btn btn-success" ng-disabled="!miSuscripcion.$valid" ng-click="editaSuscripcion(edita)"><lang>Guardar</lang></button></td>
+            </tr>
+        </table>
+    </form>
+</modal-popup>
+<!-- Modal de eliminación de suscripción-->
+<modal-popup titulo="<lang>Confirmar eliminación</lang>" evento="{{eliminaSuscripciones.evento}}" icono="fa fa-wrench fa-lg" width="350" abrir="eliminaSuscripciones.activa">
+        <lang>Está seguro de eliminar las suscripciones actuales?</lang>
+        <br>
+        <br>
+        <button class="btn btn-primary" ng-click="eliminaSuscripcionesReporte()"><lang>Aceptar</lang></button>
+</modal-popup>
+<!-- Wait -->
+<wait-window activar="waitWindow"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

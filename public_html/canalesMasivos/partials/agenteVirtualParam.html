@@ -1,0 +1,649 @@
+<style>
+    .md-switch.md-default-theme.md-checked .md-bar, md-switch.md-checked .md-bar {
+        background-color: #d6eaf8;
+    }
+    .md-switch.md-default-theme.md-checked .md-thumb, md-switch.md-checked .md-thumb {
+        background-color: #428bca;
+    }
+    .md-switch.md-default-theme.md-checked .md-ink-ripple, md-switch.md-checked .md-ink-ripple {
+        color: #428bca;
+    }
+</style>
+<div class="panel-config gris" layout="row" layout-align="space-between center">
+    <div layout-padding style="width: 100%; max-width: 100vw;">
+        <div class="miEncabezado" style="display: flex; justify-content: start; align-items: center; vertical-align: middle;">
+            <div>AGENTES VIRTUALES</div>
+            <div style="display: flex; flex:1; justify-content: end;">
+                <!--<button class="btn btn-primary" ng-click="nuevo()">
+                    <lang>Nuevo agente</lang>
+                </button>-->
+                <button class="btn btn-primary" ng-click="nuevoAgente()">
+                    Nuevo agente externo
+                </button>
+                &nbsp;
+                <button class="btn btn-primary" ng-click="nuevoAgenteInterno()">
+                    Nuevo agente Link
+                </button>
+                <!--&nbsp;
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <input type="checkbox" ng-model="servidorGpu">
+                    <small>&nbsp;Servidor GPU</small>
+                </div>-->
+            </div>
+        </div>
+    </div>
+</div>
+<div style="padding:10px">
+    <table
+        observa-y-recarga="tabuVariable"
+        tabula="variable"
+        url="../canalesMasivos/agenteVirtualParam.php?act=lista"
+        class="table "
+        border="1"
+        tamanio-inicial="10"
+        post-carga="cargoTabula(filas, extra)"
+    >
+        <tr>
+            <th>
+                <lang>Acciones</lang>
+            </th>
+            <th
+                tabula-encabezado="activo"
+                titulo="<lang>Activo</lang>"
+                ordenar
+                filtrar
+            ></th>
+            <th
+                tabula-encabezado="subtipo"
+                titulo="Tipo"
+                filtrar
+                ordenar
+            ></th>
+            <th
+                tabula-encabezado="agenteNombre"
+                titulo="<lang>Agente Virtual</lang>"
+                filtrar
+                ordenar
+            ></th>
+            <th
+                tabula-encabezado="agenteNombre"
+                titulo="<lang>Proveedor</lang>"
+                filtrar
+                ordenar
+            ></th>
+            <th tabula-encabezado="campanias" titulo="<lang>Campañas</lang>"></th>
+            <th tabula-encabezado="callcenter" titulo="<lang>Callcenter</lang>"></th>
+            <th tabula-encabezado="fecha" titulo="<lang>Registro</lang>"></th>
+        </tr>
+        <tr ng-repeat="av in tabulas['variable'].filas" ng-class-odd="'odd'" ng-class-even="'even'">
+            <td style="vertical-align: middle; text-align: center;">
+                <nobr>
+                    <!--<i class="fa fa-cog fa-fw" title="<lang>Configurar</lang>" ng-click="configurar(av)"></i>-->
+                    <i class="fa fa-cog fa-fw" title="<lang>Configurar</lang>" ng-click="configurarAgente(av)"></i>
+                    <i
+                        class="fa fa-comments-o fa-fw"
+                        title="Modificar prompt y saludo"
+                        ng-click="configurarPrompt(av)"
+                        ng-show="av.subtipo=='telefono' || (av.subtipo==='whatsapp' && av.proveedor==='LINK')"
+                    ></i>
+                    <i style="color: gray; cursor: not-allowed;" class="fa fa-comments-o fa-fw" ng-show="av.subtipo!=='telefono' && av.proveedor!=='LINK'"></i>
+                    <li
+                        ng-show="av.subtipo=='telefono'"
+                        title="Lanzar llamada"
+                        class="fa fa-fw fa-volume-control-phone"
+                        ng-click="generarLlamada(av)"
+                    ></li>
+                    <li ng-show="av.subtipo!='telefono'" class="fa fa-fw fa-volume-control-phone fa-gray" style="color: gray; cursor: not-allowed;"></li>
+                    <i class="fa fa-trash-o fa-red fa-fw" title="Eliminar" ng-click="eliminarAgente(av)"></i>
+                </nobr>
+            </td>
+            <td style="vertical-align: middle; justify-content: center; align-items: center; text-align: center; justify-items: center;">
+                <md-switch ng-model="av.activo" aria-label="Disabled active switch" ng-change="activarAgente(av)"></md-switch>
+            </td>
+            <td style="vertical-align: middle;">
+                {{traduceTipo(av.subtipo)}}
+            </td>
+            <td style="vertical-align: middle;" title="{{av.agenteNombre}}">
+                {{av.agenteNombre | textoExtenso:40}}
+            </td>
+            <td style="vertical-align: middle;">{{av.proveedor}}</td>
+            <td style="vertical-align: middle; text-align: left;">
+                <span ng-if="av.campanias.length>0" ng-repeat="rn in av.campanias">
+                    <nobr title="{{rn.rama}}">{{rn.rama | textoExtenso:40}}</nobr>
+                    <br>
+                </span>
+            </td>
+            <td style="vertical-align: middle; text-align: center;">{{av.callcenter}}</td>
+            <td style="vertical-align: middle; text-align: center;">
+                <span title="{{av.registroUsuaruioNombre}}">{{av.registroUsuaruioNombre | textoExtenso:20}}</span>
+                <br>
+                <small>
+                    {{av.registrofecha | fecha:'d/m/Y H:i'}}
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td align="center" colspan="1">
+                <button class="btn btn-primary" ng-click="actualizarTabula()">
+                    Actualizar
+                </button>
+            </td>
+            <td colspan="8">
+                <tabula-paginador dataset="tabulas['variable']" maxbotones="3" no-cambiar-tamanio></tabula-paginador>
+            </td>
+        </tr>
+    </table>
+</div>
+<!--------- editar --------------->
+<!--<div ng-show="editar" class="modal-backdrop fade in" style="z-index:1000;background:black;opacity:0.7;"></div>
+<div ng-show="editar" class="panel panel-primary" style="position: fixed;z-index:1002;margin:20px auto; width:850px; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div class="panel-heading" layout="row" layout-align="space-between center">
+        <div>Agente Vitrual</div>
+        <button class="btn btn-success" ng-click="editar = false;" tabindex="0">
+            <span>Cerrar</span>
+        </button>
+    </div>
+    <div class="panel-body" layout="column" layout-align="space-between stretch">
+        <div
+            class="panel-body"
+            layout="column"
+            layout-align="space-between stretch"
+            style="width: -webkit-fill-available;"
+        >
+            <div layout="row" layout-align="space-between stretch">
+                <div flex="50">
+                    <div layout="row" layout-align="space-between center" style="padding-bottom: 10px;">
+                        <span flex="30" style="font-weight: bold;">Proveedor:</span>
+                        <input ng-model="datosAV.proveedor" style="height: 28px;width: 300px;text-align: left;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                    <div layout="row" layout-align="space-between center" style="padding-bottom: 10px;">
+                        <span flex="30" style="font-weight: bold;">Agente Virtual:</span>
+                        <input ng-model="datosAV.agenteNombre" style="height: 28px;width: 300px;text-align: left;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                    <div layout="row" layout-align="space-between end" style="padding-bottom: 10px;">
+                        <span flex="30" style="font-weight: bold;">Teléfono:</span>
+                        <input ng-model="datosAV.numero" style="height: 28px;width: 300px;text-align: left;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                    <div layout="row" layout-align="start center" style="padding-bottom: 10px;">
+                        <span flex="30" style="font-weight: bold;">Concurrencia:</span>
+                        <input ng-model="datosAV.concurrencia" style="margin-left: -7;height: 28px;width: 50px;text-align: center;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                </div>
+                <div flex="45">
+                    <div layout="row" layout-align="space-between center" style="padding-bottom: 10px;">
+                        <span flex="25" style="font-weight: bold;">API KEY:</span>
+                        <input ng-model="datosAV.apikey" style="height: 28px;width: 300px;text-align: left;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                    <div layout="row" layout-align="space-between center" style="padding-bottom: 10px;">
+                        <span flex="25" style="font-weight: bold;">Agente ID:</span>
+                        <input ng-model="datosAV.agenteId" style="height: 28px;width: 300px;text-align: left;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                    <div layout="row" layout-align="space-between end" style="padding-bottom: 10px;">
+                        <span flex="25" style="font-weight: bold;">Teléfono ID:</span>
+                        <input ng-model="datosAV.numeroId" style="height: 28px;width: 300px;text-align: left;  padding: 6px 8px; font-size: 14px; line-height: 1.42857143; color: black; background-image: none; border: 1px solid #ccc; border-radius: 4px;" type="text">
+                    </div>
+                </div>
+            </div>
+            <div layout="row" layout-align="start center" style="padding-bottom: 10px;">
+                <span flex="30" style="font-weight: bold;">Variables:</span>
+                <md-chips
+                    md-max-chips="50"
+                    ng-model="datosAV.valores_reemplazo"
+                    md-removable="ctrl.removable"
+                    style="font-size: 10px;"
+                ></md-chips>
+            </div>
+            <div layout="row" layout-align="end center" style="padding-top: 10px;">
+                <button class="btn btn-primary" ng-click="guarda()" tabindex="0">
+                    <span>Guardar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>-->
+<modal-popup
+    titulo="{{verModal.titulo}}"
+    evento="{{verModal.evento}}"
+    icono="fa fa-cog fa-fw"
+    width="800"
+    abrir="verModal.activo"
+    style="color: black;"
+>
+    <div>
+        <div class="form-group" ng-show="datosAV.proveedor!=='LINK'">
+            <label for="proveedor">
+                *Proveedor
+            </label>
+            <select
+                ng-disabled="verModal.tipo === 'modificar'"
+                id="proveedor"
+                class="form-control"
+                ng-model="datosAV.proveedor"
+                ng-options="p.id as p.nombre for p in listas.proveedores"
+                ng-change="traerDetalleProveedor(false)"
+            ></select>
+        </div>
+        <div class="form-group" ng-show="datosAV.proveedor==='LINK'">
+            <label for="proveedor">
+                *Proveedor
+            </label>
+            <select
+                ng-disabled="verModal.tipo === 'modificar'"
+                id="proveedor"
+                class="form-control"
+                ng-model="datosAV.proveedor"
+                ng-options="p.id as p.nombre for p in listas.proveedoresInternos"
+                ng-change="traerDetalleProveedor(false)"
+            ></select>
+        </div>
+        <div class="form-group">
+            <label for="tipo">
+                *Tipo
+            </label>
+            <select
+                id="tipo"
+                class="form-control"
+                ng-model="datosAV.subtipo"
+                ng-options="p.id as p.nombre for p in listas.tipos"
+                ng-disabled="verModal.tipo === 'modificar'"
+            ></select>
+        </div>
+        <div class="form-group" ng-show="datosAV.proveedor!==''">
+            <label for="agente">
+                *Agente virtual
+            </label>
+            <select
+                ng-disabled="verModal.tipo === 'modificar'"
+                id="agente"
+                class="form-control"
+                ng-model="datosAV.agenteId"
+                ng-options="p.id as p.nombre for p in listas.agentes"
+            ></select>
+        </div>
+        <div class="form-group" ng-show="datosAV.proveedor==='RETELL' && datosAV.subtipo==='whatsapp'">
+            <label for="idAgente">
+                *Id agente
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="idAgente"
+                ng-model="datosAV.agenteId"
+            >
+        </div>
+        <div class="form-group" ng-show="datosAV.proveedor==='RETELL' && datosAV.subtipo==='whatsapp'">
+            <label for="nombreAgente">
+                *Nombre agente
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="nombreAgente"
+                ng-model="datosAV.agenteNombre"
+            >
+        </div>
+        <div class="form-group" ng-show="datosAV.proveedor==='RETELL' && datosAV.subtipo==='telefono'">
+            <label for="telefono">
+                *Tel&eacute;fono
+            </label>
+            <select
+                id="telefono"
+                class="form-control"
+                ng-model="datosAV.numeroId"
+                ng-options="p.id as p.nombre for p in listas.telefonos"
+            ></select>
+        </div>
+        <div class="form-group" ng-show="(datosAV.proveedor==='RETELL' || datosAV.proveedor==='LINK') && datosAV.subtipo==='whatsapp'">
+            <label for="telefono">
+                *Tel&eacute;fono
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="telefono"
+                ng-model="datosAV.numeroId"
+            >
+        </div>
+        <div class="form-group" ng-show="datosAV.proveedor==='ELEVENLABS'">
+            <label for="voz">
+                *Voz
+            </label>
+            <select
+                id="voz"
+                class="form-control"
+                ng-model="datosAV.vozId"
+                ng-options="p.id as p.nombre for p in listas.voces"
+            ></select>
+        </div>
+        <!--<div class="form-group">
+            <label for="concurrencia">
+                Concurrencia m&aacute;xima
+            </label>
+            <input
+                type="number"
+                class="form-control"
+                id="concurrencia"
+                ng-model="datosAV.concurrencia"
+                style="width: 100px;"
+                disabled
+            >
+            <p class="help-block">
+                <small>Predefinida por el proveeedor.</small>
+            </p>
+        </div>-->
+        <div style="padding-bottom: 12px;">
+            <label title="Variables que se reemplazarán automáticamente en la asignación">Variables din&aacute;micas</label>
+            <md-chips
+                md-max-chips="50"
+                ng-model="datosAV.valores_reemplazo"
+                md-removable="ctrl.removable"
+                style="font-size: 10px;"
+                md-on-add="agregarChip($chip)"
+            ></md-chips>
+            <p class="help-block">
+                <small>
+                    Escriba el nombre de la variable y presione
+                    <b>ENTER &#x21B2;</b>
+                    para guardar.
+                </small>
+            </p>
+        </div>
+        <button
+            class="btn btn-primary"
+            ng-click="guardarAgente()"
+            tabindex="0"
+            ng-show="verModal.tipo=='nuevo'"
+        >
+            <span>Guardar</span>
+        </button>
+        <button
+            class="btn btn-primary"
+            ng-click="actualizarAgente()"
+            tabindex="0"
+            ng-show="verModal.tipo=='modificar'"
+        >
+            <span>Guardar</span>
+        </button>
+    </div>
+</modal-popup>
+<!--nuevo agente interno-->
+<modal-popup
+    titulo="{{modalNuevo.titulo}}"
+    evento="{{modalNuevo.evento}}"
+    icono="fa fa-cog fa-fw"
+    width="800"
+    abrir="modalNuevo.activo"
+    style="color: black;"
+>
+    <div>
+        <div class="form-group">
+            <label for="proveedor">
+                *Proveedor
+            </label>
+            <select
+                id="proveedor"
+                class="form-control"
+                ng-model="datosAV.proveedor"
+                ng-options="p.id as p.nombre for p in listas.proveedoresInternos"
+                ng-change="traerDetalleProveedorInterno(false)"
+            ></select>
+        </div>
+        <div class="form-group">
+            <label for="tipo">
+                *Tipo
+            </label>
+            <select
+                id="tipo"
+                class="form-control"
+                ng-model="datosAV.subtipo"
+                ng-options="p.id as p.nombre for p in listas.tipos"
+            ></select>
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!=''">
+            <label for="nombreAgente">
+                *Nombre agente
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="nombreAgente"
+                ng-model="datosAV.agenteNombre"
+                lettersnumbers-only
+                ng-change="generarId()"
+            >
+            <div class="help-block">Sin caracteres especiales</div>
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!=''">
+            <label for="idAgente">
+                Id agente
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="idAgente"
+                ng-model="datosAV.agenteId"
+                readonly
+            >
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!='' && modalNuevo.tipo === 'nuevo'">
+            <label for="modelo">
+                *Modelo base
+            </label>
+            <select
+                id="modelo"
+                class="form-control"
+                ng-model="datosAV.modelo"
+                ng-options="p.id as p.nombre for p in listas.modelos"
+            ></select>
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!=''">
+            <label for="telefono">
+                *Tel&eacute;fono
+            </label>
+            <input
+                type="text"
+                class="form-control"
+                id="telefono"
+                ng-model="datosAV.numeroId"
+            >
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!=''">
+            <label for="temperatura">
+                *Temperatura
+            </label>
+            <input
+                type="number"
+                min="0"
+                max="1"
+                class="form-control"
+                id="temperatura"
+                ng-model="datosAV.temperatura"
+            >
+            <p class="help-block">Indica la "creatividad" del agente menor valor = menos creativo (valor entre 0 y 1)</p>
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!='' && modalNuevo.tipo === 'nuevo'">
+            <label for="prompt">
+                *Prompt
+            </label>
+            <textarea
+                class="form-control"
+                rows="12"
+                id="prompt"
+                ng-model="datosAV.prompt"
+            ></textarea>
+        </div>
+        <div class="form-group" ng-show="datosAV.subtipo!='' && modalNuevo.tipo === 'nuevo'">
+            <label for="prompt">
+                Saludos
+            </label>
+            <div class="form-inline" style="width: 100%;">
+                <div class="form-group" style="width: 80%;">
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="exampleInputAmount"
+                        ng-model="datosAV.nuevoSaludo"
+                        style="width: 100%;"
+                        my-enter="agregarSaludo()"
+                    >
+                </div>
+                <button type="button" class="btn btn-primary" ng-click="agregarSaludo()">Agregar</button>
+            </div>
+            <ul class="list-group">
+                <li class="list-group-item" ng-repeat="item in datosAV.saludos track by $index">
+                    <span>
+                        <span class="fa fa-fw fa-trash-o fa-red" ng-click="eliminarSaludo($index)"></span>
+                        &nbsp;{{($index + 1)}}. {{item}}
+                    </span>
+                </li>
+            </ul>
+        </div>
+        <div style="padding-bottom: 12px;" ng-show="datosAV.subtipo!=''">
+            <label title="Variables que se reemplazarán automáticamente en la asignación">Variables din&aacute;micas</label>
+            <md-chips
+                md-max-chips="50"
+                ng-model="datosAV.valores_reemplazo"
+                md-removable="ctrl.removable"
+                style="font-size: 10px;"
+                md-on-add="agregarChip($chip)"
+            ></md-chips>
+            <p class="help-block">
+                <small>
+                    Escriba el nombre de la variable y presione
+                    <b>ENTER &#x21B2;</b>
+                    para guardar.
+                </small>
+            </p>
+        </div>
+        <button
+            class="btn btn-primary"
+            ng-click="guardarAgenteInterno()"
+            tabindex="0"
+            ng-show="modalNuevo.tipo=='nuevo'"
+        >
+            <span>Guardar</span>
+        </button>
+        <button
+            class="btn btn-primary"
+            ng-click="actualizarAgenteInterno()"
+            tabindex="0"
+            ng-show="modalNuevo.tipo=='modificar'"
+        >
+            <span>Guardar</span>
+        </button>
+    </div>
+</modal-popup>
+<modal-popup
+    titulo="Modificar prompt y saludo"
+    evento="{{verModalPrompt.evento}}"
+    icono="fa fa-cog fa-fw"
+    width="800"
+    abrir="verModalPrompt.activo"
+    style="color: black;"
+>
+    <div>
+        <div class="form-group">
+            <label for="temperatura">
+                Temperatura
+            </label>
+            <input
+                type="number"
+                min="0"
+                max="1"
+                class="form-control"
+                id="temperatura"
+                ng-model="verModalPrompt.datos.temperatura"
+            >
+            <p class="help-block">Indica la "creatividad" del agente menor valor menos creativo (valor entre 0 y 1)</p>
+        </div>
+        <div class="form-group">
+            <label for="saludo">
+                Saludos
+            </label>
+            <div class="form-inline" style="width: 100%;">
+                <div class="form-group" style="width: 80%;">
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="exampleInputAmount"
+                        ng-model="datosAV.nuevoSaludo"
+                        style="width: 100%;"
+                        my-enter="agregarSaludoModifica()"
+                    >
+                </div>
+                <button type="button" class="btn btn-primary" ng-click="agregarSaludoModifica()">Agregar</button>
+            </div>
+            <ul class="list-group">
+                <li class="list-group-item" ng-repeat="item in verModalPrompt.datos.saludo track by $index">
+                    <span>
+                        <span class="fa fa-fw fa-trash-o fa-red" ng-click="eliminarSaludoModifica($index)"></span>
+                        &nbsp;{{($index + 1)}}. {{item}}
+                    </span>
+                </li>
+            </ul>
+        </div>
+        <div class="form-group">
+            <label for="prompt">
+                Prompt
+            </label>
+            <textarea
+                class="form-control"
+                rows="12"
+                id="prompt"
+                ng-model="verModalPrompt.datos.prompt"
+            ></textarea>
+        </div>
+        <button class="btn btn-primary" ng-click="guardarPrompt()">
+            <span>Guardar</span>
+        </button>
+    </div>
+</modal-popup>
+<modal-popup
+    titulo="Generar llamada de prueba"
+    evento="{{verModalLlamada.evento}}"
+    icono="fa fa-volume-control-phone fa-fw"
+    width="500"
+    abrir="verModalLlamada.activo"
+    style="color: black;"
+>
+    <div>
+        <div ng-show="verModalLlamada.idLlamada===''">
+            <div class="form-group">
+                <label for="telefono">
+                    Número a llamar
+                </label>
+                <input
+                    type="phone"
+                    class="form-control"
+                    id="telefono"
+                    ng-model="verModalLlamada.numero"
+                    style="width: 150px;"
+                    placeholder="+593964582952"
+                >
+            </div>
+            <div class="form-group" ng-repeat="d in verModalLlamada.nuevoDatos">
+                <label for="{{d.nombre}}">
+                    {{d.nombre}}
+                </label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id="{{d.nombre}}"
+                    ng-model="d.valor"
+                    maxlength="100"
+                >
+            </div>
+            <button class="btn btn-primary" ng-click="iniciarLlamada()">
+                Llamar
+            </button>
+        </div>
+        <div ng-show="verModalLlamada.idLlamada!==''">
+            <pre>{{verModalLlamada.detalleLlamada | json}}</pre>
+            <button class="btn btn-primary" ng-click="verDetalleLlamada()" ng-show="verModalLlamada.idLlamada!==''">
+                Ver detalle
+            </button>
+        </div>
+    </div>
+</modal-popup>
+<wait-window activar="cargando"></wait-window>
+<!-- _FIN_DE_ARCHIVO -->

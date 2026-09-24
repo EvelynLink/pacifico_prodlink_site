@@ -1,0 +1,588 @@
+<div style="display: block; width: 100%; max-width: 98vw; padding: 8px; box-sizing: border-box; overflow-x: hidden;">
+    
+    <div style="display: flex; flex-direction: column;  width: 100%; box-sizing: border-box;">
+
+        <div style="width: 100%; display: flex; margin-bottom: 18px; border: solid 1px #cbcbcb; border-radius: 4px; box-sizing: border-box;">
+    <!-- IZQUIERDA: FILTROS -->
+    <div style="display:flex; flex:1;">
+
+    <!-- ICONO FILTROS -->
+    <div
+        style="
+        height:100%;
+        min-height:120px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        background-color:#cbcbcb;
+        padding:0 14px;">
+
+        <li class="fa fa-filter fa-15x"></li>
+
+    </div>
+
+    <!-- CONTENIDO FILTROS -->
+    <div style="padding:12px; display:flex; flex-direction:column; width:100%;">
+
+        <!-- =========================
+             FILA 1
+        ========================== -->
+
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+
+           
+            <!-- TIEMPO -->
+            <div style="display:flex; align-items:center">
+                <li class="fa fa-fw fa-clock-o fa-15x"></li>
+
+                <select
+                    ng-disabled="cargando"
+                    id="filtroAsignacion"
+                    class="form-control"
+                    ng-model="filtroAsignacion"
+                    ng-change="traerParametrizacion()">
+
+                    <option value="ini">Seleccione una opción</option>
+                    <option value="asigActual">Asignación Período Actual</option>
+                    <option value="asigAnterior">Asignación Período Anterior</option>
+
+                </select>
+            </div>
+
+
+            
+
+             <!-- CARTERA -->
+            <div style="display:flex; align-items:center; ">
+                <li class="fa fa-fw fa-briefcase fa-15x"></li>
+
+                <select
+                    ng-disabled="cargando"
+                    id="filtroCartera"
+                    class="form-control "
+                    ng-model="filtroCartera"
+                    ng-options="p.id as p.nombre for p in listas.carteras"
+                    ng-change="traerParametrizacion()" > 
+                </select>
+            </div>
+
+            <!-- PERIODO -->
+            <div
+                ng-if="filtroCartera!=='todo'"
+                style="display:flex; align-items:center;">
+
+                <li class="fa fa-fw fa-tachometer fa-15x"></li>
+
+                <select
+                    ng-disabled="cargando"
+                    id="filtroPeriodo"
+                    class="form-control "
+                    ng-model="listas.filtroPeriodo"
+                    ng-options="p.id as p.nombre for p in periodo"
+                    ng-change="traerParametrizacion()">
+                </select>
+            </div>
+
+            <!-- FECHAS CARGA -->
+            <div style="display: flex; justify-content: center; align-items: center">
+                <li class="fa fa-fw fa-calendar fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroFechaCarga"
+                    class="form-control "
+                    ng-model="filtroFechaCarga"
+                    ng-options="p.id as p.nombre for p in listas.fechasCarga"
+                    ng-change="validarFiltros()" ></select>
+            </div>
+
+        </div>
+
+        <!-- =========================
+             FILA 2
+        ========================== -->
+
+        <div
+            style="display:flex; align-items:center; gap:12px; margin-top:14px;">
+
+             <!-- DESDE -->
+            <div style="display:flex; align-items:center;">
+
+                <li class="fa fa-fw fa-calendar fa-15x"></li>
+
+                <input
+                    id="fechaDesde"
+                    class="form-control"
+                    type="text"
+                    datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaDesde"
+                    ng-click="abreFechaDesde = !abreFechaDesde"
+                    ng-model="fechaDesde"
+                    placeholder="Desde"
+                    style="width:105px;"
+                    ng-change="aplicarRangoFechas()">
+            </div>
+
+            <!-- HASTA -->
+            <div style="display:flex; align-items:center;">
+
+               
+
+                <input
+                    id="fechaHasta"
+                    class="form-control"
+                    type="text"
+                    datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaHasta"
+                    ng-click="abreFechaHasta = !abreFechaHasta"
+                    ng-model="fechaHasta"
+                    placeholder="Hasta"
+                    style="width:105px;"
+                    ng-change="aplicarRangoFechas()">
+            </div>
+           
+
+            <!-- PRODUCTO -->
+            <div style="display: flex; justify-content: center; align-items: center">
+                <li class="fa fa-fw fa-tags fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroProducto"
+                    class="form-control "
+                    ng-model="filtroProducto"
+                    ng-options="p.id as p.nombre for p in listas.productos"
+                    ng-change="validarFiltros()" ></select>
+            </div>
+
+            <!-- MARCA -->
+            <div style="display: flex; justify-content: center; align-items: center">
+                <li class="fa fa-fw fa-th-large fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroMarca"
+                    class="form-control "
+                    ng-model="filtroMarca"
+                    ng-options="p.id as p.nombre for p in listas.marcas"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <!-- REGION -->
+           <div style="display: flex; justify-content: center; align-items: center">
+                <li class="fa fa-fw fa-map fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroRegion"
+                    class="form-control "
+                    ng-model="filtroRegion"
+                    ng-options="p.id as p.nombre for p in listas.regiones"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <!-- CANTON -->
+            <div style="display: flex; justify-content: center; align-items: center">
+                <li class="fa fa-fw fa-map-marker fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroCanton"
+                    class="form-control "
+                    ng-model="filtroCanton"
+                    ng-options="p.id as p.nombre for p in listas.cantones"
+                    ng-change="validarFiltros()" ></select>
+            </div>
+
+            
+
+
+
+
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+</div>
+
+
+        
+        <!--#region FILTROS APLICADOS-->
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+
+    <!-- ?? Lado izquierdo: filtros -->
+    <div style="display: flex; flex-wrap: wrap;">
+        <div ng-show="filtrosAplicados.tiempo.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.tiempo.titulo}}
+                <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.cartera.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.cartera.titulo}}
+                <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.producto.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.producto.titulo}}
+                <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.marca.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.marca.titulo}}
+                <li ng-click="quitarFiltro('marca')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+        <div ng-show="filtrosAplicados.region.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.region.titulo}}
+                <li ng-click="quitarFiltro('region')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+        <div ng-show="filtrosAplicados.canton.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.canton.titulo}}
+                <li ng-click="quitarFiltro('canton')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+        <div ng-show="filtrosAplicados.fechaCarga.activo" style="padding-right: 8px;">
+            <span class="badge">
+                {{filtrosAplicados.fechaCarga.titulo}}
+                <li ng-click="quitarFiltro('fechaCarga')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="cuantosAplicados>1" style="padding-right: 8px;">
+            <span class="badge" ng-click="quitarFiltro('todo')">
+                {{filtrosAplicados.todo.titulo}}
+                <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+    </div>
+
+</div>
+        
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--#region TITULO-->
+
+        <!--#region seccion resultado general-->
+
+
+
+<div class="dashboard-container" style="display: flex; flex-direction: column; width: 100%; box-sizing: border-box;text-align: center;">
+    
+    <span class="titulo-pantalla" style="text-align: center; display: block; width: 100%;font-size: 25px;">
+        {{titulo}}
+    </span>
+
+    <div style="display: flex; gap: 16px; margin-top: 15px; width: 100%; box-sizing: border-box;">
+        <div class="kpi-card" style="position: relative;">
+                        <div  ng-show="cargandoGraficos"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            display: flex; justify-content: center; align-items: center; z-index: 10;
+                            background: rgba(255,255,255,0.7);">
+                            
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+                        </div>
+            <div class="kpi-icon icon-blue"><i class="fa fa-users"></i></div>
+            <div ng-show="!cargandoGraficos">  
+                <div class="kpi-title">TOTAL DE CLIENTES</div>
+                <div class="kpi-value">{{ totales.asignacion[0].total }}</div>
+                <div class="kpi-trend">
+
+                    <span
+                        ng-class="{
+                            'trend-positive': totales.asignacionComparativa.clientes.tendencia == 'sube',
+                            'trend-negative': totales.asignacionComparativa.clientes.tendencia == 'baja'
+                        }">
+
+                        <i
+                            class="fa"
+                            ng-class="{
+                                'fa-arrow-up': totales.asignacionComparativa.clientes.tendencia == 'sube',
+                                'fa-arrow-down': totales.asignacionComparativa.clientes.tendencia == 'baja'
+                            }">
+                        </i>
+
+                        {{ totales.asignacionComparativa.clientes.porcentaje }}%
+
+                    </span>
+
+                    <span class="trend-text">
+                        vs período anterior
+                    </span>
+
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="kpi-card" style="position: relative;">
+                        <div  ng-show="cargandoGraficos"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            display: flex; justify-content: center; align-items: center; z-index: 10;
+                            background: rgba(255,255,255,0.7);">
+                            
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+                        </div>
+            <div class="kpi-icon icon-blue"><i class="fa fa-money"></i></div>
+            <div ng-show="!cargandoGraficos">
+                <div class="kpi-title">SALDO TOTAL</div>
+                <div class="kpi-value">{{ totales.asignacion[0].monto }}</div>
+                <div class="kpi-trend">
+
+                    <span
+                        ng-class="{
+                            'trend-positive': totales.asignacionComparativa.saldo.tendencia == 'sube',
+                            'trend-negative': totales.asignacionComparativa.saldo.tendencia == 'baja'
+                        }">
+
+                        <i
+                            class="fa"
+                            ng-class="{
+                                'fa-arrow-up': totales.asignacionComparativa.saldo.tendencia == 'sube',
+                                'fa-arrow-down': totales.asignacionComparativa.saldo.tendencia == 'baja'
+                            }">
+                        </i>
+
+                        {{ totales.asignacionComparativa.saldo.porcentaje }}%
+
+                    </span>
+
+                    <span class="trend-text">
+                        vs período anterior
+                    </span>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card" style="position: relative;">
+                        <div  ng-show="cargandoGraficos"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            display: flex; justify-content: center; align-items: center; z-index: 10;
+                            background: rgba(255,255,255,0.7);">
+                            
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+                        </div>
+            <div class="kpi-icon icon-yellow"><i class="fa fa-clock-o"></i></div>
+            <div ng-show="!cargandoGraficos">
+                <div class="kpi-title">MORA PROMEDIO</div>
+                <div class="kpi-value">{{ totales.asignacion[1].total }} días</div>
+                <div class="kpi-trend">
+
+                    <span
+                        ng-class="{
+                            'trend-positive': totales.asignacionComparativa.diasMora.tendencia == 'sube',
+                            'trend-negative': totales.asignacionComparativa.diasMora.tendencia == 'baja'
+                        }">
+
+                        <i
+                            class="fa"
+                            ng-class="{
+                                'fa-arrow-up': totales.asignacionComparativa.diasMora.tendencia == 'sube',
+                                'fa-arrow-down': totales.asignacionComparativa.diasMora.tendencia == 'baja'
+                            }">
+                        </i>
+
+                        {{ totales.asignacionComparativa.diasMora.dias }} días
+
+                    </span>
+
+                    <span class="trend-text">
+                        vs período anterior
+                    </span>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="kpi-card"  style="position: relative;">
+                        <div  ng-show="cargandoGraficos"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                            display: flex; justify-content: center; align-items: center; z-index: 10;
+                            background: rgba(255,255,255,0.7);">
+                            
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+                        </div>
+            <div class="kpi-icon icon-red"><i class="fa fa-warning"></i></div>
+            <div  ng-show="!cargandoGraficos">
+                <div class="kpi-title">% CARTERA EN MORA</div>
+                <div class="kpi-value">{{ totales.asignacion[1].porcentaje }}%</div>
+                <div class="kpi-trend">
+
+                    <span
+                        ng-class="{
+                            'trend-positive': totales.asignacionComparativa.porcentajeMora.tendencia == 'sube',
+                            'trend-negative': totales.asignacionComparativa.porcentajeMora.tendencia == 'baja'
+                        }">
+
+                        <i
+                            class="fa"
+                            ng-class="{
+                                'fa-arrow-up': totales.asignacionComparativa.porcentajeMora.tendencia == 'sube',
+                                'fa-arrow-down': totales.asignacionComparativa.porcentajeMora.tendencia == 'baja'
+                            }">
+                        </i>
+
+                        {{ totales.asignacionComparativa.porcentajeMora.puntos }} p.p.
+
+                    </span>
+
+                    <span class="trend-text">
+                        vs período anterior
+                    </span>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-top: 16px; width: 100%; box-sizing: border-box; min-width: 0;">
+        
+        <div class="chart-card" style="flex: 1; min-width: 0; position: relative;">
+
+            <div  ng-show="cargandoGraficos"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                display: flex; justify-content: center; align-items: center; z-index: 10;
+                background: rgba(255,255,255,0.7);">
+                            
+                <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+            </div>
+
+            <div class="chart-title">1. CANTIDAD DE CLIENTES POR RANGO DE MORA</div>
+            <div id="chartClientesMora" style="height: 320px;"> </div>
+        </div>
+
+        <div class="chart-card" style="flex: 1; min-width: 0; display: flex; flex-direction: column;position: relative;">
+
+            <div  ng-show="cargandoGraficos"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                display: flex; justify-content: center; align-items: center; z-index: 10;
+                background: rgba(255,255,255,0.7);">
+                            
+                <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+            </div>
+            <div class="chart-title">2. DISTRIBUCIÓN DEL SALDO DE MORA</div>
+            
+            <div style="display: flex; align-items: center; height: 320px; width: 100%; min-width: 0;">
+                <div id="chartDonutMora" style="flex: 1; height: 320px; min-width: 0;" ></div>
+                
+                <div style="width: 35%;  box-sizing: border-box;">
+                    <table class="tabla-mora" ng-if="totales.graficaSaldosMora && totales.graficaSaldosMora.length > 0" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 30%">Rango</th>
+                                <th style="text-align: center; width: 50%">Monto ($)</th>
+                                <th style="text-align: center; width: 20%">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="x in totales.graficaSaldosMora">
+                                <td>{{x.nombre}}</td>
+                                <td style="text-align: center;">${{formatearMiles(x.saldo, 2)}}</td>
+                                <td style="text-align: center;"> {{formatearMiles(x.porcentaje, 2)}}%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 16px; margin-top: 16px; align-items: stretch; width: 100%; box-sizing: border-box; min-width: 0;">
+
+        <div class="chart-card" style="flex: 0.96; display: flex; flex-direction: column; min-width: 0;position: relative;">
+
+            <div  ng-show="cargandoGraficos"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                display: flex; justify-content: center; align-items: center; z-index: 10;
+                background: rgba(255,255,255,0.7);">
+                            
+                <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+            </div>
+
+            <div class="chart-title">3. SEGMENTACIÓN DE CARTERA POR MORA</div>
+            <table class="dashboard-table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>RANGO</th>
+                        <th>CLIENTES</th>
+                        <th>SALDO</th>
+                        <th>%</th>
+                        <th>GESTIÓN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="x in totales.tramosMora.grafica">
+                        <td>
+                            <span class="badge-mora" ng-class="obtenerColorTramo($index)"></span>
+                            {{x.nombre}}
+                        </td>
+                        <td>{{formatearMiles(x.total, 0)}}</td>
+                        <td>${{formatearMiles(x.saldo, 2)}}</td>
+                        <td>{{formatearMiles(x.porcentaje, 2)}}%</td>
+                        <td>-</td>
+                    </tr>
+                    <tr style="background: #1E4E8C; color: white; font-weight: 700;" ng-if="totales.tramosMora.grafica.length > 0">
+                        <td>TOTAL</td>
+                        <td>{{formatearMiles(totales.tramosMora.totales.totalClientes, 0)}}</td>
+                        <td>${{formatearMiles(totales.tramosMora.totales.saldo, 2)}}</td> 
+                        <td>{{formatearMiles(totales.tramosMora.totales.porcentaje, 0)}}%</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+            
+            <div class="chart-card heatmap-card" style="position: relative;">
+
+            <div  ng-show="cargandoGraficos"
+                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                display: flex; justify-content: center; align-items: center; z-index: 10;
+                background: rgba(255,255,255,0.7);">
+                            
+                <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+            </div>
+                <div class="chart-title">4. HEATMAP: SALDO (M) POR PRODUCTO Y RANGO DE MORA</div>
+                <div class="heatmap-container">
+                    <table class="heatmap-table" ng-if="totales.heatmapProductoMora.datos.length > 0">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th ng-repeat="tramo in totales.heatmapProductoMora.tramos track by $index">{{tramo}}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="fila in totales.heatmapProductoMora.datos track by $index">
+                                <td>{{fila.producto}}</td>
+                                <td ng-repeat="valor in fila.valores track by $index" ng-class="obtenerClaseTramo($index)">
+                                    ${{formatearMiles(valor, 2)}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="chart-card" style="flex: 1; min-width: 0;position: relative;">
+
+                    <div  ng-show="cargandoGraficos"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                        display: flex; justify-content: center; align-items: center; z-index: 10;
+                        background: rgba(255,255,255,0.7);">
+                                    
+                        <i class="fa fa-spinner fa-fw fa-spin fa-4x" style="color:#666"></i>
+                    </div>
+
+                <div class="chart-title">5. EVOLUCIÓN MENSUAL – % CARTERA VENCIDA</div>
+                <div id="chartLineaMora" style="height: 220px;"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div> 
