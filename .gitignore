@@ -13,3 +13,4 @@ ssl/
 
 # Módulos excluidos del control de cambios
 public_html/cobranza/archivosCO1/
+public_html/dct/tmp_adjuntos/
