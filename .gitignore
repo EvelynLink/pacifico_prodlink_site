@@ -10,3 +10,6 @@ CLAUDE.local.md
 .gnupg/
 gpg/
 ssl/
+
+# Módulos excluidos del control de cambios
+public_html/cobranza/archivosCO1/
