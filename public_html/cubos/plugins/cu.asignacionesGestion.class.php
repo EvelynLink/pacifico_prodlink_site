@@ -182,6 +182,7 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
             'cubAG_tramoSaldo'                        => $row['cre_tramoSaldo'] ?? '',
             'cubAG_tramoMora'                         => $row['cre_tramoMora'] ?? '',
             'cubAG_marca'                             => $row['cre_marca'] ?? '',
+            'cubAG_tipoCredito'                       => $row['cre_tipoCredito'] ?? '',
             'cubAG_canton'                            => $row['cre_canton'] ?? '',
 
             'cubAG_ciudad'                            => $row['cre_ciudad'] ?? '',
