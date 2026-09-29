@@ -3,31 +3,43 @@ require_once '../cubos/classes/abstract.class.cuCuboPlugin.php';
 class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
 {
     public const COLLECTION_CUBO = 'cuAsignacionesGestionVentas';
+
+    // Mapeo de canal (cubGV_canal) al codigo que se guarda en el cubo.
+    protected const MAPA_CANALES = [
+        'TELEFONICA' => 'AV',
+        'EMAIL'      => 'EMAIL',
+        'WHATSAPP'   => 'WHATSAPP',
+    ];
+
     protected function process($ids, $accion): void
     {
         if (!is_array($ids) || empty($ids)) return;
         $tablas = $this->organizeByTable($ids);
         $mdb    = new MYMONGODB();
         $mdbCubo    = new MYMONGODB();
+
+        // Carteras tipo VENTAS: no depende de $tabla/$regIds, se calcula una sola vez.
+        $carterasVentas = [];
+        if ($accion === 'ADD') {
+            $db = new MYSQLDB();
+            $sql = 'SELECT cobCartera_id FROM cobcartera WHERE cobCartera_tipo="VENTAS"';
+            $db->query($sql);
+            while ($row = $db->fetchRow()) {
+                $carterasVentas[] = (string)$row['cobCartera_id'];
+            }
+        }
+
         foreach ($tablas as $tabla => $regIds) {
             $condicion = $this->buildCondition($tabla, $regIds);
             if (!($condicion['mongo'])) continue;
             switch ($accion) {
                 case 'ADD':
 
-                    $db = new MYSQLDB();
-                    $sql = 'SELECT cobCartera_id FROM cobcartera WHERE cobCartera_tipo="VENTAS"';
-                    $db->query($sql);
-
-                    $carterasVentas = [];
-                    while ($row = $db->fetchRow()) {
-                        $carterasVentas[] = (string)$row['cobCartera_id'];
-                    }
-
                     $condMongo = [
                         '$and' => [
                             $condicion['mongo'],
-                            ['cre_carteraId' => ['$in' => $carterasVentas]]
+                            ['cre_carteraId' => ['$in' => $carterasVentas]],
+                            ['cre_inactivo' => (int)0]
                         ]
                     ];
 
@@ -44,6 +56,8 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
                             $mdbCubo->actualizar(self::COLLECTION_CUBO, $criteria, $newRow);
                         } else {
                             if ($tabla == 'cbCreditos') {
+                                //fecha de asignacion: solo se guarda en el primer ingreso al periodo
+                                $newRow['cubAV_fechaAsignacion'] = (int)($doc['cre_fechaCarga'] ?? 0);
                                 $mdbCubo->guardar(self::COLLECTION_CUBO, $newRow);
                             } else {
                                 //trigger_error("Registro no existe: Tabla: " . $tabla . " Información: " .  print_r($criteria, true));
@@ -53,7 +67,7 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
                     break;
 
                 default:
-                    trigger_error("Acción no reconocida {$accion}");
+                    //trigger_error("Acción no reconocida {$accion}");
                     break;
             }
         }
@@ -64,7 +78,7 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
         $idsStr = "'" . implode("','", $regIds) . "'";
         return match ($tabla) {
             'cbCreditos'            => ['db' => "cr.cre_factura IN ({$idsStr})",       'mongo' => ['cre_factura' => ['$in' => $regIds]]],
-            'cuGestionCobranza'     => ['db' => "cr.cre_factura IN ({$idsStr})",       'mongo' => ['cre_factura' => ['$in' => $regIds]]],
+            'cuGestionVentas'       => ['db' => "cr.cre_factura IN ({$idsStr})",       'mongo' => ['cre_factura' => ['$in' => $regIds]]],
             'cbPagos'               => ['db' => "cr.cre_factura IN ({$idsStr})",       'mongo' => ['cre_factura' => ['$in' => $regIds]]],
             default                 => ['db' => '', 'mongo' => []],
         };
@@ -108,6 +122,9 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
             'deuda_neta_actual'         => ['mdb' => 'cubAV_deudaNetaActual',        'defaultValue' => '(Sin deuda neta actaul)'],
             'dias_mora'                 => ['mdb' => 'cubAV_diasMora',        'defaultValue' => '(Sin días mora)'],
             'cartera_gestionada'        => ['mdb' => 'cubAV_gestionada',        'defaultValue' => '(Sin cartera gestionada)'],
+            'fecha_asignacion'          => ['mdb' => 'cubAV_fechaAsignacion',   'defaultValue' => '(Sin fecha asignación)'],
+            'telefono'                  => ['mdb' => 'cubAV_telefono',         'defaultValue' => '(Sin telefono)'],
+            'email'                     => ['mdb' => 'cubAV_email',            'defaultValue' => '(Sin email)'],
 
         ];
         return $campos;
@@ -147,14 +164,19 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
             'cubAV_fechaInicio'                       => 0,
             'cubAV_fechaFin'                          => 0,
 
-            //cubo gestiones   
-            'cubAV_cuGestionId'                       => '',
+            //cubo gestiones: mejor gestion general, aplanada (se llena mas abajo)
             'cubAV_gestionada'                        => 0,
+            'cubAV_cuGestionId'                       => '',
+            'cubAV_canal'                              => '',
             'cubAV_ponderacion'                       => 0,
             'cubAV_tipificacion1'                     => '',
             'cubAV_tipificacion2'                     => '',
             'cubAV_fechaGestion'                      => 0,
+            'cubAV_telefono'                           => '',
+            'cubAV_email'                              => '',
 
+            //cubo gestiones por canal (AV/EMAIL/WHATSAPP), se llena mas abajo
+            'cubAV_mejorGestion'                      => [],
         ];
         //Buscar registros en mongo CRM y añadir al cubo
         $mdbCRM = new MYMONGODB();
@@ -212,33 +234,99 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
         }
 
 
+        // Inicializa la mejor gestion de cada canal (sin 'gestionada': es global)
+        foreach (self::MAPA_CANALES as $codigoCanal) {
+            $datos['cubAV_mejorGestion'][$codigoCanal] = [
+                'cuGestionId'   => '',
+                'ponderacion'   => 0,
+                'tipificacion1' => '',
+                'tipificacion2' => '',
+                'fechaGestion'  => 0,
+                'telefono'      => '',
+                'email'         => '',
+            ];
+        }
+
         //Buscar registros en mongo cuGestionVentas y añadir al cubo
         $mdbCuGV = new MYMONGODB();
         $condCuGV = [
             'cubGV_numFactura'     => (string)$datos['cubAV_numFactura'],
             'cubGV_carteraId'      => (string)$datos['cubAV_carteraId'],
+            'cubGV_ciclo'          => (int)$datos['cubAV_ciclo'],
             'cubGV_fechaGestion'   => ['$gte' => (int)$datos['cubAV_fechaInicio']],
             'cubGV_tipificacion_respuesta2' => ['$nin' => ['WHATSAPP NO ENVIADO', 'WHATSAPP CON ERROR', 'Mail No Enviado']]
         ];
         $datCuGV = [
             '_id',
             'cubGV_avId',
+            'cubGV_canal',
             'cubGV_ponderacion',
             'cubGV_tipificacion_respuesta1',
             'cubGV_tipificacion_respuesta2',
-            'cubGV_fechaGestion'
+            'cubGV_fechaGestion',
+            'cubGV_telefono',
+            'cubGV_email'
         ];
 
-        $mdbCuGV->buscar('cuGestionVentas', $condCuGV, $datCuGV, ['cubGV_ponderacion' => -1], 1);
-        while ($doc = $mdbCuGV->siguiente()) {
-            $datos['cubAV_cuGestionId'] = $doc['_id'];
-            $datos['cubAV_gestionada'] = isset($doc['cubGV_avId']) ? 1 : 0;
-            $datos['cubAV_ponderacion'] = (int)$doc['cubGV_ponderacion'];
-            $datos['cubAV_tipificacion1'] = (string)$doc['cubGV_tipificacion_respuesta1'];
-            $datos['cubAV_tipificacion2'] = (string)$doc['cubGV_tipificacion_respuesta2'];
-            $datos['cubAV_fechaGestion'] = (int)$doc['cubGV_fechaGestion'];
+        // Mejor gestion por ponderacion (sin priorizar tipificacion), global y por canal
+        $mdbCuGV->buscar('cuGestionVentas', $condCuGV, $datCuGV, ['cubGV_ponderacion' => -1]);
 
-            break;
+        $mejorGlobal      = null;
+        $mejoresPorCanal  = [];
+        $gestionadaGlobal = 0;
+
+        while ($doc = $mdbCuGV->siguiente()) {
+            // gestionada es global: 1 si cualquier canal tiene cubGV_avId
+            if (isset($doc['cubGV_avId'])) {
+                $gestionadaGlobal = 1;
+            }
+
+            $codigoCanal = self::MAPA_CANALES[$doc['cubGV_canal'] ?? null] ?? null;
+
+            // Telefono solo para AV/WHATSAPP, email solo para EMAIL.
+            $telefono = '';
+            $email    = '';
+            if ($codigoCanal === 'AV' || $codigoCanal === 'WHATSAPP') {
+                $telefono = (string)($doc['cubGV_telefono'] ?? '');
+            } elseif ($codigoCanal === 'EMAIL') {
+                $email = (string)($doc['cubGV_email'] ?? '');
+            }
+
+            $candidato = [
+                'cuGestionId'   => $doc['_id'],
+                'canal'         => $codigoCanal ?? '',
+                'ponderacion'   => (int)$doc['cubGV_ponderacion'],
+                'tipificacion1' => (string)$doc['cubGV_tipificacion_respuesta1'],
+                'tipificacion2' => (string)$doc['cubGV_tipificacion_respuesta2'],
+                'fechaGestion'  => (int)$doc['cubGV_fechaGestion'],
+                'telefono'      => $telefono,
+                'email'         => $email,
+            ];
+
+            if ($mejorGlobal === null) {
+                $mejorGlobal = $candidato;
+            }
+
+            if ($codigoCanal !== null && !isset($mejoresPorCanal[$codigoCanal])) {
+                $mejoresPorCanal[$codigoCanal] = $candidato;
+            }
+        }
+
+        $datos['cubAV_gestionada'] = $gestionadaGlobal;
+
+        if ($mejorGlobal !== null) {
+            $datos['cubAV_cuGestionId']   = $mejorGlobal['cuGestionId'];
+            $datos['cubAV_canal']         = $mejorGlobal['canal'];
+            $datos['cubAV_ponderacion']   = $mejorGlobal['ponderacion'];
+            $datos['cubAV_tipificacion1'] = $mejorGlobal['tipificacion1'];
+            $datos['cubAV_tipificacion2'] = $mejorGlobal['tipificacion2'];
+            $datos['cubAV_fechaGestion']  = $mejorGlobal['fechaGestion'];
+            $datos['cubAV_telefono']      = $mejorGlobal['telefono'];
+            $datos['cubAV_email']         = $mejorGlobal['email'];
+        }
+
+        foreach ($mejoresPorCanal as $codigoCanal => $mejor) {
+            $datos['cubAV_mejorGestion'][$codigoCanal] = $mejor;
         }
 
         return $datos;
@@ -262,7 +350,8 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
         }
 
         $condiciones = [
-            'cre_carteraId' => ['$in' => $carterasVentas]
+            'cre_carteraId' => ['$in' => $carterasVentas],
+            'cre_inactivo'  => (int)0
         ];
 
         for ($i = 0; $i < 400; $i++) {
@@ -271,6 +360,8 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
             while ($doc = $mdb->siguiente()) {
                 $dato = $this->createData($doc);
                 if (count($dato) > 0) {
+                    //fecha de asignacion: solo se guarda en el primer ingreso al periodo
+                    $dato['cubAV_fechaAsignacion'] = (int)($doc['cre_fechaCarga'] ?? 0);
                     $mdb->guardar(self::COLLECTION_CUBO, $dato);
                 }
                 $numRows++;

@@ -125,6 +125,11 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
             'fecha_asignacion'          => ['mdb' => 'cubAV_fechaAsignacion',   'defaultValue' => '(Sin fecha asignación)'],
             'telefono'                  => ['mdb' => 'cubAV_telefono',         'defaultValue' => '(Sin telefono)'],
             'email'                     => ['mdb' => 'cubAV_email',            'defaultValue' => '(Sin email)'],
+            'ultima_gestion_canal'      => ['mdb' => 'cubAV_ultimaGestion_canal',            'defaultValue' => '(Sin canal última gestión)'],
+            'ultima_gestion_tipificacion1' => ['mdb' => 'cubAV_ultimaGestion_tipificacion1',    'defaultValue' => '(Sin tipificación 1 última gestión)'],
+            'ultima_gestion_tipificacion2' => ['mdb' => 'cubAV_ultimaGestion_tipificacion2',    'defaultValue' => '(Sin tipificación 2 última gestión)'],
+            'ultima_gestion_fecha'      => ['mdb' => 'cubAV_ultimaGestion_fechaGestion',     'defaultValue' => '(Sin fecha última gestión)'],
+            'intensidad_total'          => ['mdb' => 'cubAV_intensidad_total',               'defaultValue' => '(Sin intensidad)'],
 
         ];
         return $campos;
@@ -177,6 +182,23 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
 
             //cubo gestiones por canal (AV/EMAIL/WHATSAPP), se llena mas abajo
             'cubAV_mejorGestion'                      => [],
+
+            //ultima gestion general (la de mayor fecha de gestion), aplanada (se llena mas abajo)
+            'cubAV_ultimaGestion_cuGestionId'         => '',
+            'cubAV_ultimaGestion_canal'               => '',
+            'cubAV_ultimaGestion_ponderacion'         => 0,
+            'cubAV_ultimaGestion_tipificacion1'       => '',
+            'cubAV_ultimaGestion_tipificacion2'       => '',
+            'cubAV_ultimaGestion_fechaGestion'        => 0,
+            'cubAV_ultimaGestion_telefono'            => '',
+            'cubAV_ultimaGestion_email'               => '',
+
+            //ultima gestion por canal (AV/EMAIL/WHATSAPP), se llena mas abajo
+            'cubAV_ultimaGestion'                     => [],
+
+            //intensidad: numero de gestiones del periodo por canal y total de los 3
+            'cubAV_intensidad'                        => [],
+            'cubAV_intensidad_total'                  => 0,
         ];
         //Buscar registros en mongo CRM y añadir al cubo
         $mdbCRM = new MYMONGODB();
@@ -234,17 +256,20 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
         }
 
 
-        // Inicializa la mejor gestion de cada canal (sin 'gestionada': es global)
+        // Gestion vacia de un canal (sin 'gestionada': es global): la comparten mejorGestion y ultimaGestion
+        $gestionVacia = [
+            'cuGestionId'   => '',
+            'ponderacion'   => 0,
+            'tipificacion1' => '',
+            'tipificacion2' => '',
+            'fechaGestion'  => 0,
+            'telefono'      => '',
+            'email'         => '',
+        ];
         foreach (self::MAPA_CANALES as $codigoCanal) {
-            $datos['cubAV_mejorGestion'][$codigoCanal] = [
-                'cuGestionId'   => '',
-                'ponderacion'   => 0,
-                'tipificacion1' => '',
-                'tipificacion2' => '',
-                'fechaGestion'  => 0,
-                'telefono'      => '',
-                'email'         => '',
-            ];
+            $datos['cubAV_mejorGestion'][$codigoCanal]  = $gestionVacia;
+            $datos['cubAV_ultimaGestion'][$codigoCanal] = $gestionVacia;
+            $datos['cubAV_intensidad'][$codigoCanal]    = 0;
         }
 
         //Buscar registros en mongo cuGestionVentas y añadir al cubo
@@ -273,6 +298,8 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
 
         $mejorGlobal      = null;
         $mejoresPorCanal  = [];
+        $ultimaGlobal     = null;
+        $ultimasPorCanal  = [];
         $gestionadaGlobal = 0;
 
         while ($doc = $mdbCuGV->siguiente()) {
@@ -310,6 +337,17 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
             if ($codigoCanal !== null && !isset($mejoresPorCanal[$codigoCanal])) {
                 $mejoresPorCanal[$codigoCanal] = $candidato;
             }
+
+            // Ultima gestion: por fecha de gestion, no por ponderacion
+            if ($this->auxEsMasReciente($candidato, $ultimaGlobal)) {
+                $ultimaGlobal = $candidato;
+            }
+
+            if ($codigoCanal === null) continue;
+            $datos['cubAV_intensidad'][$codigoCanal]++;
+            if ($this->auxEsMasReciente($candidato, $ultimasPorCanal[$codigoCanal] ?? null)) {
+                $ultimasPorCanal[$codigoCanal] = $candidato;
+            }
         }
 
         $datos['cubAV_gestionada'] = $gestionadaGlobal;
@@ -328,6 +366,17 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
         foreach ($mejoresPorCanal as $codigoCanal => $mejor) {
             $datos['cubAV_mejorGestion'][$codigoCanal] = $mejor;
         }
+
+        // Las claves del candidato coinciden con el sufijo de los campos planos cubAV_ultimaGestion_*
+        foreach ($ultimaGlobal ?? [] as $campo => $valor) {
+            $datos['cubAV_ultimaGestion_' . $campo] = $valor;
+        }
+
+        foreach ($ultimasPorCanal as $codigoCanal => $ultima) {
+            $datos['cubAV_ultimaGestion'][$codigoCanal] = $ultima;
+        }
+
+        $datos['cubAV_intensidad_total'] = array_sum($datos['cubAV_intensidad']);
 
         return $datos;
     }
@@ -370,6 +419,24 @@ class cuPGasignacionesGestionVentas extends AbstractCuboPlugin
             $skip += $limit;
         }
         $this->createIndices($mdb);
+    }
+
+    /**
+     * Indica si la gestión candidata es más reciente que la actual. Gana la de mayor
+     * fecha de gestión y, si empatan, la que entró después al cubo de gestiones
+     * (_id mayor: el ObjectId crece con la inserción). La ponderación no interviene.
+     *
+     * @param array      $candidato Gestión leída del cursor.
+     * @param array|null $actual    Última gestión encontrada hasta ahora, o null si no hay.
+     * @return bool
+     */
+    private function auxEsMasReciente(array $candidato, ?array $actual): bool
+    {
+        if ($actual === null) return true;
+        if ($candidato['fechaGestion'] !== $actual['fechaGestion']) {
+            return $candidato['fechaGestion'] > $actual['fechaGestion'];
+        }
+        return strcmp((string)$candidato['cuGestionId'], (string)$actual['cuGestionId']) > 0;
     }
 
     protected function baseQuery(int $limit = 0): string

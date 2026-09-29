@@ -262,7 +262,7 @@ while ($row = $mongo->siguiente()) {
                                 '$and' => [
                                     ['$eq' => ['$cubAG_gestionada', 1]],
                                     ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']],
-                                    ['$eq' => ['$cubAG_tipificacion2', 'PAGA EN FECHA']]
+                                    ['$in' => ['$cubAG_tipificacion2', tipificacionesCompromisoPago()]]
                                 ]
                             ],
                             1,
@@ -278,7 +278,7 @@ while ($row = $mongo->siguiente()) {
                                 '$and' => [
                                     ['$eq' => ['$cubAG_gestionada', 1]],
                                     ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']],
-                                    ['$eq' => ['$cubAG_tipificacion2', 'PAGA EN FECHA']]
+                                    ['$in' => ['$cubAG_tipificacion2', tipificacionesCompromisoPago()]]
                                 ]
                             ],
                             '$cubAG_capitalActual',
@@ -726,7 +726,7 @@ while ($row = $mongo->siguiente()) {
                                     '$and' => [
                                         ['$eq' => ['$cubAG_gestionada', 1]],
                                         ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']],
-                                        ['$eq' => ['$cubAG_tipificacion2', 'PAGA EN FECHA']]
+                                        ['$in' => ['$cubAG_tipificacion2', tipificacionesCompromisoPago()]]
                                     ]
                                 ],
                                 1,
@@ -742,7 +742,7 @@ while ($row = $mongo->siguiente()) {
                                     '$and' => [
                                         ['$eq' => ['$cubAG_gestionada', 1]],
                                         ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']],
-                                        ['$eq' => ['$cubAG_tipificacion2', 'PAGA EN FECHA']]
+                                        ['$in' => ['$cubAG_tipificacion2', tipificacionesCompromisoPago()]]
                                     ]
                                 ],
                                 '$cubAG_capitalActual',
@@ -1033,6 +1033,13 @@ while ($row = $mongo->siguiente()) {
 
 
 
+
+// Tipificaciones 2 que cuentan como compromiso de pago.
+// Debe ser la misma lista que tipificacionesCompromisoPago() de cmDashboardGestionesCtrl.php.
+function tipificacionesCompromisoPago(): array
+{
+    return ['PAGA EN FECHA', 'ABONO CUOTA', 'CONFIRMACION DE PAGO', 'NEGOCIACION EN CURSO ALIVIO', 'COMPROMISO DE PAGO'];
+}
 
 function guardarIndicador($cartera, $grupo, $indicador, $valor, $ciclo)
 {

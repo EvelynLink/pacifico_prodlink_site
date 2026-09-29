@@ -46,9 +46,6 @@ class cuPGgestionVentas extends AbstractCuboPlugin
                             '_id' => new MongoDB\BSON\ObjectId($id),
                             $config['cartera'] => ['$in' => $carterasVentas]
                         ];
-                        /*if ($config['tipificacion']) {
-                            $condOrigen[$config['tipificacion']] = ['$nin' => [null, '']];
-                        }*/
                         // SOLO para emails
                         if ($tabla === 'cbEnvioMails') {
                             $condOrigen['cem_susErrorEnvio'] = 0;
@@ -174,8 +171,6 @@ class cuPGgestionVentas extends AbstractCuboPlugin
                     // avProgramadas. Si se dejara este filtro, un ADD que solo agrega
                     // un reintento (sin tocar av_tipificacion.respuesta2 del doc raiz)
                     // quedaria descartado antes de llegar a createData.
-                    //'tipificacion' => 'av_tipificacion.respuesta2',
-                    'tipificacion' => null,
                     'campos'       => [
                         '_id',
                         'av_factura',
@@ -186,7 +181,6 @@ class cuPGgestionVentas extends AbstractCuboPlugin
                 return [
                     'factura'      => 'ws_factura',
                     'cartera'      => 'ws_carteraId',
-                    'tipificacion' => 'ws_tipificacion.respuesta2',
                     'campos'       => [
                         '_id',
                         'ws_factura',
@@ -197,7 +191,6 @@ class cuPGgestionVentas extends AbstractCuboPlugin
                 return [
                     'factura'      => 'cem_susFactura',
                     'cartera'      => 'cem_susCarteraId',
-                    'tipificacion' => null,
                     'campos'       => [
                         '_id',
                         'cem_susFactura',
@@ -593,7 +586,6 @@ class cuPGgestionVentas extends AbstractCuboPlugin
             $condAvProgWhats = [
                 'ws_factura'   => (string) $datos['cubGV_numFactura'],
                 'ws_carteraId'   => (int) $datos['cubGV_carteraId'],
-                'ws_tipificacion.respuesta2' => ['$nin' => ['', null]]
             ];
             if (!empty($idGestion)) {
                 $condAvProgWhats['_id'] = new MongoDB\BSON\ObjectId($idGestion);

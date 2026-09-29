@@ -324,6 +324,8 @@ switch ($act) {
         $filtroTiempo = expect_safe_html($d["filtroTiempo"]);
         $filtroCanales = expect_safe_html($d["filtroCanales"]);
         $filtroCanal = expect_safe_html($d["filtroCanal"]);
+        // Sólo se aceptan estos valores; cualquier otra cosa se trata como "todos los canales"
+        $filtroCanal = in_array($filtroCanal, ['AV', 'EMAIL', 'WHATSAPP'], true) ? $filtroCanal : 'todo';
         $filtroPeriodo = expect_safe_html($d["filtroPeriodo"]);
         $condicion = establecerCondicionMaster();
         $condicionCubAsignacion = establecerCondicionMaster("cubAG_carteraId");
@@ -463,32 +465,40 @@ switch ($act) {
             $condicionCorreo["cem_susCampaniaId"] = intval($filtroCampania);
             $condicionWhatsapp["ws_campaniaId"] = intval($filtroCampania);
         }
-        if ($filtroCanal == 'llamada' || $filtroCanal == 'todo') {
+        // Condición que nunca hace match, para "apagar" un cuadro cuando el canal
+        // filtrado es otro distinto (en vez de consultar sin filtros, como antes)
+        $condicionCanalNoSeleccionado = ['__canalNoSeleccionado__' => '__ninguno__'];
+
+        if ($filtroCanal == 'AV' || $filtroCanal == 'todo') {
             $totalesLlamadas = obtenerTotalesLlamadasAV($condicion);
         } else {
-            $totalesLlamadas = obtenerTotalesLlamadasAV([]);
+            $totalesLlamadas = obtenerTotalesLlamadasAV($condicionCanalNoSeleccionado);
         }
         $json["llamadasAV"] = [
             "totales" => $totalesLlamadas["cuadros"],
             "porcentajeAvance" => $totalesLlamadas["porcentajeAvance"],
             "campanias" => $totalesLlamadas["campanias"]
         ];
-        if ($filtroCanal == 'mail' || $filtroCanal == 'todo') {
+        if ($filtroCanal == 'EMAIL' || $filtroCanal == 'todo') {
             $totalesCorreos = obtenerTotalesCorreo($condicionCorreo);
-            $json["correo"] = [
-                "totales" => $totalesCorreos["cuadros"],
-                "porcentajeAvance" => $totalesCorreos["porcentajeAvance"],
-                "campanias" => $totalesCorreos["campanias"]
-            ];
+        } else {
+            $totalesCorreos = obtenerTotalesCorreo($condicionCanalNoSeleccionado);
         }
-        if ($filtroCanal == 'wp' || $filtroCanal == 'todo') {
+        $json["correo"] = [
+            "totales" => $totalesCorreos["cuadros"],
+            "porcentajeAvance" => $totalesCorreos["porcentajeAvance"],
+            "campanias" => $totalesCorreos["campanias"]
+        ];
+        if ($filtroCanal == 'WHATSAPP' || $filtroCanal == 'todo') {
             $totalesWp = obtenerTotalesWhatsapp($condicionWhatsapp);
-            $json["whatsapp"] = [
-                "totales" => $totalesWp["cuadros"],
-                "porcentajeAvance" => $totalesWp["porcentajeAvance"],
-                "campanias" => $totalesWp["campanias"]
-            ];
+        } else {
+            $totalesWp = obtenerTotalesWhatsapp($condicionCanalNoSeleccionado);
         }
+        $json["whatsapp"] = [
+            "totales" => $totalesWp["cuadros"],
+            "porcentajeAvance" => $totalesWp["porcentajeAvance"],
+            "campanias" => $totalesWp["campanias"]
+        ];
         $pagos = obtenerPagos($condicionPagos);
 
         $parametrosTotales = [];
@@ -521,7 +531,7 @@ switch ($act) {
             $parametrosTotalesIntensidades["todo"] = $totalTotalIntensidad;
         }
 
-        $totales = obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $parametrosTotalesIntensidades);
+        $totales = obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $parametrosTotalesIntensidades, $filtroCanal);
         $json["totales"] = $totales;
         $pt = $contado > 0 ? $t / $contado : 0;
         $json["porcentajeTotal"] = round($pt, 1);
@@ -996,6 +1006,11 @@ switch ($act) {
         $filtroTiempo  = expect_safe_html($d["filtroTiempo"]);
         $tipoCartera   = expect_safe_html($d["tipo"]);
         $filtroPeriodo = intval(expect_safe_html($d["filtroPeriodo"]));
+        $filtroCanal   = expect_safe_html($d["filtroCanal"]);
+
+        // En cuGestionCobranzaMysql el canal AV se guarda como 'TELEFONICA'
+        $mapaCanalDescarga = ['AV' => 'TELEFONICA', 'EMAIL' => 'EMAIL', 'WHATSAPP' => 'WHATSAPP'];
+        $usaCanalEspecificoDescarga = isset($mapaCanalDescarga[$filtroCanal]);
 
         $condicion = establecerCondicionMaster("cubAG_carteraId");
         $fechaIniPeriodo = 0;
@@ -1075,69 +1090,80 @@ switch ($act) {
             $usaGestiones = true;
             $matchGestion = [];
 
-            // SWITCH
+            // Mismas expresiones que las tarjetas, para que el Excel cuadre con el dashboard.
+            $exprCanalDesc = exprCanalMejorGestion($filtroCanal);
+            $gest = $exprCanalDesc['gestionada'];
+            $noGest = $exprCanalDesc['noGestionada'];
+            $tip1 = $exprCanalDesc['tip1'];
+            $tip2 = $exprCanalDesc['tip2'];
+            $tipsCompromiso = tipificacionesCompromisoPago();
+            $exprTarjeta = [];
+
             switch ($tipoCartera) {
 
-                // SIN GESTIONES
+                // SIN GESTIONES (Cartera Asignada no se filtra por canal)
                 case 'CARTERA ASIGNADA':
                     $usaGestiones = false;
                     break;
 
                 case 'CARTERA NO GESTIONADA':
                     $usaGestiones = false;
-                    $condicion['cubAG_gestionada'] = 0;
+                    $exprTarjeta[] = $noGest;
                     break;
 
                 case 'CARTERA NO GESTIONADA PAGADA':
                     $usaGestiones = false;
-                    $condicion['cubAG_gestionada'] = 0;
+                    $exprTarjeta[] = $noGest;
                     $condicion['cubAG_montoTotalPago'] = ['$gt' => 0];
                     break;
 
                 // CON GESTIONES
                 case 'CARTERA GESTIONADA':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
                     break;
 
                 case 'CARTERA GESTIONADA NO CONTACTADA':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
+                    $exprTarjeta[] = ['$eq' => [$tip1, 'SIN CONTACTO']];
                     $matchGestion['gestiones.cubGC_tipificacion_respuesta1'] = 'SIN CONTACTO';
                     break;
 
                 case 'CARTERA GESTIONADA CONTACTADA':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
+                    $exprTarjeta[] = ['$in' => [$tip1, ['CONTACTO DIRECTO', 'CONTACTO INDIRECTO']]];
                     $matchGestion['gestiones.cubGC_tipificacion_respuesta1'] = [
                         '$in' => ['CONTACTO DIRECTO', 'CONTACTO INDIRECTO']
                     ];
                     break;
 
                 case 'CONTACTO DIRECTO':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
+                    $exprTarjeta[] = ['$eq' => [$tip1, 'CONTACTO DIRECTO']];
                     $matchGestion['gestiones.cubGC_tipificacion_respuesta1'] = 'CONTACTO DIRECTO';
                     break;
 
                 case 'CONTACTO INDIRECTO':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
+                    $exprTarjeta[] = ['$eq' => [$tip1, 'CONTACTO INDIRECTO']];
                     $matchGestion['gestiones.cubGC_tipificacion_respuesta1'] = 'CONTACTO INDIRECTO';
                     break;
 
                 case 'CARTERA GESTIONADA PAGADA':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
                     $condicion['cubAG_montoTotalPago'] = ['$gt' => 0];
                     break;
 
                 case 'COMPROMISO PAGO':
-                    $condicion['cubAG_gestionada'] = 1;
+                    $exprTarjeta[] = $gest;
+                    $exprTarjeta[] = ['$eq' => [$tip1, 'CONTACTO DIRECTO']];
+                    $exprTarjeta[] = ['$in' => [$tip2, $tipsCompromiso]];
                     $matchGestion['gestiones.cubGC_tipificacion_respuesta1'] = 'CONTACTO DIRECTO';
-                    $matchGestion['gestiones.cubGC_tipificacion_respuesta2'] = [
-                        '$in' => [
-                            'PAGA EN FECHA',
-                            'ABONO CUOTA',
-                            'CONFIRMACION DE PAGO',
-                            'NEGOCIACION EN CURSO ALIVIO'
-                        ]
-                    ];
+                    $matchGestion['gestiones.cubGC_tipificacion_respuesta2'] = ['$in' => $tipsCompromiso];
                     break;
+            }
+
+            if (count($exprTarjeta) > 0) {
+                $condicion['$expr'] = ['$and' => $exprTarjeta];
             }
 
             $dataAsig = [];
@@ -1184,14 +1210,22 @@ switch ($act) {
                                     ]
                                 ],
 
-                                //FILTRO DE FECHA 
+                                //FILTRO DE FECHA Y CANAL (AV/EMAIL/WHATSAPP, si se seleccionó uno)
                                 [
-                                    '$match' => [
-                                        'cubGC_fechaGestion' => [
-                                            '$gte' => $desde,
-                                            '$lte' => $hasta
-                                        ]
-                                    ]
+                                    '$match' => array_merge(
+                                        [
+                                            'cubGC_fechaGestion' => [
+                                                '$gte' => $desde,
+                                                '$lte' => $hasta
+                                            ],
+                                            'cubGC_tipificacion_respuesta2' => [
+                                                '$nin' => tipificacionesExcluidasGestion()
+                                            ]
+                                        ],
+                                        $usaCanalEspecificoDescarga
+                                            ? ['cubGC_canal' => $mapaCanalDescarga[$filtroCanal]]
+                                            : []
+                                    )
                                 ]
 
                             ],
@@ -1226,7 +1260,7 @@ switch ($act) {
 
         $nombreArchivo = $nombreCartera . "_" . $tipoCartera . "_" . $fechaHoy;
 
-        $ruta = generarExcel($dataAsig, $usaGestiones, $nombreArchivo);
+        $ruta = generarExcel($dataAsig, $usaGestiones, $nombreArchivo, $tipoCartera);
 
         $json["ruta"] = $ruta;
 
@@ -1691,7 +1725,7 @@ switch ($act) {
         if ($c > 0) {
             while ($campos = $mongo->siguientex()) {
                 if (
-                    isset($campos["av_tipificacion"]["respuesta2"]) && $campos["av_tipificacion"]["respuesta2"] == "PAGA EN FECHA"
+                    isset($campos["av_tipificacion"]["respuesta2"]) && in_array($campos["av_tipificacion"]["respuesta2"], tipificacionesCompromisoPago(), true)
                     && $campos["av_tipificacion"]["respuesta3"] != ""
                 ) {
                     //if (isset($campos["av_tipificacion"]) && $campos["av_tipificacion"]["respuesta3"] != "") {
@@ -2819,7 +2853,7 @@ function obtenerTotalesLlamadasAV($condicion)
 
                     //compromisos de pago
                     if (
-                        isset($row["av_tipificacion"]["respuesta2"]) && $row["av_tipificacion"]["respuesta2"] == "PAGA EN FECHA"
+                        isset($row["av_tipificacion"]["respuesta2"]) && in_array($row["av_tipificacion"]["respuesta2"], tipificacionesCompromisoPago(), true)
                         && $row["av_tipificacion"]["respuesta3"] != ""
                     ) {
                         // $partes = explode("|", $row["av_tipificacion"]["respuesta3"]);
@@ -3565,8 +3599,53 @@ function obtenerTotalesGestion($desde, $hasta, $parametrosTotales, $intensidades
 
 
 //TOTALES GESTION NUEVOS
-function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $intensidades)
+// Tipificaciones del cubo de gestiones que no son gestión real y no se cuentan ni se descargan.
+function tipificacionesExcluidasGestion()
 {
+    return ['WHATSAPP NO ENVIADO', 'WHATSAPP CON ERROR', 'Mail No Enviado'];
+}
+
+// Tipificaciones 2 que cuentan como compromiso de pago (tarjeta, Excel y agente virtual).
+function tipificacionesCompromisoPago(): array
+{
+    return ['PAGA EN FECHA', 'ABONO CUOTA', 'CONFIRMACION DE PAGO', 'NEGOCIACION EN CURSO ALIVIO', 'COMPROMISO DE PAGO'];
+}
+
+// Expresiones de gestión según canal: raíz del cubo para "todo" o cubAG_mejorGestion.<CANAL>.
+// Un canal cuenta como gestionado si su cuGestionId no está vacío (mismo criterio que generarExcel).
+function exprCanalMejorGestion($filtroCanal)
+{
+    if (!in_array($filtroCanal, ['AV', 'EMAIL', 'WHATSAPP'], true)) {
+        $gestionada = ['$eq' => ['$cubAG_gestionada', 1]];
+        return [
+            'especifico' => false,
+            'gestionada' => $gestionada,
+            'noGestionada' => ['$not' => [$gestionada]],
+            'tip1' => '$cubAG_tipificacion1',
+            'tip2' => '$cubAG_tipificacion2',
+        ];
+    }
+    $base = '$cubAG_mejorGestion.' . $filtroCanal;
+    $gestionada = ['$not' => [['$in' => [['$ifNull' => [$base . '.cuGestionId', '']], ['', null]]]]];
+    return [
+        'especifico' => true,
+        'gestionada' => $gestionada,
+        'noGestionada' => ['$not' => [$gestionada]],
+        'tip1' => ['$ifNull' => [$base . '.tipificacion1', '']],
+        'tip2' => ['$ifNull' => [$base . '.tipificacion2', '']],
+    ];
+}
+
+function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $intensidades, $filtroCanal = 'todo')
+{
+    // Asignada no depende del canal; gestionada y tipificaciones salen de cubAG_mejorGestion.<CANAL>.
+    $exprCanal = exprCanalMejorGestion($filtroCanal);
+    $usaCanalEspecifico = $exprCanal['especifico'];
+    $exprGestionadaCanal = $exprCanal['gestionada'];
+    $exprNoGestionadaCanal = $exprCanal['noGestionada'];
+    $campoTipificacion1Canal = $exprCanal['tip1'];
+    $campoTipificacion2Canal = $exprCanal['tip2'];
+
     $resultado = [
         "gestion" => [
             [
@@ -3748,11 +3827,13 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                     'totalRegistros' => ['$sum' => 1],
                     // Total capital
                     'totalCapital' => ['$sum' => '$cubAG_capitalActual'],
-                    // Total gestionados
+                    // Capital inicial del período de todo el universo asignado
+                    'totalCapitalInicialPeriodo' => ['$sum' => '$cubAG_capitalInicialPeriodo'],
+                    // Total gestionados (en el canal filtrado, o en general si no hay filtro de canal)
                     'totalGestionados' => [
                         '$sum' => [
                             '$cond' => [
-                                ['$eq' => ['$cubAG_gestionada', 1]],
+                                $exprGestionadaCanal,
                                 1,
                                 0
                             ]
@@ -3762,7 +3843,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                     'capitalGestionado' => [
                         '$sum' => [
                             '$cond' => [
-                                ['$eq' => ['$cubAG_gestionada', 1]],
+                                $exprGestionadaCanal,
                                 '$cubAG_capitalActual',
                                 0
                             ]
@@ -3772,7 +3853,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                     'totalSinGestion' => [
                         '$sum' => [
                             '$cond' => [
-                                ['$eq' => ['$cubAG_gestionada', 0]],
+                                $exprNoGestionadaCanal,
                                 1,
                                 0
                             ]
@@ -3782,7 +3863,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                     'capitalSinGestion' => [
                         '$sum' => [
                             '$cond' => [
-                                ['$eq' => ['$cubAG_gestionada', 0]],
+                                $exprNoGestionadaCanal,
                                 '$cubAG_capitalActual',
                                 0
                             ]
@@ -3794,8 +3875,8 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']]
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'CONTACTO DIRECTO']]
                                     ]
                                 ],
                                 1,
@@ -3809,8 +3890,8 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']]
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'CONTACTO DIRECTO']]
                                     ]
                                 ],
                                 '$cubAG_capitalActual',
@@ -3824,8 +3905,8 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO INDIRECTO']]
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'CONTACTO INDIRECTO']]
                                     ]
                                 ],
                                 1,
@@ -3839,8 +3920,8 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO INDIRECTO']]
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'CONTACTO INDIRECTO']]
                                     ]
                                 ],
                                 '$cubAG_capitalActual',
@@ -3854,8 +3935,8 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'SIN CONTACTO']]
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'SIN CONTACTO']]
                                     ]
                                 ],
                                 1,
@@ -3869,8 +3950,8 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'SIN CONTACTO']]
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'SIN CONTACTO']]
                                     ]
                                 ],
                                 '$cubAG_capitalActual',
@@ -3884,17 +3965,12 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']],
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'CONTACTO DIRECTO']],
                                         [
                                             '$in' => [
-                                                '$cubAG_tipificacion2',
-                                                [
-                                                    'PAGA EN FECHA',
-                                                    'ABONO CUOTA',
-                                                    'CONFIRMACION DE PAGO',
-                                                    'NEGOCIACION EN CURSO ALIVIO'
-                                                ]
+                                                $campoTipificacion2Canal,
+                                                tipificacionesCompromisoPago()
                                             ]
                                         ]
                                     ]
@@ -3910,17 +3986,12 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
-                                        ['$eq' => ['$cubAG_tipificacion1', 'CONTACTO DIRECTO']],
+                                        $exprGestionadaCanal,
+                                        ['$eq' => [$campoTipificacion1Canal, 'CONTACTO DIRECTO']],
                                         [
                                             '$in' => [
-                                                '$cubAG_tipificacion2',
-                                                [
-                                                    'PAGA EN FECHA',
-                                                    'ABONO CUOTA',
-                                                    'CONFIRMACION DE PAGO',
-                                                    'NEGOCIACION EN CURSO ALIVIO'
-                                                ]
+                                                $campoTipificacion2Canal,
+                                                tipificacionesCompromisoPago()
                                             ]
                                         ]
                                     ]
@@ -3936,7 +4007,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
+                                        $exprGestionadaCanal,
                                         ['$gt' => ['$cubAG_montoTotalPago', 0]]
                                     ]
                                 ],
@@ -3951,7 +4022,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 1]],
+                                        $exprGestionadaCanal,
                                         ['$gt' => ['$cubAG_montoTotalPago', 0]]
                                     ]
                                 ],
@@ -3966,7 +4037,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 0]],
+                                        $exprNoGestionadaCanal,
                                         ['$gt' => ['$cubAG_montoTotalPago', 0]]
                                     ]
                                 ],
@@ -3981,7 +4052,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
                             '$cond' => [
                                 [
                                     '$and' => [
-                                        ['$eq' => ['$cubAG_gestionada', 0]],
+                                        $exprNoGestionadaCanal,
                                         ['$gt' => ['$cubAG_montoTotalPago', 0]]
                                     ]
                                 ],
@@ -3998,6 +4069,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
         if ($row = $mdbAsig->siguiente()) {
             $total              = (int)$row['totalRegistros'];
             $totalMonto         = (float)$row['totalCapital'];
+            $totalMontoInicialPeriodo = (float)$row['totalCapitalInicialPeriodo'];
             $totalGestionado    = (int)$row['totalGestionados'];
             $totalMontoGestion  = (float)$row['capitalGestionado'];
             $sinGestion  = (int) $row['totalSinGestion'];
@@ -4047,16 +4119,29 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
 
         //pipeline intensidades
 
+        // En cuGestionCobranzaMysql el canal AV se guarda como 'TELEFONICA'
+        $mapaCanalGestionCobranza = [
+            'AV' => 'TELEFONICA',
+            'EMAIL' => 'EMAIL',
+            'WHATSAPP' => 'WHATSAPP'
+        ];
+
         $condicionCubGestion = [
             '$and' => [
                 $condicionCubGestion,
                 [
                     'cubGC_tipificacion_respuesta2' => [
-                        '$nin' => ['WHATSAPP NO ENVIADO', 'WHATSAPP CON ERROR', 'Mail No Enviado']
+                        '$nin' => tipificacionesExcluidasGestion()
                     ]
                 ]
             ]
         ];
+
+        if ($usaCanalEspecifico && isset($mapaCanalGestionCobranza[$filtroCanal])) {
+            $condicionCubGestion['$and'][] = [
+                'cubGC_canal' => $mapaCanalGestionCobranza[$filtroCanal]
+            ];
+        }
 
 
         $pipelineGestion = [
@@ -4125,7 +4210,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
         //se toman las gestionadas de los clientes que tienen el pago completo en conversación con Mariel y Any 12/03/2026
         //El total pagados se toman de las que tienen pago completo en conversación con Mariel y Any 12/03/2026
 
-        $pagadas = obtenerGestionesPorPago($condicionCubAsignacion, '$gte');
+        $pagadas = obtenerGestionesPorPago($condicionCubAsignacion, '$gte', $filtroCanal);
 
         $totalPagadas = $pagadas["totalPagos"];
         $totalGestionesPagadas = $pagadas["totalGestiones"];
@@ -4133,7 +4218,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
         $totalWhatsappPagadas = $pagadas["whatsapp"];
         $totalEmailPagadas = $pagadas["email"];
 
-        $noPagadas = obtenerGestionesPorPago($condicionCubAsignacion, '$lt');
+        $noPagadas = obtenerGestionesPorPago($condicionCubAsignacion, '$lt', $filtroCanal);
 
         $totalNoPagadas = $noPagadas["totalPagos"];
         $totalGestionesNoPagadas = $noPagadas["totalGestiones"];
@@ -4188,25 +4273,28 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
         ];*/
 
 
-        //cartera gestionada
-        $resultado["gestion"][0]["total"] = formatea_numero($total, 0, ",", ".");
-        $resultado["gestion"][0]["montoTotal"] = " $" . formatea_numero($totalMonto, 2, ",", ".");
-        $resultado["gestion"][0]["porcentaje"] = $total > 0 ? formatea_numero(($totalGestionado * 100) / $total, 2, ",", ".") : 0;
-        $resultado["gestion"][0]["tooltip"] = formatea_numero($totalGestionado, 0, ",", ".") . " de " . formatea_numero($total, 0, ",", ".");
-        $resultado["gestion"][0]["monto"] = "$" . abreviaNumero($totalMontoGestion, 1) . " de $" . abreviaNumero($totalMonto, 1);
-        $resultado["gestion"][0]["montoTooltip"] = "$" . formatea_numero($totalMontoGestion, 2, ",", ".") . " de $" . formatea_numero($totalMonto, 2, ",", ".");
+        // Cartera asignada: siempre el universo completo, sin importar el canal filtrado.
+        $totalAsignacion = $total;
+        $totalMontoInicialPeriodoAsignacion = $totalMontoInicialPeriodo;
+        $totalMontoAsignacion = $totalMonto;
+        $resultado["gestion"][0]["total"] = formatea_numero($totalAsignacion, 0, ",", ".");
+        $resultado["gestion"][0]["montoTotal"] = " $" . formatea_numero($totalMontoInicialPeriodoAsignacion, 2, ",", ".");
+        $resultado["gestion"][0]["porcentaje"] = $totalAsignacion > 0 ? formatea_numero(($totalGestionado * 100) / $totalAsignacion, 2, ",", ".") : 0;
+        $resultado["gestion"][0]["tooltip"] = formatea_numero($totalGestionado, 0, ",", ".") . " de " . formatea_numero($totalAsignacion, 0, ",", ".");
+        $resultado["gestion"][0]["monto"] = "$" . abreviaNumero($totalMontoGestion, 1) . " de $" . abreviaNumero($totalMontoAsignacion, 1);
+        $resultado["gestion"][0]["montoTooltip"] = "$" . formatea_numero($totalMontoGestion, 2, ",", ".") . " de $" . formatea_numero($totalMontoAsignacion, 2, ",", ".");
         //cartera gestionada con contacto
         $resultado["gestion"][1]["total"] = $totalContactado;
         $resultado["gestion"][1]["porcentaje"] = $totalGestionado > 0 ? formatea_numero(($totalContactado * 100) / $totalGestionado, 2, ",", ".") : 0;
         $resultado["gestion"][1]["tooltip"] = formatea_numero($totalContactado, 0, ",", ".") . " de " . formatea_numero($totalGestionado, 0, ",", ".");
         $resultado["gestion"][1]["monto"] = "$" . abreviaNumero($totalMontoContactadaContacto, 1) . " de $" . abreviaNumero($totalMontoGestion, 1);
         $resultado["gestion"][1]["montoTooltip"] = "$" . formatea_numero($totalMontoContactadaContacto, 2, ",", ".") . " de $" . formatea_numero($totalMontoGestion, 2, ",", ".");
-        //cartera no gestionada
+        // Cartera no gestionada: asignada sin gestión en el canal filtrado (o en ninguno si es "todo").
         $resultado["gestion"][2]["total"] = $sinGestion;
-        $resultado["gestion"][2]["porcentaje"] = $total > 0 ? formatea_numero(($sinGestion * 100) / $total, 2, ",", ".") : 0;
-        $resultado["gestion"][2]["tooltip"] = formatea_numero($sinGestion, 0, ",", ".") . " de " . formatea_numero($total, 0, ",", ".");
-        $resultado["gestion"][2]["monto"] = "$" . abreviaNumero($totalMontoSinGestion, 1) . " de $" . abreviaNumero($totalMonto, 1);
-        $resultado["gestion"][2]["montoTooltip"] = "$" . formatea_numero($totalMontoSinGestion, 2, ",", ".") . " de $" . formatea_numero($totalMonto, 2, ",", ".");
+        $resultado["gestion"][2]["porcentaje"] = $totalAsignacion > 0 ? formatea_numero(($sinGestion * 100) / $totalAsignacion, 2, ",", ".") : 0;
+        $resultado["gestion"][2]["tooltip"] = formatea_numero($sinGestion, 0, ",", ".") . " de " . formatea_numero($totalAsignacion, 0, ",", ".");
+        $resultado["gestion"][2]["monto"] = "$" . abreviaNumero($totalMontoSinGestion, 1) . " de $" . abreviaNumero($totalMontoAsignacion, 1);
+        $resultado["gestion"][2]["montoTooltip"] = "$" . formatea_numero($totalMontoSinGestion, 2, ",", ".") . " de $" . formatea_numero($totalMontoAsignacion, 2, ",", ".");
         //cumplimiento
         $resultado["cumplimiento"][0]["total"] = 0; //$registrosPremora["mantienen"];
         $resultado["cumplimiento"][0]["porcentaje"] = 0; //$registrosPremora["total"] > 0 ? formatea_numero(($registrosPremora["mantienen"] * 100 / $registrosPremora["total"]), 2, ",", ".") : "0,0";
@@ -4274,7 +4362,7 @@ function obtenerTotalesGestion2($condicionCubAsignacion, $condicionCubGestion, $
     return $resultado;
 }
 
-function generarExcel($data, $usaGestiones, $archivoExcelNombre)
+function generarExcel($data, $usaGestiones, $archivoExcelNombre, $tipoCartera = '')
 {
 
     require_once("../comunes/classes/class.coGeneraExcel.php");
@@ -4302,22 +4390,74 @@ function generarExcel($data, $usaGestiones, $archivoExcelNombre)
 
     // CABECERAS
     if (!$usaGestiones) {
-        $cabeceras = array(
-            "Factura",
-            "Ciclo",
-            "Capital"
-        );
+
+        if ($tipoCartera === 'CARTERA ASIGNADA') {
+
+            $cabeceras = array(
+                "Factura",
+                "Ciclo",
+                "Capital Inicial",
+                "Capital Actual",
+                "Deuda Neta Actual",
+                "AV - Tipificación 1",
+                "AV - Tipificación 2",
+                "AV - Fecha Gestión",
+                "AV - Ponderación",
+                "EMAIL - Tipificación 1",
+                "EMAIL - Tipificación 2",
+                "EMAIL - Fecha Gestión",
+                "EMAIL - Ponderación",
+                "WHATSAPP - Tipificación 1",
+                "WHATSAPP - Tipificación 2",
+                "WHATSAPP - Fecha Gestión",
+                "WHATSAPP - Ponderación",
+                "Mejor Gestión - Canal",
+                "Mejor Gestión - Tipificación 1",
+                "Mejor Gestión - Tipificación 2",
+                "Mejor Gestión - Fecha Gestión",
+                "Mejor Gestión - Ponderación"
+            );
+        } else if ($tipoCartera === 'CARTERA NO GESTIONADA PAGADA') {
+
+            // Nunca tienen gestión (canal, tipificaciones, etc.), pero sí pudieron pagar
+            $cabeceras = array(
+                "Factura",
+                "Ciclo",
+                "Capital",
+                "Deuda Neta Actual",
+                "Pago Total"
+            );
+        } else {
+
+            // CARTERA NO GESTIONADA: nunca van a tener campos de gestión (canal, tipificaciones, etc.)
+            $cabeceras = array(
+                "Factura",
+                "Ciclo",
+                "Capital",
+                "Deuda Neta Actual"
+            );
+        }
     } else {
         $cabeceras = array(
             "Factura",
             "Ciclo",
             "Capital",
+            "Deuda Neta Actual",
             "Canal",
             "Campaña",
             "Tipificación 1",
             "Tipificación 2",
-            "Fecha Gestión"
+            "Fecha Gestión",
+            "Ponderación"
         );
+
+        // Solo el boton "Compromiso de pago" agrega estas dos columnas; el resto
+        // de descargas que comparten esta rama (Cartera Gestionada, Contacto
+        // Directo/Indirecto, etc.) quedan igual que antes.
+        if ($tipoCartera === 'COMPROMISO PAGO') {
+            $cabeceras[] = "Fecha Compromiso";
+            $cabeceras[] = "Monto Compromiso";
+        }
     }
 
     $filasExcel = array();
@@ -4331,13 +4471,63 @@ function generarExcel($data, $usaGestiones, $archivoExcelNombre)
 
         if (!$usaGestiones) {
 
-            // ASIGNACIONES
-            $nuevaFila = [
-                $fila['cubAG_numFactura'] ?? '',
-                $fila['cubAG_ciclo'] ?? '',
-                $fila['cubAG_capitalActual'] ?? ''
+            if ($tipoCartera === 'CARTERA ASIGNADA') {
 
-            ];
+                // ASIGNACIONES - CARTERA ASIGNADA (capital inicial/actual + detalle por canal)
+                $nuevaFila = [
+                    $fila['cubAG_numFactura'] ?? '',
+                    $fila['cubAG_ciclo'] ?? '',
+                    $fila['cubAG_capitalInicialPeriodo'] ?? '',
+                    $fila['cubAG_capitalActual'] ?? '',
+                    $fila['cubAG_deudaNetaActual'] ?? ''
+                ];
+
+                // MEJOR GESTIÓN POR CANAL (AV, EMAIL, WHATSAPP)
+                $mejorGestion = $fila['cubAG_mejorGestion'] ?? [];
+
+                foreach (['AV', 'EMAIL', 'WHATSAPP'] as $canalMejorGestion) {
+
+                    $mg = $mejorGestion[$canalMejorGestion] ?? [];
+                    // Sin gestión real en ese canal (cuGestionId vacío) => ponderación en blanco, no "0"
+                    $tieneGestionCanal = !empty($mg['cuGestionId'] ?? '');
+                    $fechaMg = $mg['fechaGestion'] ?? 0;
+
+                    $nuevaFila[] = $mg['tipificacion1'] ?? '';
+                    $nuevaFila[] = $mg['tipificacion2'] ?? '';
+                    $nuevaFila[] = ($fechaMg ? date('Y-m-d H:i:s', $fechaMg) : '');
+                    $nuevaFila[] = $tieneGestionCanal ? ($mg['ponderacion'] ?? '') : '';
+                }
+
+                // MEJOR GESTIÓN (la de mayor ponderación entre los 3 canales)
+                $fechaGeneral = $fila['cubAG_fechaGestion'] ?? 0;
+                // Sin gestión general => ponderación en blanco, no "0"
+                $tieneGestionGeneral = (($fila['cubAG_gestionada'] ?? 0) == 1);
+
+                $nuevaFila[] = $fila['cubAG_canal'] ?? '';
+                $nuevaFila[] = $fila['cubAG_tipificacion1'] ?? '';
+                $nuevaFila[] = $fila['cubAG_tipificacion2'] ?? '';
+                $nuevaFila[] = ($fechaGeneral ? date('Y-m-d H:i:s', $fechaGeneral) : '');
+                $nuevaFila[] = $tieneGestionGeneral ? ($fila['cubAG_ponderacion'] ?? '') : '';
+            } else if ($tipoCartera === 'CARTERA NO GESTIONADA PAGADA') {
+
+                // Nunca tienen gestión: sin canal ni tipificaciones, pero sí pago total
+                $nuevaFila = [
+                    $fila['cubAG_numFactura'] ?? '',
+                    $fila['cubAG_ciclo'] ?? '',
+                    $fila['cubAG_capitalActual'] ?? '',
+                    $fila['cubAG_deudaNetaActual'] ?? '',
+                    $fila['cubAG_montoTotalPago'] ?? ''
+                ];
+            } else {
+
+                // CARTERA NO GESTIONADA: nunca van a tener campos de gestión
+                $nuevaFila = [
+                    $fila['cubAG_numFactura'] ?? '',
+                    $fila['cubAG_ciclo'] ?? '',
+                    $fila['cubAG_capitalActual'] ?? '',
+                    $fila['cubAG_deudaNetaActual'] ?? ''
+                ];
+            }
         } else {
 
             // GESTIONES
@@ -4345,14 +4535,27 @@ function generarExcel($data, $usaGestiones, $archivoExcelNombre)
                 $fila['cubGC_numFactura'] ?? '',
                 $fila['cubGC_ciclo'] ?? '',
                 $fila['cubGC_capitalActual'] ?? '',
+                // Nota: se asume que el cubo de gestiones también trae este campo
+                // (mismo patrón que cubGC_capitalActual); si el nombre real es otro, avisar.
+                $fila['cubGC_deudaNetaActual'] ?? '',
                 $fila['cubGC_canal'] ?? '',
                 $fila['cubGC_campaniaNombre'] ?? '',
                 $fila['cubGC_tipificacion_respuesta1'] ?? '',
                 $fila['cubGC_tipificacion_respuesta2'] ?? '',
                 isset($fila['cubGC_fechaGestion'])
                     ? date('Y-m-d H:i:s', $fila['cubGC_fechaGestion'])
-                    : ''
+                    : '',
+                // Nota: se asume el mismo patrón de nombre que los demás campos del cubo
+                // de gestiones; si el nombre real es distinto, avisar.
+                $fila['cubGC_ponderacion'] ?? ''
             ];
+
+            // Solo para "Compromiso de pago": estas filas ya vienen del cubo de
+            // gestiones (cubGC_*), no del de asignaciones, asi que se lee de ahi.
+            if ($tipoCartera === 'COMPROMISO PAGO') {
+                $nuevaFila[] = $fila['cubGC_tipificacion_compromiso'] ?? '';
+                $nuevaFila[] = $fila['cubGC_tipificacion_montoCompromiso'] ?? '';
+            }
         }
 
         $filasExcel["fila_" . $i] = $nuevaFila;
@@ -4368,7 +4571,7 @@ function generarExcel($data, $usaGestiones, $archivoExcelNombre)
         switch ($style) {
 
             case "titulo":
-                $font = $objExcel->setFilaEstiloFuente("Calibri", "14", true, "#ffffff");
+                $font = $objExcel->setFilaEstiloFuente("Calibri", "12", true, "#ffffff");
                 $background = $objExcel->setFilaEstiloFondo("solid", "1e2040");
                 $borders = array();
                 $alinear = $objExcel->setFilaEstiloAlineacion('center', 'center');
@@ -4396,13 +4599,20 @@ function generarExcel($data, $usaGestiones, $archivoExcelNombre)
 }
 
 
-function obtenerGestionesPorPago($condicionCubAsignacion, $operadorExpr)
+function obtenerGestionesPorPago($condicionCubAsignacion, $operadorExpr, $filtroCanal = 'todo')
 {
     $mdb = new MYMONGODB();
 
-    $condicionCubAsignacion["cubAG_gestionada"] = (int)1;
+    // Gestionada según el canal filtrado (cubAG_mejorGestion.<CANAL>) o general si es "todo".
+    $canalesValidosPago = ['AV' => 'TELEFONICA', 'EMAIL' => 'EMAIL', 'WHATSAPP' => 'WHATSAPP'];
+    $usaCanalEspecificoPago = isset($canalesValidosPago[$filtroCanal]);
+    $exprCanalPago = exprCanalMejorGestion($filtroCanal);
+
     $condicionCubAsignacion['$expr'] = [
-        $operadorExpr => ['$cubAG_montoTotalPago', '$cubAG_deudaNetaActual']
+        '$and' => [
+            $exprCanalPago['gestionada'],
+            [$operadorExpr => ['$cubAG_montoTotalPago', '$cubAG_deudaNetaActual']]
+        ]
     ];
 
     $pipeline = [
@@ -4429,6 +4639,11 @@ function obtenerGestionesPorPago($condicionCubAsignacion, $operadorExpr)
                                     ['$eq' => ['$cubGC_fechaPeriodo', '$$fechaPeriodo']]
                                 ]
                             ]
+                        ]
+                    ],
+                    [
+                        '$match' => [
+                            'cubGC_tipificacion_respuesta2' => ['$nin' => tipificacionesExcluidasGestion()]
                         ]
                     ]
                 ],
@@ -4496,10 +4711,18 @@ function obtenerGestionesPorPago($condicionCubAsignacion, $operadorExpr)
 
     if ($row = $mdb->siguiente()) {
         $resultado["totalPagos"] = (int)$row['totalPagos'];
-        $resultado["totalGestiones"] = (int)$row['totalGestionesPagadas'];
         $resultado["telefonica"] = (int)$row['totalTelefonicaPagada'];
         $resultado["whatsapp"] = (int)$row['totalWhatsappPagada'];
         $resultado["email"] = (int)$row['totalEmailPagada'];
+
+        if ($usaCanalEspecificoPago) {
+            // El total de gestiones queda acotado a las del canal filtrado
+            $mapaResultadoCanalPago = ['TELEFONICA' => 'telefonica', 'WHATSAPP' => 'whatsapp', 'EMAIL' => 'email'];
+            $claveCanalPago = $mapaResultadoCanalPago[$canalesValidosPago[$filtroCanal]];
+            $resultado["totalGestiones"] = $resultado[$claveCanalPago];
+        } else {
+            $resultado["totalGestiones"] = (int)$row['totalGestionesPagadas'];
+        }
     }
 
     return $resultado;

@@ -263,9 +263,12 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                 $mejorGestionActual = $datos[$prefAsig . '_mejorGestion'] ?? [];
 
                 // Estado recalculado desde cero a partir de la coleccion de gestion
-                $nuevaGestionada  = 0;
-                $mejorGlobalNuevo = null;
-                $mejoresPorCanal  = [];
+                $nuevaGestionada   = 0;
+                $mejorGlobalNuevo  = null;
+                $mejoresPorCanal   = [];
+                $ultimaGlobalNueva = null;
+                $ultimasPorCanal   = [];
+                $intensidadNueva   = array_fill_keys(array_values(MAPA_CANALES), 0);
 
                 if ($existeGestion > 0) {
 
@@ -314,45 +317,48 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         if ($codigoCanal !== null && !isset($mejoresPorCanal[$codigoCanal])) {
                             $mejoresPorCanal[$codigoCanal] = $candidato;
                         }
+
+                        // La "ultima" gestion se decide por fecha de gestion, no por ponderacion.
+                        if (esGestionMasReciente($candidato, $ultimaGlobalNueva)) {
+                            $ultimaGlobalNueva = $candidato;
+                        }
+
+                        if ($codigoCanal === null) continue;
+
+                        // Intensidad: numero de gestiones del periodo por canal
+                        $intensidadNueva[$codigoCanal]++;
+
+                        if (esGestionMasReciente($candidato, $ultimasPorCanal[$codigoCanal] ?? null)) {
+                            $ultimasPorCanal[$codigoCanal] = $candidato;
+                        }
                     }
                 }
 
-                if ($mejorGlobalNuevo === null) {
-                    $mejorGlobalNuevo = [
-                        'cuGestionId'     => '',
-                        'canal'           => '',
-                        'ponderacion'     => 0,
-                        'tipificacion1'   => '',
-                        'tipificacion2'   => '',
-                        'fechaGestion'    => 0,
-                        'telefono'        => '',
-                        'email'           => '',
-                    ];
+                // Gestion vacia por canal y general (esta ultima lleva canal). Compromiso solo en Cobranza.
+                $gestionVaciaCanal = [
+                    'cuGestionId'     => '',
+                    'ponderacion'     => 0,
+                    'tipificacion1'   => '',
+                    'tipificacion2'   => '',
+                    'fechaGestion'    => 0,
+                    'telefono'        => '',
+                    'email'           => '',
+                ];
 
-                    if ($tipoCartera === 'COBRANZA') {
-                        $mejorGlobalNuevo['compromiso']      = '';
-                        $mejorGlobalNuevo['montoCompromiso'] = 0;
-                    }
+                if ($tipoCartera === 'COBRANZA') {
+                    $gestionVaciaCanal['compromiso']      = '';
+                    $gestionVaciaCanal['montoCompromiso'] = 0;
                 }
+
+                $gestionVaciaGeneral = ['canal' => ''] + $gestionVaciaCanal;
+
+                $mejorGlobalNuevo  = $mejorGlobalNuevo ?? $gestionVaciaGeneral;
+                $ultimaGlobalNueva = $ultimaGlobalNueva ?? $gestionVaciaGeneral;
 
                 // Completa con default los canales que no tuvieron ninguna gestion
                 foreach (MAPA_CANALES as $codigoCanal) {
-                    if (!isset($mejoresPorCanal[$codigoCanal])) {
-                        $mejoresPorCanal[$codigoCanal] = [
-                            'cuGestionId'     => '',
-                            'ponderacion'     => 0,
-                            'tipificacion1'   => '',
-                            'tipificacion2'   => '',
-                            'fechaGestion'    => 0,
-                            'telefono'        => '',
-                            'email'           => '',
-                        ];
-
-                        if ($tipoCartera === 'COBRANZA') {
-                            $mejoresPorCanal[$codigoCanal]['compromiso']      = '';
-                            $mejoresPorCanal[$codigoCanal]['montoCompromiso'] = 0;
-                        }
-                    }
+                    $mejoresPorCanal[$codigoCanal] = $mejoresPorCanal[$codigoCanal] ?? $gestionVaciaCanal;
+                    $ultimasPorCanal[$codigoCanal] = $ultimasPorCanal[$codigoCanal] ?? $gestionVaciaCanal;
                 }
 
                 // Compara un objeto "mejor gestion" (general o de un canal) actual vs nuevo
@@ -387,6 +393,43 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                     }
                 }
 
+                // Ultima gestion general tal como esta guardada (aplanada en *_ultimaGestion_<campo>)
+                $ultimaGeneralActual = [];
+                foreach (array_keys($gestionVaciaGeneral) as $campo) {
+                    $ultimaGeneralActual[$campo] = $datos[$prefAsig . '_ultimaGestion_' . $campo] ?? null;
+                }
+
+                $ultimaGestionActual    = $datos[$prefAsig . '_ultimaGestion'] ?? [];
+                $canalesUltimaConCambio = [];
+                foreach (MAPA_CANALES as $codigoCanal) {
+                    if ($comparaMejorGestion($ultimaGestionActual[$codigoCanal] ?? [], $ultimasPorCanal[$codigoCanal])) {
+                        $canalesUltimaConCambio[] = $codigoCanal;
+                    }
+                }
+
+                $huboCambioUltima = (
+                    $comparaMejorGestion($ultimaGeneralActual, $ultimaGlobalNueva) ||
+                    !empty($canalesUltimaConCambio)
+                );
+
+                $intensidadActual     = $datos[$prefAsig . '_intensidad'] ?? [];
+                $intensidadTotalNueva = array_sum($intensidadNueva);
+                $huboCambioIntensidad = (int)($datos[$prefAsig . '_intensidad_total'] ?? 0) !== $intensidadTotalNueva;
+                foreach ($intensidadNueva as $codigoCanal => $cantidad) {
+                    if ((int)($intensidadActual[$codigoCanal] ?? 0) !== $cantidad) {
+                        $huboCambioIntensidad = true;
+                    }
+                }
+
+                // Asignaciones creadas antes de que existieran estos campos: se completan
+                // aunque todo quede en vacio/0 (sin gestiones no habria "cambio" que detectar).
+                $faltanCamposNuevos = (
+                    !array_key_exists($prefAsig . '_ultimaGestion', $datos) ||
+                    !array_key_exists($prefAsig . '_ultimaGestion_cuGestionId', $datos) ||
+                    !array_key_exists($prefAsig . '_intensidad', $datos) ||
+                    !array_key_exists($prefAsig . '_intensidad_total', $datos)
+                );
+
                 // fechaAsignacion: solo se backfillea si todavia no esta seteada, nunca se pisa.
                 $fechaAsignacionActual   = (int)($datos[$prefAsig . '_fechaAsignacion'] ?? 0);
                 $necesitaFechaAsignacion = ($fechaAsignacionActual === 0);
@@ -396,7 +439,14 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                     $nuevaFechaAsignacion = obtenerFechaAsignacion($tipoCartera, $prefAsig, $datos, $fecha);
                 }
 
-                $huboCambio = $huboCambioGeneral || !empty($canalesConCambio) || $necesitaFechaAsignacion;
+                $huboCambio = (
+                    $huboCambioGeneral ||
+                    !empty($canalesConCambio) ||
+                    $necesitaFechaAsignacion ||
+                    $huboCambioUltima ||
+                    $huboCambioIntensidad ||
+                    $faltanCamposNuevos
+                );
 
                 if ($huboCambio) {
 
@@ -410,6 +460,13 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         $tipoCambio = 'ACTUALIZACION CANAL(ES): ' . implode(', ', $canalesConCambio);
                     } elseif ($necesitaFechaAsignacion) {
                         $tipoCambio = 'BACKFILL FECHA ASIGNACION';
+                    } elseif ($faltanCamposNuevos) {
+                        $tipoCambio = 'BACKFILL ULTIMA GESTION/INTENSIDAD';
+                    } elseif ($huboCambioUltima) {
+                        $tipoCambio = 'ACTUALIZACION ULTIMA GESTION'
+                            . (empty($canalesUltimaConCambio) ? '' : ': ' . implode(', ', $canalesUltimaConCambio));
+                    } elseif ($huboCambioIntensidad) {
+                        $tipoCambio = 'ACTUALIZACION INTENSIDAD';
                     } else {
                         $tipoCambio = 'RESINCRONIZACION';
                     }
@@ -440,12 +497,27 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         $prefAsig . '_telefono'         => $mejorGlobalNuevo['telefono'],
                         $prefAsig . '_email'            => $mejorGlobalNuevo['email'],
                         $prefAsig . '_mejorGestion'     => $mejoresPorCanal,
+
+                        $prefAsig . '_ultimaGestion_cuGestionId'   => $ultimaGlobalNueva['cuGestionId'],
+                        $prefAsig . '_ultimaGestion_canal'         => $ultimaGlobalNueva['canal'],
+                        $prefAsig . '_ultimaGestion_ponderacion'   => $ultimaGlobalNueva['ponderacion'],
+                        $prefAsig . '_ultimaGestion_tipificacion1' => $ultimaGlobalNueva['tipificacion1'],
+                        $prefAsig . '_ultimaGestion_tipificacion2' => $ultimaGlobalNueva['tipificacion2'],
+                        $prefAsig . '_ultimaGestion_fechaGestion'  => $ultimaGlobalNueva['fechaGestion'],
+                        $prefAsig . '_ultimaGestion_telefono'      => $ultimaGlobalNueva['telefono'],
+                        $prefAsig . '_ultimaGestion_email'         => $ultimaGlobalNueva['email'],
+                        $prefAsig . '_ultimaGestion'               => $ultimasPorCanal,
+
+                        $prefAsig . '_intensidad'       => $intensidadNueva,
+                        $prefAsig . '_intensidad_total' => $intensidadTotalNueva,
                     ];
 
                     // compromiso/montoCompromiso: Ventas no tiene estos campos en su cubo.
                     if ($tipoCartera === 'COBRANZA') {
                         $newRow[$prefAsig . '_compromiso']      = $mejorGlobalNuevo['compromiso'];
                         $newRow[$prefAsig . '_montoCompromiso'] = $mejorGlobalNuevo['montoCompromiso'];
+                        $newRow[$prefAsig . '_ultimaGestion_compromiso']      = $ultimaGlobalNueva['compromiso'];
+                        $newRow[$prefAsig . '_ultimaGestion_montoCompromiso'] = $ultimaGlobalNueva['montoCompromiso'];
                     }
 
                     if ($necesitaFechaAsignacion) {
@@ -498,6 +570,18 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
             " . implode("<br>", $carterasSinPeriodo) . "<br>
         ";
     }
+}
+
+// Indica si la gestion candidata es mas reciente que la actual: gana la de mayor
+// fecha de gestion y, si empatan, la que entro despues al cubo de gestiones
+// (_id mayor). Mismo criterio que auxEsMasReciente() de los cubos de asignaciones.
+function esGestionMasReciente(array $candidato, ?array $actual): bool
+{
+    if ($actual === null) return true;
+    if ($candidato['fechaGestion'] !== $actual['fechaGestion']) {
+        return $candidato['fechaGestion'] > $actual['fechaGestion'];
+    }
+    return strcmp((string)$candidato['cuGestionId'], (string)$actual['cuGestionId']) > 0;
 }
 
 // fechaAsignacion: primera carga del periodo actual. Cobranza la busca en el

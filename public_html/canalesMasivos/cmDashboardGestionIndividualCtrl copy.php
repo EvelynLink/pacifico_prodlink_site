@@ -2146,14 +2146,13 @@ switch ($act) {
 
     case "descargarGestionLlamadas":
         #region descargarGestionLlamadas
-        // Las filas salen del cubo cuGestionCobranzaMysql, filtradas por fecha de gestión (ver obtenerCondicionesCubo);
+        // Las filas salen del cubo cuGestionCobranzaMysql (mismo universo que descargarGestionGeneral);
         // lo que el cubo no guarda (estado, lote, sentimiento, finalización, costo, audio) se completa desde avProgramadas.
         $d = jsonStart();
         $fcSel = obtenerSeleccionFiltro(expect_safe_html($d["filtroCartera"]));
         $fcaSel = obtenerSeleccionFiltro(expect_safe_html($d["filtroCampania"]));
         [$filtroDesde, $filtroHasta] = obtenerRangoFiltroTiempo((string) expect_safe_html($d["filtroTiempo"]), $d);
-        $periodoPorCartera = obtenerPeriodoPorCartera(expect_safe_html($d["filtroPeriodo"] ?? []), $fcSel);
-        $condiciones = obtenerCondicionesCubo($fcSel, $fcaSel, $periodoPorCartera, $filtroDesde, $filtroHasta, "TELEFONICA");
+        $condiciones = obtenerCondicionesCubo($fcSel, $fcaSel, $filtroDesde, $filtroHasta, "TELEFONICA");
 
         $mongo = new MYMONGODB();
         $mongoOrigen = new MYMONGODB();
@@ -2211,13 +2210,12 @@ switch ($act) {
         break;
     case "descargarGestionCorreo":
         #region descargarGestionCorreo
-        // Las filas salen del cubo cuGestionCobranzaMysql, filtradas por fecha de gestión (ver obtenerCondicionesCubo).
+        // Las filas salen del cubo cuGestionCobranzaMysql (mismo universo que descargarGestionGeneral).
         $d = jsonStart();
         $fcSel = obtenerSeleccionFiltro(expect_safe_html($d["filtroCartera"]));
         $fcaSel = obtenerSeleccionFiltro(expect_safe_html($d["filtroCampania"]));
         [$filtroDesde, $filtroHasta] = obtenerRangoFiltroTiempo((string) expect_safe_html($d["filtroTiempo"]), $d);
-        $periodoPorCartera = obtenerPeriodoPorCartera(expect_safe_html($d["filtroPeriodo"] ?? []), $fcSel);
-        $condiciones = obtenerCondicionesCubo($fcSel, $fcaSel, $periodoPorCartera, $filtroDesde, $filtroHasta, "EMAIL");
+        $condiciones = obtenerCondicionesCubo($fcSel, $fcaSel, $filtroDesde, $filtroHasta, "EMAIL");
 
         $mongo = new MYMONGODB();
         $exportar = [];
@@ -2247,14 +2245,13 @@ switch ($act) {
         break;
     case "descargarGestionWhatsapp":
         #region descargarGestionWhatsapp
-        // Las filas salen del cubo cuGestionCobranzaMysql, filtradas por fecha de gestión (ver obtenerCondicionesCubo);
+        // Las filas salen del cubo cuGestionCobranzaMysql (mismo universo que descargarGestionGeneral);
         // el estado de envío no está en el cubo y se completa desde avProgramadasWhatsApp.
         $d = jsonStart();
         $fcSel = obtenerSeleccionFiltro(expect_safe_html($d["filtroCartera"]));
         $fcaSel = obtenerSeleccionFiltro(expect_safe_html($d["filtroCampania"]));
         [$filtroDesde, $filtroHasta] = obtenerRangoFiltroTiempo((string) expect_safe_html($d["filtroTiempo"]), $d);
-        $periodoPorCartera = obtenerPeriodoPorCartera(expect_safe_html($d["filtroPeriodo"] ?? []), $fcSel);
-        $condiciones = obtenerCondicionesCubo($fcSel, $fcaSel, $periodoPorCartera, $filtroDesde, $filtroHasta, "WHATSAPP");
+        $condiciones = obtenerCondicionesCubo($fcSel, $fcaSel, $filtroDesde, $filtroHasta, "WHATSAPP");
 
         $mongo = new MYMONGODB();
         $mongoOrigen = new MYMONGODB();
@@ -2651,10 +2648,10 @@ function obtenerTotalesLlamadasAV($condicion)
             $respuesta["cuadros"]["numeroLlamadasSinConexion"]["total"] = $llamadasSinConexion;
             $respuesta["cuadros"]["numeroLlamadasSinConexion"]["porcentaje"] = formatea_numero(($llamadasSinConexion * 100 / $cursor), 2, ",", ".");
             if ($duracionPromedio > 3600) {
-                $respuesta["cuadros"]["duracionPromedioSegundos"]["total"] = gmdate("H:i.s", (int)$duracionPromedio);
+                $respuesta["cuadros"]["duracionPromedioSegundos"]["total"] = gmdate("H:i.s", $duracionPromedio);
                 $respuesta["cuadros"]["duracionPromedioSegundos"]["tooltip"] = "Duración promedio en horas, minutos y segundos";
             } else {
-                $respuesta["cuadros"]["duracionPromedioSegundos"]["total"] = gmdate("i:s", (int)$duracionPromedio);
+                $respuesta["cuadros"]["duracionPromedioSegundos"]["total"] = gmdate("i:s", $duracionPromedio);
                 $respuesta["cuadros"]["duracionPromedioSegundos"]["tooltip"] = "Duración promedio en minutos y segundos";
             }
             $porcentajeAvance = round(((($llamadasFinalizadas + $llamadasError + $llamadasSinConexion + $llamadasDesprogramadas) * 100) / $cursor), 1);
@@ -3724,48 +3721,18 @@ function obtenerRangoFiltroTiempo(string $filtroTiempo, array $d): array
 }
 
 /**
- * Traduce el filtro de ciclos de la pantalla a un mapa cartera => ciclo.
- * filtroPeriodo llega como arreglo de "carteraId_periodo" (el número de ciclo es propio de cada cartera);
- * se admite también el valor simple antiguo, aplicado a la única cartera seleccionada.
- *
- * @param mixed $filtroPeriodo Valor recibido del front.
- * @param array $fcSel         Carteras seleccionadas.
- * @return array [carteraId => ciclo]; vacío si no se eligió ningún ciclo.
- */
-function obtenerPeriodoPorCartera(mixed $filtroPeriodo, array $fcSel): array
-{
-    $periodoPorCartera = [];
-    if (is_array($filtroPeriodo)) {
-        foreach ($filtroPeriodo as $value) {
-            if (!is_string($value) || strpos($value, '_') === false) {
-                continue;
-            }
-            [$carteraIdSel, $periodoSel] = explode('_', $value, 2);
-            $periodoPorCartera[intval($carteraIdSel)] = intval($periodoSel);
-        }
-        return $periodoPorCartera;
-    }
-    if ($filtroPeriodo !== "" && $filtroPeriodo !== null && intval($filtroPeriodo) >= 0 && count($fcSel) === 1) {
-        $periodoPorCartera[$fcSel[0]] = intval($filtroPeriodo);
-    }
-    return $periodoPorCartera;
-}
-
-/**
- * Arma la condición sobre cuGestionCobranzaMysql para los reportes individuales (llamadas, correo, WhatsApp):
- * gestiones con cubGC_fechaGestion dentro del rango pedido, sin limitarse al periodo activo
- * (a diferencia de descargarGestionGeneral). El ciclo solo se filtra en las carteras donde se eligió uno.
+ * Arma una condición sobre cuGestionCobranzaMysql por cada periodo activo de control_carga_periodo,
+ * con el mismo universo que descargarGestionGeneral: cartera + ciclo, y gestiones desde el inicio del periodo.
  * Las carteras elegidas se limitan a las permitidas para el usuario ($idsCarterasGeneral; vacío = todas).
  *
- * @param array    $fcSel             Carteras seleccionadas.
- * @param array    $fcaSel            Campañas seleccionadas.
- * @param array    $periodoPorCartera Ciclo elegido por cartera (ver obtenerPeriodoPorCartera).
- * @param int|null $desde             Inicio del rango pedido.
- * @param int|null $hasta             Fin del rango pedido.
- * @param string   $canal             Valor de cubGC_canal (TELEFONICA, EMAIL, WHATSAPP).
- * @return array Lista con la condición Mongo; vacía si el usuario no tiene carteras aplicables.
+ * @param array    $fcSel  Carteras seleccionadas.
+ * @param array    $fcaSel Campañas seleccionadas.
+ * @param int|null $desde  Inicio del rango pedido.
+ * @param int|null $hasta  Fin del rango pedido.
+ * @param string   $canal  Valor de cubGC_canal (TELEFONICA, EMAIL, WHATSAPP).
+ * @return array Lista de condiciones Mongo; vacía si no hay periodos aplicables.
  */
-function obtenerCondicionesCubo(array $fcSel, array $fcaSel, array $periodoPorCartera, ?int $desde, ?int $hasta, string $canal): array
+function obtenerCondicionesCubo(array $fcSel, array $fcaSel, ?int $desde, ?int $hasta, string $canal): array
 {
     global $idsCarterasGeneral;
     $carteras = $fcSel;
@@ -3776,28 +3743,37 @@ function obtenerCondicionesCubo(array $fcSel, array $fcaSel, array $periodoPorCa
         }
     }
 
-    $condicion = [
-        "cubGC_canal" => $canal,
-        "cubGC_tipificacion_respuesta2" => ['$nin' => tipificacionesExcluidasGestion()]
-    ];
+    $condicionPeriodo = ["activo" => 1];
     if (count($carteras) > 0) {
-        // el cubo guarda cubGC_carteraId como string
-        $condicion = array_merge($condicion, construirCondicionCarteraPeriodo($carteras, $periodoPorCartera, "cubGC_carteraId", "cubGC_ciclo", true));
+        $condicionPeriodo["cartera"] = ['$in' => $carteras];
     }
-    $condicionFecha = [];
-    if ($desde !== null) {
-        $condicionFecha['$gte'] = $desde;
+
+    $mongo = new MYMONGODB();
+    if ($mongo->buscar("control_carga_periodo", $condicionPeriodo) <= 0) {
+        return [];
     }
-    if ($hasta !== null) {
-        $condicionFecha['$lte'] = $hasta;
+
+    $condiciones = [];
+    while ($periodo = $mongo->siguientex()) {
+        $fechaPeriodo = intval($periodo["fecha"]);
+        // solo gestiones del ciclo actual: nunca antes del inicio del periodo
+        $condicionFecha = ['$gte' => ($desde !== null && $desde >= $fechaPeriodo) ? $desde : $fechaPeriodo];
+        if ($hasta !== null) {
+            $condicionFecha['$lte'] = $hasta;
+        }
+        $condicion = [
+            "cubGC_carteraId" => (string) intval($periodo["cartera"]),
+            "cubGC_ciclo" => intval($periodo["periodo"]),
+            "cubGC_fechaGestion" => $condicionFecha,
+            "cubGC_canal" => $canal,
+            "cubGC_tipificacion_respuesta2" => ['$nin' => tipificacionesExcluidasGestion()]
+        ];
+        if (count($fcaSel) > 0) {
+            $condicion["cubGC_campaniaId"] = ['$in' => $fcaSel];
+        }
+        $condiciones[] = $condicion;
     }
-    if (count($condicionFecha) > 0) {
-        $condicion["cubGC_fechaGestion"] = $condicionFecha;
-    }
-    if (count($fcaSel) > 0) {
-        $condicion["cubGC_campaniaId"] = ['$in' => $fcaSel];
-    }
-    return [$condicion];
+    return $condiciones;
 }
 
 /**

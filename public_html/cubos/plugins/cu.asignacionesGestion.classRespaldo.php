@@ -2,11 +2,24 @@
 require_once '../cubos/classes/abstract.class.cuCuboPlugin.php';
 class cuPGasignacionesGestion extends AbstractCuboPlugin {
     public const COLLECTION_CUBO = 'cuAsignacionesGestionAP';
+
+    // Mapeo del canal tal como viene en cuGestionCobranzaMysql (cubGC_canal)
+    // hacia el codigo con el que se guarda en el cubo.
+    protected const MAPA_CANALES = [
+        'TELEFONICA' => 'AV',
+        'EMAIL'      => 'EMAIL',
+        'WHATSAPP'   => 'WHATSAPP',
+    ];
+
+    // Cache de tramos de mora (misma fuente que el ETL de cbCreditos)
+    private ?array $tramosMora = null;
+
     protected function process($ids, $accion): void
     {
         //trigger_error("Factura ingresa cuAsignacionesGestionAP" . print_r($ids,true));
         //trigger_error("Factura accion cuAsignacionesGestionAP" . print_r($accion,true));
         if (!is_array($ids) || empty($ids)) return;
+        $this->tramosMora = null;
         $tablas = $this->organizeByTable($ids);
         $mdb    = new MYMONGODB();
         $mdbCubo    = new MYMONGODB();
@@ -46,6 +59,14 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
                         } else {
                             //trigger_error("Ingreso a caso contrario" . (string)$doc['cre_factura']);
                             if ($tabla == 'cbCreditos') {
+                                //capital al primer ingreso a este periodo, solo se guarda aqui
+                                $newRow['cubAG_capitalInicialPeriodo'] = (float)($doc['cre_saldoCapital'] ?? 0);
+                                //calificacion acelerada: tramo segun la mora proyectada al fin del periodo, solo se guarda aqui
+                                $acel = $this->calificacionAcelerada($doc, (int)$newRow['cubAG_fechaInicio'], (int)$newRow['cubAG_fechaFin']);
+                                $newRow['cubAG_calificacionAcelerada'] = $acel['calificacion'];
+                                $newRow['cubAG_diasMoraProyectados'] = $acel['dias'];
+                                //fecha de asignacion: solo se guarda en el primer ingreso al periodo
+                                $newRow['cubAG_fechaAsignacion'] = (int)($doc['cre_fechaCarga'] ?? 0);
                                 $mdbCubo->guardar(self::COLLECTION_CUBO, $newRow);
                             } else {
                                 //trigger_error("Registro no existe: Tabla: ".$tabla." Información: ".  print_r($criteria, true) );
@@ -106,8 +127,11 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
             'registro_operacion'        => ['mdb' => 'cubAG_numFactura',        'defaultValue' => '(Sin registro operación)'],
             'ciudad'                    => ['mdb' => 'cubAG_ciudad',        'defaultValue' => '(Sin ciudad)'],
             'riesgo'                    => ['mdb' => 'cubAG_riesgo',        'defaultValue' => '(Sin riesgo)'],
+            'calificacion_acelerada'    => ['mdb' => 'cubAG_calificacionAcelerada', 'defaultValue' => '(Sin calificación acelerada)'],
+            'dias_mora_proyectados'     => ['mdb' => 'cubAG_diasMoraProyectados', 'defaultValue' => '(Sin días mora proyectados)'],
             'producto'                  => ['mdb' => 'cubAG_producto',        'defaultValue' => '(Sin producto)'],
             'capital_actual'            => ['mdb' => 'cubAG_capitalActual',        'defaultValue' => '(Sin capital actual)'],
+            'capital_inicial_periodo'   => ['mdb' => 'cubAG_capitalInicialPeriodo', 'defaultValue' => '(Sin capital inicial periodo)'],
             'deuda_neta_actual'         => ['mdb' => 'cubAG_deudaNetaActual',        'defaultValue' => '(Sin deuda neta actaul)'],
             'dias_mora'                 => ['mdb' => 'cubAG_diasMora',        'defaultValue' => '(Sin días mora)'],
             'ciclo'                     => ['mdb' => 'cubAG_ciclo',        'defaultValue' => '(Sin ciclo)'],
@@ -116,8 +140,13 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
             'fecha_inicio'              => ['mdb' => 'cubAG_fechaInicio',        'defaultValue' => '(Sin fecha inicio)'],
             'fecha_fin'                 => ['mdb' => 'cubAG_fechaFin',        'defaultValue' => '(Sin fecha fin)'],
             'fecha_periodo'             => ['mdb' => 'cubAG_fechaPeriodo',        'defaultValue' => '(Sin fecha periodo)'],
+            'fecha_asignacion'          => ['mdb' => 'cubAG_fechaAsignacion',   'defaultValue' => '(Sin fecha asignación)'],
             'cartera_gestionada'        => ['mdb' => 'cubAG_gestionada',        'defaultValue' => '(Sin cartera gestionada)'],
             'monto_pago'                => ['mdb' => 'cubAG_montoTotalPago',        'defaultValue' => '(Sin monto pago)'],
+            'compromiso'                => ['mdb' => 'cubAG_compromiso',        'defaultValue' => '(Sin compromiso)'],
+            'monto_compromiso'          => ['mdb' => 'cubAG_montoCompromiso',        'defaultValue' => '(Sin monto compromiso)'],
+            'telefono'                   => ['mdb' => 'cubAG_telefono',           'defaultValue' => '(Sin telefono)'],
+            'email'                      => ['mdb' => 'cubAG_email',              'defaultValue' => '(Sin email)'],
 
         ];
         return $campos;
@@ -171,13 +200,21 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
             'cubAG_ctrId'                             => '',
             'cubAG_fechaInicio'                       => 0,
             'cubAG_fechaFin'                          => 0,
-            //cubo gestiones         
-            'cubAG_cuGestionId'                       => '',      
+            //cubo gestiones: mejor gestion general, aplanada (se llena mas abajo)
             'cubAG_gestionada'                        => 0,
+            'cubAG_cuGestionId'                       => '',
+            'cubAG_canal'                              => '',
             'cubAG_ponderacion'                       => 0,
             'cubAG_tipificacion1'                     => '',
             'cubAG_tipificacion2'                     => '',
-            'cubAG_fechaGestion'                      => 0,  
+            'cubAG_fechaGestion'                      => 0,
+            'cubAG_compromiso'                        => '',
+            'cubAG_montoCompromiso'                   => 0,
+            'cubAG_telefono'                           => '',
+            'cubAG_email'                              => '',
+
+            //cubo gestiones por canal (AV/EMAIL/WHATSAPP), se llena mas abajo
+            'cubAG_mejorGestion'                      => [],
 
             //PAGOS
             'cubAG_montoTotalPago'                    => 0,
@@ -257,35 +294,107 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
             $datos['cubAG_fechaFin'] = (int) $doc['fechaFin'] ?? 0;
             break;
         }
-        //Buscar registros en mongo cuGestionCobranzaMysql y añadir al cubo
+
+        foreach (self::MAPA_CANALES as $codigoCanal) {
+            $datos['cubAG_mejorGestion'][$codigoCanal] = [
+                'cuGestionId'     => '',
+                'ponderacion'     => 0,
+                'tipificacion1'   => '',
+                'tipificacion2'   => '',
+                'fechaGestion'    => 0,
+                'compromiso'      => '',
+                'montoCompromiso' => 0,
+                'telefono'        => '',
+                'email'           => '',
+            ];
+        }
+
         $mdbCuGC = new MYMONGODB();
         $condCuGC = [
             'cubGC_numFactura'     => (string)$datos['cubAG_numFactura'],
             'cubGC_carteraId'      => (string)$datos['cubAG_carteraId'],
             'cubGC_ciclo'          => (int)$datos['cubAG_ciclo'],
-            'cubGC_fechaPeriodo'   => (int)$datos['cubAG_fechaPeriodo'],
+            //'cubGC_fechaPeriodo'   => (int)$datos['cubAG_fechaPeriodo'],
             'cubGC_fechaGestion'   => ['$gte' => (int)$datos['cubAG_fechaInicio'], /*, '$lte' => strtotime(date("Y-m-d", $datos['cubAG_fechaFin']) . " 23:59:59")*/],
             'cubGC_tipificacion_respuesta2' => ['$nin' => ['WHATSAPP NO ENVIADO', 'WHATSAPP CON ERROR', 'Mail No Enviado']]
         ];
         $datCuGC = [
             '_id',
             'cubGC_avId',
+            'cubGC_canal',
             'cubGC_ponderacion',
             'cubGC_tipificacion_respuesta1',
             'cubGC_tipificacion_respuesta2',
-            'cubGC_fechaGestion'
+            'cubGC_fechaGestion',
+            'cubGC_tipificacion_compromiso',
+            'cubGC_tipificacion_montoCompromiso',
+            'cubGC_telefono',
+            'cubGC_email'
         ];
 
-        $mdbCuGC->buscar('cuGestionCobranzaMysql', $condCuGC, $datCuGC, ['cubGC_ponderacion' => -1], 1);
-        while ($doc = $mdbCuGC->siguiente()) {
-            $datos['cubAG_cuGestionId'] = $doc['_id'];
-            $datos['cubAG_gestionada'] = isset($doc['cubGC_avId']) ? 1 : 0;
-            $datos['cubAG_ponderacion'] = (int)$doc['cubGC_ponderacion'];
-            $datos['cubAG_tipificacion1'] = (string)$doc['cubGC_tipificacion_respuesta1'];
-            $datos['cubAG_tipificacion2'] = (string)$doc['cubGC_tipificacion_respuesta2'];
-            $datos['cubAG_fechaGestion'] = (int)$doc['cubGC_fechaGestion'];
+        $mdbCuGC->buscar('cuGestionCobranzaMysql', $condCuGC, $datCuGC, ['cubGC_ponderacion' => -1]);
 
-            break;
+        $mejorGlobal      = null;
+        $mejoresPorCanal  = [];
+        $gestionadaGlobal = 0;
+
+        while ($doc = $mdbCuGC->siguiente()) {
+            // 'gestionada' es un indicador global: si CUALQUIER gestion (de
+            // cualquier canal) tiene cubGC_avId, se marca 1 y ya no cambia.
+            if (isset($doc['cubGC_avId'])) {
+                $gestionadaGlobal = 1;
+            }
+
+            $codigoCanal = self::MAPA_CANALES[$doc['cubGC_canal'] ?? null] ?? null;
+
+            // Telefono solo para AV/WHATSAPP, email solo para EMAIL.
+            $telefono = '';
+            $email    = '';
+            if ($codigoCanal === 'AV' || $codigoCanal === 'WHATSAPP') {
+                $telefono = (string)($doc['cubGC_telefono'] ?? '');
+            } elseif ($codigoCanal === 'EMAIL') {
+                $email = (string)($doc['cubGC_email'] ?? '');
+            }
+
+            $candidato = [
+                'cuGestionId'     => $doc['_id'],
+                'canal'           => $codigoCanal ?? '',
+                'ponderacion'     => (int)$doc['cubGC_ponderacion'],
+                'tipificacion1'   => (string)$doc['cubGC_tipificacion_respuesta1'],
+                'tipificacion2'   => (string)$doc['cubGC_tipificacion_respuesta2'],
+                'fechaGestion'    => (int)$doc['cubGC_fechaGestion'],
+                'compromiso'      => (string)($doc['cubGC_tipificacion_compromiso'] ?? ''),
+                'montoCompromiso' => (float)($doc['cubGC_tipificacion_montoCompromiso'] ?? 0),
+                'telefono'        => $telefono,
+                'email'           => $email,
+            ];
+
+            if ($mejorGlobal === null) {
+                $mejorGlobal = $candidato;
+            }
+
+            if ($codigoCanal !== null && !isset($mejoresPorCanal[$codigoCanal])) {
+                $mejoresPorCanal[$codigoCanal] = $candidato;
+            }
+        }
+
+        $datos['cubAG_gestionada'] = $gestionadaGlobal;
+
+        if ($mejorGlobal !== null) {
+            $datos['cubAG_cuGestionId']   = $mejorGlobal['cuGestionId'];
+            $datos['cubAG_canal']         = $mejorGlobal['canal'];
+            $datos['cubAG_ponderacion']   = $mejorGlobal['ponderacion'];
+            $datos['cubAG_tipificacion1'] = $mejorGlobal['tipificacion1'];
+            $datos['cubAG_tipificacion2'] = $mejorGlobal['tipificacion2'];
+            $datos['cubAG_fechaGestion']  = $mejorGlobal['fechaGestion'];
+            $datos['cubAG_compromiso']       = $mejorGlobal['compromiso'];
+            $datos['cubAG_montoCompromiso']  = $mejorGlobal['montoCompromiso'];
+            $datos['cubAG_telefono']         = $mejorGlobal['telefono'];
+            $datos['cubAG_email']            = $mejorGlobal['email'];
+        }
+
+        foreach ($mejoresPorCanal as $codigoCanal => $mejor) {
+            $datos['cubAG_mejorGestion'][$codigoCanal] = $mejor;
         }
 
         //Buscar registros en mongo cbPagos y añadir al cubo
@@ -306,30 +415,136 @@ class cuPGasignacionesGestion extends AbstractCuboPlugin {
             $totalMonto += isset($doc['pagos_monto']) ? (float)$doc['pagos_monto'] : 0;
         }
         $datos['cubAG_montoTotalPago'] = round($totalMonto, 2);
+
         return $datos;
     }
 
     public function recreate(): void
     {
-        exit;
         $limit = 20000;
         $skip  = 0;
         $mdb = new MYMONGODB();
+        $mdbCubo = new MYMONGODB();
         $mdb->borrarColeccion(self::COLLECTION_CUBO);
+
+        // Misma condición que aplica process() en el caso 'ADD': solo créditos activos
+        $condiciones = ['cre_inactivo' => (int)0];
+
         for ($i = 0; $i < 400; $i++) {
-            $mdb->buscar('cbCreditos', [], [], ['_id' => 1], $limit, $skip);
+            $mdb->buscar('cbCreditos', $condiciones, [], ['_id' => 1], $limit, $skip);
             $numRows = 0;
             while ($doc = $mdb->siguiente()) {
-                $dato = $this->createData($doc);
-                if (count($dato) > 0) {
-                    $mdb->guardar(self::COLLECTION_CUBO, $dato);
+
+                $criteria = [
+                    'cubAG_numFactura'   => (string)$doc['cre_factura'],
+                    'cubAG_carteraId'    => (string)$doc['cre_carteraId'],
+                    'cubAG_fechaPeriodo' => (int)$doc['cre_fechaPeriodo'],
+                ];
+                $newRow = $this->createData($doc);
+
+                // Mismo insertar-o-actualizar que hace process() cuando la tabla es cbCreditos
+                if ($mdbCubo->buscar(self::COLLECTION_CUBO, $criteria, ['_id'], [], 1)) {
+                    $mdbCubo->actualizar(self::COLLECTION_CUBO, $criteria, $newRow);
+                } else {
+                    //capital al primer ingreso a este periodo, solo se guarda aqui
+                    $newRow['cubAG_capitalInicialPeriodo'] = (float)($doc['cre_saldoCapital'] ?? 0);
+                    //fecha de asignacion: solo se guarda en el primer ingreso al periodo
+                    $newRow['cubAG_fechaAsignacion'] = (int)($doc['cre_fechaCarga'] ?? 0);
+                    $mdbCubo->guardar(self::COLLECTION_CUBO, $newRow);
                 }
+
                 $numRows++;
             }
             if ($numRows < $limit) break;
             $skip += $limit;
         }
         $this->createIndices($mdb);
+    }
+
+    // Proyecta la mora desde fechaInicio hasta fechaFin del periodo y le asigna el tramo de mora.
+    // Devuelve ['dias' => mora proyectada, 'calificacion' => tramo].
+    protected function calificacionAcelerada(array $doc, int $fechaInicio, int $fechaFin): array
+    {
+        $diasMora = (int)($doc['cre_diasMoraFactura'] ?? 0);
+
+        // Sin fechas del periodo no se puede proyectar: se deja la calificación actual
+        if ($fechaInicio <= 0 || $fechaFin <= 0) {
+            return ['dias' => $diasMora, 'calificacion' => (string)($doc['cre_calificacion'] ?? '')];
+        }
+
+        // Se toman también los clientes con mora 0
+        $diasPeriodo = (int)round((strtotime(date('Y-m-d', $fechaFin)) - strtotime(date('Y-m-d', $fechaInicio))) / 86400);
+        $diasProyectados = $diasMora + max(0, $diasPeriodo);
+
+        return [
+            'dias'         => $diasProyectados,
+            'calificacion' => $this->buscarTramoMora($diasProyectados, (string)($doc['cre_producto'] ?? ''), (string)($doc['cre_carteraId'] ?? '')),
+        ];
+    }
+
+    protected function buscarTramoMora(int $mora, string $producto, string $carteraId): string
+    {
+        $this->cargarTramosMora();
+        $tramos = [];
+        if ($producto !== '' && isset($this->tramosMora['producto'][$producto])) {
+            $tramos = $this->tramosMora['producto'][$producto];
+        } elseif ($carteraId !== '' && isset($this->tramosMora['cartera'][$carteraId])) {
+            $tramos = $this->tramosMora['cartera'][$carteraId];
+        }
+
+        foreach ($tramos as $tr) {
+            $inicio = $tr['tr_tramoInicio'];
+            $fin    = $tr['tr_tramoFin'];
+            if (($inicio != 9999999 && $fin != 9999999 && $mora >= $inicio && $mora <= $fin)
+                || ($fin == 9999999 && $mora >= $inicio)
+                || ($inicio == 9999999 && $mora <= $fin)) {
+                return (string)$tr['tr_tramo'];
+            }
+        }
+        return '';
+    }
+
+    // Carga una sola vez los tramos MORA con el mismo aggregate que usa el ETL de carga para cbCreditos.
+    protected function cargarTramosMora(): void
+    {
+        if ($this->tramosMora !== null) return;
+        $this->tramosMora = ['producto' => [], 'cartera' => []];
+
+        $condition = [
+            ['$match' => ['tr_tipoTramo' => 'MORA']],
+            ['$lookup' => [
+                'from'         => 'cbConfig',
+                'localField'   => '_id',
+                'foreignField' => 'cbConf_cbTramosId',
+                'as'           => 'data',
+            ]],
+            ['$unwind' => '$data'],
+            ['$match' => ['data.cbConf_tipo' => 'tr_MORA_CARTERA']],
+            ['$lookup' => [
+                'from'         => 'cbConfig',
+                'localField'   => 'data.cbConf_cbTramosId',
+                'foreignField' => 'cbConf_cbTramosId',
+                'as'           => 'data1',
+            ]],
+            ['$unwind' => '$data1'],
+            ['$match' => ['data1.cbConf_tipo' => 'tr_MORA_PRODUCTO']],
+        ];
+
+        $mdbTr = new MYMONGODB();
+        $mdbTr->agregar('cbTramos', $condition);
+        while ($tr = $mdbTr->siguiente()) {
+            $tramo = [
+                'tr_tramo'       => $tr['tr_tramo'] ?? '',
+                'tr_tramoInicio' => $tr['tr_tramoInicio'] ?? null,
+                'tr_tramoFin'    => $tr['tr_tramoFin'] ?? null,
+            ];
+            if (isset($tr['data']['cbConf_id'])) {
+                $this->tramosMora['cartera'][$tr['data']['cbConf_id']][] = $tramo;
+            }
+            if (isset($tr['data1']['cbConf_carteraNombre'])) {
+                $this->tramosMora['producto'][$tr['data1']['cbConf_carteraNombre']][] = $tramo;
+            }
+        }
     }
 
     protected function baseQuery(int $limit = 0): string

@@ -33,9 +33,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                         $condOrigen = [
                             '_id' => new MongoDB\BSON\ObjectId($id)
                         ];
-                       /* if ($config['tipificacion']) {
-                            $condOrigen[$config['tipificacion']] = ['$nin' => [null, '']];
-                        }*/
                         // SOLO para emails
                         if ($tabla === 'cbEnvioMails') {
                             $condOrigen['cem_susErrorEnvio'] = 0;
@@ -121,8 +118,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 return [
                     'factura'      => 'av_factura',
                     'cartera'      => 'av_carteraId',
-                    //'tipificacion' => 'av_tipificacion.respuesta2',
-                    'tipificacion' => null,
                     'campos'       => [
                         '_id',
                         'av_factura',
@@ -133,7 +128,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 return [
                     'factura'      => 'ws_factura',
                     'cartera'      => 'ws_carteraId',
-                    'tipificacion' => 'ws_tipificacion.respuesta2',
                     'campos'       => [
                         '_id',
                         'ws_factura',
@@ -144,7 +138,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 return [
                     'factura'      => 'cem_susFactura',
                     'cartera'      => 'cem_susCarteraId',
-                    'tipificacion' => null,
                     'campos'       => [
                         '_id',
                         'cem_susFactura',
@@ -850,7 +843,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             $condAvProgWhats = [
                 'ws_factura'   => (string) $datos['cubGC_numFactura'],
                 'ws_carteraId'   => (int) $datos['cubGC_carteraId'],
-                'ws_tipificacion.respuesta2' => ['$nin' => ['', null]],
                 'ws_fecha' => ['$gte' => $datos['cubGC_fechaInicio']]
             ];
             if (!empty($idGestion)) {
@@ -1013,9 +1005,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
 
            
             $condOrigen = [];
-          /*  if ($config['tipificacion']) {
-                $condOrigen[$config['tipificacion']] = ['$nin' => [null, '']];
-            }*/
             // SOLO para emails
             if ($tabla === 'cbEnvioMails') {
                 $condOrigen['cem_susErrorEnvio'] = 0;

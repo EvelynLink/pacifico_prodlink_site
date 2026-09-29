@@ -1,0 +1,227 @@
+.md-switch.md-default-theme.md-checked .md-bar,
+md-switch.md-checked .md-bar {
+    background-color: #d6eaf8;
+}
+.md-switch.md-default-theme.md-checked .md-thumb,
+md-switch.md-checked .md-thumb {
+    background-color: #428bca;
+}
+.md-switch.md-default-theme.md-checked .md-ink-ripple,
+md-switch.md-checked .md-ink-ripple {
+    color: #428bca;
+}
+
+.contenedor-formularios-parametrizacion {
+    padding: 12px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    vertical-align: middle;
+    flex-direction: column;
+    border-bottom: solid 1px #ebebeb;
+    border-left: solid 1px #ebebeb;
+    border-right: solid 1px #ebebeb;
+    margin-top: 0;
+}
+
+.titulo-componente-formulario {
+    font-weight: bold;
+}
+
+.titulo-componente-formulario h5 {
+    font-weight: bold;
+    text-decoration: underline;
+    padding-bottom: 8px;
+    padding-top: 8px;
+}
+
+.status-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 3px solid white;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.status-indicator.online {
+    background: #22c55e;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.offline {
+    background: #ef4444;
+}
+
+.contenedor-totales.offline {
+    border: solid 1px #ef4444;
+}
+
+.badge {
+    background-color: gray;
+    font-size: 11px;
+}
+
+.form-group label {
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.help-block {
+    font-size: 11px;
+    font-style: italic;
+}
+.md-switch.md-default-theme.md-checked .md-bar,
+md-switch.md-checked .md-bar {
+    background-color: #d6eaf8;
+}
+.md-switch.md-default-theme.md-checked .md-thumb,
+md-switch.md-checked .md-thumb {
+    background-color: #428bca;
+}
+.md-switch.md-default-theme.md-checked .md-ink-ripple,
+md-switch.md-checked .md-ink-ripple {
+    color: #428bca;
+}
+
+.contenedor-indicador {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    vertical-align: middle;
+    gap: 0.25rem;
+    width: 50px;
+    background: #fcf3cf;
+    border-radius: 0px 4px 4px 0px;
+    padding: 1rem;
+}
+.bolita-indicador {
+    border-radius: 9999px;
+    height: 0.8rem;
+    width: 0.8rem;
+    background: rgba(148 163 184 / 1);
+    animation: wave 1s infinite;
+}
+
+.bolita-indicador:nth-child(1) {
+    animation-delay: 0.3333s;
+}
+.bolita-indicador:nth-child(2) {
+    animation-delay: 0.6666s;
+}
+.bolita-indicador:nth-child(3) {
+    animation-delay: 0.9999s;
+}
+
+.angular-with-newlines {
+    white-space: pre-line;
+}
+
+.message-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.message-text {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.message-date {
+    margin: 0;
+    font-size: 11px;
+    color: #555;
+    line-height: 1.4;
+}
+
+.input-sm {
+    height: 30px;
+    line-height: 30px;
+}
+
+@keyframes wave {
+    0% {
+        transform: translateY(0px);
+        background: rgba(148 163 184 / 0);
+    }
+    50% {
+        transform: translateY(-0.5rem);
+        background: rgba(148 163 184 / 0.8);
+    }
+    100% {
+        transform: translateY(0px);
+        background: rgba(148 163 184 / 0);
+    }
+}
+
+.flex-horizontal {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    vertical-align: middle;
+    width: 100%;
+}
+
+.flex-vertical {
+    width: 100%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.ancho-100 {
+    width: 100%;
+}
+
+.alinear-arriba {
+    align-items: start;
+}
+
+.form-control .input-sm select {
+    padding: unset !important;
+}
+
+.contenedor-filtros-agentes {
+    display: flex;
+    margin: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+}
+.image-filtro {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle;
+    background-color: #cbcbcb;
+}
+.contenedor-select-filtros {
+    padding: 12px;
+    display: flex;
+}
+.contenedor-select-filtros-interno {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle;
+}
+.padding-izquierdo {
+    padding-left: 12px;
+}
+.ancho-select {
+    max-width: 400px;
+}
+.contenedor-agente-analista {
+    position: absolute;
+    bottom: 2;
+    left: 2;
+    text-align: left;
+}
+.td-contenedor-agente-analista {
+    position: relative;
+}
+/* _FIN_DE_ARCHIVO */

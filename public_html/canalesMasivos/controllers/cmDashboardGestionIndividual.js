@@ -769,6 +769,7 @@ app.controller("cmDashboardGestionIndividual", ['$scope', 'avisos', 'simple', 'p
             url: '../canalesMasivos/cmDashboardGestionIndividualCtrl.php?act=descargarGestionLlamadas',
             data: {
                 filtroCampania: $scope.filtroCampania,
+                filtroPeriodo: $scope.listas.filtroPeriodo,
                 filtroCartera: $scope.filtroCartera,
                 filtroTiempo: $scope.filtroTiempo,
                 filtroDesde: $scope.filtroDesde,
@@ -801,6 +802,7 @@ app.controller("cmDashboardGestionIndividual", ['$scope', 'avisos', 'simple', 'p
             url: '../canalesMasivos/cmDashboardGestionIndividualCtrl.php?act=descargarGestionCorreo',
             data: {
                 filtroCampania: $scope.filtroCampania,
+                filtroPeriodo: $scope.listas.filtroPeriodo,
                 filtroCartera: $scope.filtroCartera,
                 filtroTiempo: $scope.filtroTiempo,
                 filtroDesde: $scope.filtroDesde,
@@ -833,6 +835,7 @@ app.controller("cmDashboardGestionIndividual", ['$scope', 'avisos', 'simple', 'p
             url: '../canalesMasivos/cmDashboardGestionIndividualCtrl.php?act=descargarGestionWhatsapp',
             data: {
                 filtroCampania: $scope.filtroCampania,
+                filtroPeriodo: $scope.listas.filtroPeriodo,
                 filtroCartera: $scope.filtroCartera,
                 filtroTiempo: $scope.filtroTiempo,
                 filtroDesde: $scope.filtroDesde,

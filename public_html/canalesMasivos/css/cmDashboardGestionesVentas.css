@@ -4,7 +4,7 @@
 
 .gv-root, .gv-root *{
     box-sizing: border-box;
-}
+} 
 
 .gv-root{
     display: flex;

@@ -1,0 +1,12 @@
+# Archivos de Claude Code
+public_html/.claude/
+public_html/CLAUDE.md
+CLAUDE.local.md
+**/CLAUDE.local.md
+
+# Credenciales (no versionar nunca)
+.vscode/sftp.json
+.ssh/
+.gnupg/
+gpg/
+ssl/

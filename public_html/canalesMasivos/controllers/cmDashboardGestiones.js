@@ -2,14 +2,7 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
 
     myIntercom.publica('ruta', menuSuperior);
     $scope.cargando = true;
-    $scope.recargarTabula = 0;
-    $scope.tablaDias = [];
     $scope.listas = {
-        "canales": [
-            { "nombre": "LLamada telefónica (agente virtual)", "id": "llamadas_av", "checked": true },
-            { "nombre": "Correo electrónico", "id": "correo", "checked": true },
-            { "nombre": "WhatsApp", "id": "whatsapp", "checked": true }
-        ],
         "carteras": [],
         "campanias": [],
         "opcionesFiltroCanal": [
@@ -33,49 +26,14 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
         "soyObservador": true,
         "soyDesarrollo": false
     };
-    $scope.secciones = {
-        "llamadasAV": {
-            "totales": [],
-            "porcentajeAvance": 0,
-            "campanias": []
-        },
-        "whatsapp": {
-            "totales": [],
-            "porcentajeAvance": 0,
-            "campanias": []
-        },
-        "correo": {
-            "totales": [],
-            "porcentajeAvance": 0,
-            "campanias": []
-        }
-    };
     $scope.totales = {
         "gestion": [],
-        "tipificacion": [],
-        "cumplimiento": []
-    };
-    $scope.verDias = false;
-    $scope.efectividad = {};
-    $scope.totalesCumplimiento = [];
-    $scope.porcentajeTotal = 0;
-    $scope.porcentajes = {
-        "porcentajeAvanceLlamadasAv": "0,0"
+        "tipificacion": []
     };
     $scope.graficos = {
-        "pie": [],
-        "barrasTotales": [],
-        "lineaLlamadas": [],
-        "lineaCorreos": [],
-        "lineaWhatsapp": [],
-        "compromisos": []
+        "lineaLlamadas": []
     };
-    $scope.promedios = {
-        "llamadas": "N/D",
-        "correos": "N/D",
-        "whatsapp": "N/D"
-    }
-    
+
     $scope.tipoCartera = "";
 
     $scope.titulo = "";
@@ -114,80 +72,10 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
     $scope.tiempoActualizar = 60000;
     $scope.cargandoGraficos = false;
     $scope.cargandoExcel = {};
-    $scope.debouncer = null;
-    $scope.modalReportes = {
-        evento: {},
-        activo: false
-    };
-
     $scope.modalGraficos = {
         evento: {},
         activo: false
     };
-    $scope.espere = {
-        "general": false,
-        "llamadas": false,
-        "correos": false,
-        "whatsapp": false
-    };
-    $scope.resumenCompromisos = [];
-
-   
-
-    let configGaugeProgreso = liquidFillGaugeDefaultSettings();
-    configGaugeProgreso.circleColor = "#cbcbcb";
-    configGaugeProgreso.textColor = "#686552";
-    configGaugeProgreso.waveTextColor = "white";
-    configGaugeProgreso.waveColor = "#686552";
-    configGaugeProgreso.circleThickness = 0.2;
-    configGaugeProgreso.textVertPosition = 0.2;
-    configGaugeProgreso.waveAnimateTime = 3000;
-    configGaugeProgreso.displayPercent = true;
-    configGaugeProgreso.displayMoney = false;
-    configGaugeProgreso.maxValue = 100;
-    configGaugeProgreso.textSize = 0.75;
-    //$scope.gaugeProgreso = loadLiquidFillGauge("gaugeProgreso", 0, configGaugeProgreso);
-    //$scope.gaugeProgresoCorreo = loadLiquidFillGauge("gaugeProgresoCorreo", 0, configGaugeProgreso);
-    //$scope.gaugeProgresoWhatsapp = loadLiquidFillGauge("gaugeProgresoWhatsapp", 0, configGaugeProgreso);
-
-    $scope.opcionesBarraTotales = {
-        chart: {
-            type: 'discreteBarChart',
-            height: 200,
-            margin: {
-                top: 5,
-                right: 40,
-                bottom: 70,
-                left: 55
-            },
-            x: function (d) { return d.label; },
-            y: function (d) { return d.value; },
-            showValues: true,
-            valueFormat: function (d) {
-                return d;
-            },
-            duration: 500,
-            xAxis: {
-                //axisLabel: 'X Axis'
-                rotateLabels: 15,
-                fontSize: 10
-            },
-            yAxis: {
-                axisLabel: 'Contactos directos',
-                axisLabelDistance: -4,
-                tickFormat: function (d) { return d3.format(',f')(d); },
-            },
-            noData: "Esperando datos",
-            tooltip: {
-                contentGenerator: function (d) {
-                    //let h = '<table><tbody><tr><td class="legend-color-guide"><div style="background-color: ' + d.color + ';"></div></td><td class="key">' + d.data.padre + ' - ' + d.data.label + '<br><span class="value"><b>' + d.data.value + ' deudas</b> (' + d.data.monto + ')</span></td></tr></tbody></table>';
-                    let h = '<table><tbody><tr><td class="legend-color-guide"><div style="background-color: ' + d.color + ';"></div></td><td class="key">' + d.data.label + '<br><span class="value"><b>' + d.data.value + ' contactos directos (' + d.data.porcentaje + '% )</b></span></td></tr></tbody></table>';
-                    return h;
-                }
-            },
-        }
-    };
-
 
     $scope.opcionesLineaGestiones = {
         chart: {
@@ -296,109 +184,6 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
         }
     };
 
-
-    $scope.opcionesCompromisos = {
-        chart: {
-            type: 'multiBarChart',
-            height: 200,
-            margin: {
-                top: 5,
-                right: 40,
-                bottom: 20,
-                left: 55
-            },
-            noData: "Esperando datos",
-            clipEdge: true,
-            duration: 500,
-            stacked: false,
-            xAxis: {
-                axisLabel: '',
-                showMaxMin: true,
-                tickFormat: function (d) {
-                    //return d3.format(',f')(d);
-                    return d3.time.format('%d/%m')(new Date(d));
-                },
-                staggerLabels: false,
-                ticks: 12,
-            },
-            yAxis: {
-                axisLabel: '',
-                axisLabelDistance: -20,
-                tickFormat: function (d) {
-                    //return d3.format(',.1f')(d);
-                    return d;
-                }
-            },
-            tooltip: {
-                contentGenerator: function (d) {
-                    let r = $scope.resumenCompromisos["_" + d.value];
-                    let h = '<table><tbody>' +
-                        '<tr><td colspan="2" class="key"><b>' + d3.time.format('%d/%m/%Y')(new Date(d.value)) + '</b></td></tr>' +
-                        '<tr><td class="legend-color-guide">' +
-                        '<div style="background-color: ' + r["Compromisos proyectados"][1] + ';"></div></td>' +
-                        '<td class="key">Compromisos proyectados: <span class="value"><b>' + r["Compromisos proyectados"][0] + '</b></span></td></tr>' +
-                        '<tr><td class="legend-color-guide">' +
-                        '<div style="background-color: ' + r["Cumplimiento compromisos del día"][1] + ';"></div></td>' +
-                        '<td class="key">Cumplimiento compromisos del d&iacute;a: <span class="value"><b>' + r["Cumplimiento compromisos del día"][0] + '</b></span></td></tr>' +
-                        '<tr><td class="legend-color-guide">' +
-                        '<div style="background-color: ' + r["Seguimiento promesa caída"][1] + ';"></div></td>' +
-                        '<td class="key">Seguimiento promesa ca&iacute;da: <span class="value"><b>' + r["Seguimiento promesa caída"][0] + '</b></span></td></tr>' +
-                        '<tr><td></td><td>' +
-                        '<small>' + r["Seguimiento promesa caída"][2] + '</small></td></tr>' +
-                        '</tbody></table>';
-                    return h;
-                }
-            }
-        }
-    };
-
-    $scope.opcionesPie = {
-        chart: {
-            type: 'pieChart',
-            height: 200,
-            x: function (d) { return d.key; },
-            y: function (d) { return d.y; },
-            showLabels: true,
-            duration: 5,
-            labelThreshold: 0.01,
-            labelSunbeamLayout: false,
-            legend: {
-                margin: {
-                    top: 5,
-                    right: 0,
-                    bottom: 5,
-                    left: 0
-                }
-            }
-        }
-    };
-
-    $scope.viewdias = function () {
-        $scope.cargando = true;
-        $scope.tablaDias = [];
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=cargarTablaDias',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta,
-                filtroPeriodo: $scope.listas.filtroPeriodo
-            }
-        }).then(function (response) {
-            $scope.tablaDias = response;
-            $scope.verDias = true;
-            $scope.cargando = false;
-        });
-
-    };
-
-    $scope.cerrarDias = function () {
-        $scope.verDias = false;
-    };
-    
     $scope.resincronizarCubo = function () {
         avisos.alerta("El proceso ocurrirá de manera asincrónica...","... y puede tomar algunos minutos");
         pedido.async({
@@ -575,48 +360,24 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
 
     $scope.traerTotales = function () {
         $scope.cargandoGraficos = true;
-        // $scope.cargando = true;
-        $scope.graficos.barrasTotales = {};
         pedido.async({
             method: 'POST',
             url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=obtenerTotales',
             data: {
-                filtroCampania: $scope.filtroCampania,
                 filtroCartera: $scope.filtroCartera,
                 filtroTiempo: $scope.filtroTiempo,
                 filtroDesde: $scope.filtroDesde,
                 filtroHasta: $scope.filtroHasta,
-                filtroCanales: $scope.listas.canales,
                 filtroPeriodo: $scope.listas.filtroPeriodo,
                 filtroCanal: $scope.filtroCanal
             }
         }).then(function (response) {
-            if (response.llamadasAV !== undefined) {
-                $scope.secciones.llamadasAV = response.llamadasAV;
-                //$scope.gaugeProgreso.update($scope.secciones.llamadasAV.porcentajeAvance);
-            }
-            if (response.correo !== undefined) {
-                $scope.secciones.correo = response.correo;
-                //$scope.gaugeProgresoCorreo.update($scope.secciones.correo.porcentajeAvance);
-            }
-            if (response.whatsapp !== undefined) {
-                $scope.secciones.whatsapp = response.whatsapp;
-                //$scope.gaugeProgresoWhatsapp.update($scope.secciones.whatsapp.porcentajeAvance);
-            }
             if (response.totales !== undefined) {
                 $scope.totales = response.totales;
-                console.log(response.totales);
-                $scope.efectividad = response.efectividad;
-                $scope.porcentajeTotal = response.porcentajeTotal;
-                //$scope.gaugeProgresoTotal.update($scope.porcentajeTotal);
-            }
-            if (response.graficos !== undefined) {
-                $scope.graficos = response.graficos;
             }
             $scope.cargando = false;
             $scope.cargandoGraficos = false;
         });
-        //console.log($scope.totales);
     };
 
     $scope.traerGraficoGestiones = function () {
@@ -705,86 +466,6 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
             })
             .join(' ');
     }
-
-
-    
-
-    $scope.traerGraficoCorreos = function () {
-        $scope.graficos.lineaCorreos = [];
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=graficoLineaCorreos',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                $scope.graficos.lineaCorreos = response.respuesta;
-            }
-            if (response.promedio !== undefined) {
-                $scope.promedios.correos = response.promedio;
-            } else {
-                $scope.promedios.correos = "N/D";
-            }
-        });
-    };
-
-    $scope.traerGraficoWp = function () {
-        $scope.graficos.lineaCorreos = [];
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=graficoLineaWhatsapp',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                $scope.graficos.lineaWhatsapp = response.respuesta;
-            }
-            if (response.promedio !== undefined) {
-                $scope.promedios.whatsapp = response.promedio;
-            } else {
-                $scope.promedios.whatsapp = "N/D";
-            }
-        });
-    };
-
-    $scope.traerGraficoCompromisos = function () {
-        $scope.graficos.compromisos = [];
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=graficoCompromisos',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                $scope.graficos.compromisos = response.respuesta;
-            }
-            if (response.resumen !== undefined) {
-                $scope.resumenCompromisos = response.resumen;
-            }
-        });
-    };
-
-    $scope.cambioCheck = function () {
-        clearTimeout($scope.debouncer);
-        $scope.debouncer = setTimeout(() => {
-            $scope.traerParametrizacion();
-        }, 800);
-    };
 
     $scope.aplicarRangoFechas = function () {
         if (typeof $scope.fechaDesde === "object" && typeof $scope.fechaHasta === "object") {
@@ -917,10 +598,6 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
         $scope.traerParametrizacion();
     };
 
-    $scope.mostrarModalReportes = function () {
-        $scope.modalReportes.activo = true;
-    };
-
     $scope.mostrarModalGraficos = function (tipo) {
         
         if ($scope.filtroTiempo!="ini" && $scope.filtroCartera !== "todo" ) {
@@ -965,15 +642,6 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
         
     };
 
-    $scope.getWidthContenedor = function () {
-    let lista = $scope.graficos?.lineaLlamadas || [];
-    let n = lista.length;
-
-    if (n === 4) return '108%'; 
-
-        return '100%';
-    };
-
     $scope.descargarReporteExcel = function (tipo) {
          $scope.tipoCartera = tipo;     
           $scope.cargandoExcel[tipo] = false;
@@ -1007,130 +675,6 @@ app.controller("cmDashboardGestiones", ['$scope', 'avisos', 'simple', 'pedido', 
 
     $scope.cargarExcel = function (codigoCard) {
         return $scope.cargandoExcel[codigoCard] === false;
-    };
-
-    $scope.descargarReporteLlamadas = function () {
-        $scope.espere.llamadas = true;
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=descargarGestionLlamadas',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                if (response.respuesta.archivo !== undefined) {
-                    var anchor = document.createElement('a');
-                    anchor.href = response.respuesta.archivo;
-                    anchor.target = '_blank';
-                    anchor.download = "Reporte_llamadas.csv";
-                    anchor.click();
-                }
-                if (response.respuesta.error !== undefined) {
-                    avisos.alerta("Error", response.respuesta.error);
-                }
-            } else {
-                avisos.alerta("Error", "No hubo respuesta del servidor");
-            }
-            $scope.espere.llamadas = false;
-        });
-    };
-
-    $scope.descargarReporteCorreos = function () {
-        $scope.espere.correos = true;
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=descargarGestionCorreo',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                if (response.respuesta.archivo !== undefined) {
-                    var anchor = document.createElement('a');
-                    anchor.href = response.respuesta.archivo;
-                    anchor.target = '_blank';
-                    anchor.download = "Reporte_correos.csv";
-                    anchor.click();
-                }
-                if (response.respuesta.error !== undefined) {
-                    avisos.alerta("Error", response.respuesta.error);
-                }
-            } else {
-                avisos.alerta("Error", "No hubo respuesta del servidor");
-            }
-            $scope.espere.correos = false;
-        });
-    };
-
-    $scope.descargarReporteWhatsapp = function () {
-        $scope.espere.whatsapp = true;
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=descargarGestionWhatsapp',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                if (response.respuesta.archivo !== undefined) {
-                    var anchor = document.createElement('a');
-                    anchor.href = response.respuesta.archivo;
-                    anchor.target = '_blank';
-                    anchor.download = "Reporte_whatsapp.csv";
-                    anchor.click();
-                }
-                if (response.respuesta.error !== undefined) {
-                    avisos.alerta("Error", response.respuesta.error);
-                }
-            } else {
-                avisos.alerta("Error", "No hubo respuesta del servidor");
-            }
-            $scope.espere.whatsapp = false;
-        });
-    };
-
-    $scope.descargarReporteGeneral = function () {
-        $scope.espere.general = true;
-        pedido.async({
-            method: 'POST',
-            url: '../canalesMasivos/cmDashboardGestionesCtrl.php?act=descargarGestionGeneral',
-            data: {
-                filtroCampania: $scope.filtroCampania,
-                filtroCartera: $scope.filtroCartera,
-                filtroTiempo: $scope.filtroTiempo,
-                filtroDesde: $scope.filtroDesde,
-                filtroHasta: $scope.filtroHasta
-            }
-        }).then(function (response) {
-            if (response.respuesta !== undefined) {
-                if (response.respuesta.archivo !== undefined) {
-                    var anchor = document.createElement('a');
-                    anchor.href = response.respuesta.archivo;
-                    anchor.target = '_blank';
-                    anchor.download = "Reporte_general.csv";
-                    anchor.click();
-                }
-                if (response.respuesta.error !== undefined) {
-                    avisos.alerta("Error", response.respuesta.error);
-                }
-            } else {
-                avisos.alerta("Error", "No hubo respuesta del servidor");
-            }
-            $scope.espere.general = false;
-        });
     };
 
     $scope.$watch('filtroTiempo', function () {

@@ -33,6 +33,9 @@ define('MAPA_CANALES', [
     'WHATSAPP'   => 'WHATSAPP',
 ]);
 
+// Historico de cargas diarias, solo existe para Cobranza (se usa para fechaAsignacion).
+define('COLECCION_HISTORICO_ASIGNACIONES', 'avHistorialAsignacionesDiarias');
+
 // ============================================================================
 // USO:
 //   Periodo actual (por defecto, igual que antes):
@@ -93,10 +96,16 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
     $carterasSinPeriodo = [];
 
     // TRAER CARTERAS
-    $sql = $db->mkSQL(
-        'SELECT cobCartera_id FROM cobcartera WHERE  cobCartera_tipo=%Q',
-        $tipoCartera
-    );
+    // Cobranza incluye todo lo que NO este marcado como VENTAS en MySQL
+    // (la coleccion Mongo ya no tiene tipo, se separo de Ventas).
+    if ($tipoCartera === 'COBRANZA') {
+        $sql = "SELECT cobCartera_id FROM cobcartera WHERE cobCartera_tipo IS NULL OR cobCartera_tipo <> 'VENTAS'";
+    } else {
+        $sql = $db->mkSQL(
+            'SELECT cobCartera_id FROM cobcartera WHERE  cobCartera_tipo=%Q',
+            $tipoCartera
+        );
+    }
 
     $db->query($sql);
 
@@ -140,11 +149,14 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
         $prefGest = $config['prefGestion'];
 
         // CONDICION ASIGNACIONES
+        // Ventas no usa ciclo (cre_periodo suele venir en 0), basta cartera + fechaPeriodo
         $condicionAsignacion = [
             $prefAsig . "_carteraId"    => (string)$cartera,
-            $prefAsig . "_ciclo"        => (int)$periodo,
             $prefAsig . "_fechaPeriodo" => (int)$fecha
         ];
+        if ($tipoCartera === 'COBRANZA') {
+            $condicionAsignacion[$prefAsig . "_ciclo"] = (int)$periodo;
+        }
 
         // trigger_error("condicionAsignacion ".print_r($condicionAsignacion,true));
 
@@ -186,7 +198,6 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                 $condGestion = [
                     $prefGest . "_numFactura"   => (string)$datos[$prefAsig . '_numFactura'],
                     $prefGest . "_carteraId"    => (string)$datos[$prefAsig . '_carteraId'],
-                    $prefGest . "_ciclo"        => (int)$datos[$prefAsig . '_ciclo'],
 
                     $prefGest . "_fechaGestion" => $condicionFechaGestion,
 
@@ -204,9 +215,20 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                     $prefGest . '_tipificacion_respuesta1',
                     $prefGest . '_tipificacion_respuesta2',
                     $prefGest . '_fechaGestion',
-                    $prefGest . '_tipificacion_compromiso',
-                    $prefGest . '_tipificacion_montoCompromiso'
+                    $prefGest . '_telefono',
+                    $prefGest . '_email'
                 ];
+
+                // Ventas: gestiones solo por factura + cartera, sin ciclo
+                if ($tipoCartera === 'COBRANZA') {
+                    $condGestion[$prefGest . "_ciclo"] = (int)$datos[$prefAsig . '_ciclo'];
+                }
+
+                // Compromiso/montoCompromiso: concepto exclusivo de Cobranza, Ventas no lo maneja.
+                if ($tipoCartera === 'COBRANZA') {
+                    $camposGestion[] = $prefGest . '_tipificacion_compromiso';
+                    $camposGestion[] = $prefGest . '_tipificacion_montoCompromiso';
+                }
 
                 // La "mejor" gestion se decide unicamente por ponderacion
                 // (mayor ponderacion gana).
@@ -230,9 +252,14 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                     'tipificacion1'   => $datos[$prefAsig . '_tipificacion1'] ?? '',
                     'tipificacion2'   => $datos[$prefAsig . '_tipificacion2'] ?? '',
                     'fechaGestion'    => (int)($datos[$prefAsig . '_fechaGestion'] ?? 0),
-                    'compromiso'      => (string)($datos[$prefAsig . '_compromiso'] ?? ''),
-                    'montoCompromiso' => (float)($datos[$prefAsig . '_montoCompromiso'] ?? 0),
+                    'telefono'        => (string)($datos[$prefAsig . '_telefono'] ?? ''),
+                    'email'           => (string)($datos[$prefAsig . '_email'] ?? ''),
                 ];
+
+                if ($tipoCartera === 'COBRANZA') {
+                    $mejorGeneralActual['compromiso']      = (string)($datos[$prefAsig . '_compromiso'] ?? '');
+                    $mejorGeneralActual['montoCompromiso'] = (float)($datos[$prefAsig . '_montoCompromiso'] ?? 0);
+                }
                 $mejorGestionActual = $datos[$prefAsig . '_mejorGestion'] ?? [];
 
                 // Estado recalculado desde cero a partir de la coleccion de gestion
@@ -252,6 +279,15 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
 
                         $codigoCanal = MAPA_CANALES[$doc[$prefGest . '_canal'] ?? null] ?? null;
 
+                        // Telefono solo para AV/WHATSAPP, email solo para EMAIL.
+                        $telefono = '';
+                        $email    = '';
+                        if ($codigoCanal === 'AV' || $codigoCanal === 'WHATSAPP') {
+                            $telefono = (string)($doc[$prefGest . '_telefono'] ?? '');
+                        } elseif ($codigoCanal === 'EMAIL') {
+                            $email = (string)($doc[$prefGest . '_email'] ?? '');
+                        }
+
                         $candidato = [
                             'cuGestionId'     => $doc['_id'] ?? null,
                             'canal'           => $codigoCanal ?? '',
@@ -259,9 +295,14 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                             'tipificacion1'   => (string)$doc[$prefGest . '_tipificacion_respuesta1'],
                             'tipificacion2'   => (string)$doc[$prefGest . '_tipificacion_respuesta2'],
                             'fechaGestion'    => (int)($doc[$prefGest . '_fechaGestion'] ?? 0),
-                            'compromiso'      => (string)($doc[$prefGest . '_tipificacion_compromiso'] ?? ''),
-                            'montoCompromiso' => (float)($doc[$prefGest . '_tipificacion_montoCompromiso'] ?? 0),
+                            'telefono'        => $telefono,
+                            'email'           => $email,
                         ];
+
+                        if ($tipoCartera === 'COBRANZA') {
+                            $candidato['compromiso']      = (string)($doc[$prefGest . '_tipificacion_compromiso'] ?? '');
+                            $candidato['montoCompromiso'] = (float)($doc[$prefGest . '_tipificacion_montoCompromiso'] ?? 0);
+                        }
 
                         // Viene ordenado por ponderacion desc, asi que el
                         // primer documento -global y por cada canal- ya es
@@ -284,9 +325,14 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         'tipificacion1'   => '',
                         'tipificacion2'   => '',
                         'fechaGestion'    => 0,
-                        'compromiso'      => '',
-                        'montoCompromiso' => 0,
+                        'telefono'        => '',
+                        'email'           => '',
                     ];
+
+                    if ($tipoCartera === 'COBRANZA') {
+                        $mejorGlobalNuevo['compromiso']      = '';
+                        $mejorGlobalNuevo['montoCompromiso'] = 0;
+                    }
                 }
 
                 // Completa con default los canales que no tuvieron ninguna gestion
@@ -298,9 +344,14 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                             'tipificacion1'   => '',
                             'tipificacion2'   => '',
                             'fechaGestion'    => 0,
-                            'compromiso'      => '',
-                            'montoCompromiso' => 0,
+                            'telefono'        => '',
+                            'email'           => '',
                         ];
+
+                        if ($tipoCartera === 'COBRANZA') {
+                            $mejoresPorCanal[$codigoCanal]['compromiso']      = '';
+                            $mejoresPorCanal[$codigoCanal]['montoCompromiso'] = 0;
+                        }
                     }
                 }
 
@@ -314,7 +365,9 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         (string)($actual['tipificacion2'] ?? '') !== $nuevo['tipificacion2'] ||
                         (int)($actual['fechaGestion'] ?? 0)      !== $nuevo['fechaGestion'] ||
                         (string)($actual['compromiso'] ?? '')    !== (string)($nuevo['compromiso'] ?? '') ||
-                        abs((float)($actual['montoCompromiso'] ?? 0) - (float)($nuevo['montoCompromiso'] ?? 0)) > 0.001
+                        abs((float)($actual['montoCompromiso'] ?? 0) - (float)($nuevo['montoCompromiso'] ?? 0)) > 0.001 ||
+                        (string)($actual['telefono'] ?? '')      !== (string)($nuevo['telefono'] ?? '') ||
+                        (string)($actual['email'] ?? '')         !== (string)($nuevo['email'] ?? '')
                     );
                 };
 
@@ -334,7 +387,16 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                     }
                 }
 
-                $huboCambio = $huboCambioGeneral || !empty($canalesConCambio);
+                // fechaAsignacion: solo se backfillea si todavia no esta seteada, nunca se pisa.
+                $fechaAsignacionActual   = (int)($datos[$prefAsig . '_fechaAsignacion'] ?? 0);
+                $necesitaFechaAsignacion = ($fechaAsignacionActual === 0);
+                $nuevaFechaAsignacion    = $fechaAsignacionActual;
+
+                if ($necesitaFechaAsignacion) {
+                    $nuevaFechaAsignacion = obtenerFechaAsignacion($tipoCartera, $prefAsig, $datos, $fecha);
+                }
+
+                $huboCambio = $huboCambioGeneral || !empty($canalesConCambio) || $necesitaFechaAsignacion;
 
                 if ($huboCambio) {
 
@@ -346,6 +408,8 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         $tipoCambio = 'RESINCRONIZACION (cambio la mejor gestion general)';
                     } elseif (!empty($canalesConCambio)) {
                         $tipoCambio = 'ACTUALIZACION CANAL(ES): ' . implode(', ', $canalesConCambio);
+                    } elseif ($necesitaFechaAsignacion) {
+                        $tipoCambio = 'BACKFILL FECHA ASIGNACION';
                     } else {
                         $tipoCambio = 'RESINCRONIZACION';
                     }
@@ -373,10 +437,20 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
                         $prefAsig . '_tipificacion1'    => $mejorGlobalNuevo['tipificacion1'],
                         $prefAsig . '_tipificacion2'    => $mejorGlobalNuevo['tipificacion2'],
                         $prefAsig . '_fechaGestion'     => $mejorGlobalNuevo['fechaGestion'],
-                        $prefAsig . '_compromiso'       => $mejorGlobalNuevo['compromiso'],
-                        $prefAsig . '_montoCompromiso'  => $mejorGlobalNuevo['montoCompromiso'],
+                        $prefAsig . '_telefono'         => $mejorGlobalNuevo['telefono'],
+                        $prefAsig . '_email'            => $mejorGlobalNuevo['email'],
                         $prefAsig . '_mejorGestion'     => $mejoresPorCanal,
                     ];
+
+                    // compromiso/montoCompromiso: Ventas no tiene estos campos en su cubo.
+                    if ($tipoCartera === 'COBRANZA') {
+                        $newRow[$prefAsig . '_compromiso']      = $mejorGlobalNuevo['compromiso'];
+                        $newRow[$prefAsig . '_montoCompromiso'] = $mejorGlobalNuevo['montoCompromiso'];
+                    }
+
+                    if ($necesitaFechaAsignacion) {
+                        $newRow[$prefAsig . '_fechaAsignacion'] = $nuevaFechaAsignacion;
+                    }
 
                     $mdbUpdate = new MYMONGODB();
 
@@ -424,6 +498,37 @@ function procesarCarteras($tipoCartera, $config, $modoPeriodo = 'actual')
             " . implode("<br>", $carterasSinPeriodo) . "<br>
         ";
     }
+}
+
+// fechaAsignacion: primera carga del periodo actual. Cobranza la busca en el
+// historico diario; Ventas (por ahora, hasta que se arme su propio proceso)
+// simplemente toma la fechaCarga actual de la asignacion.
+function obtenerFechaAsignacion(string $tipoCartera, string $prefAsig, array $datos, int $fechaPeriodo): int
+{
+    if ($tipoCartera === 'COBRANZA') {
+        $mdbHist = new MYMONGODB();
+        $condHist = [
+            'avHistAsig_numFactura'   => (string)($datos[$prefAsig . '_numFactura'] ?? ''),
+            'avHistAsig_carteraId'    => (string)($datos[$prefAsig . '_carteraId'] ?? ''),
+            'avHistAsig_fechaPeriodo' => (int)$fechaPeriodo,
+        ];
+
+        $mdbHist->buscar(
+            COLECCION_HISTORICO_ASIGNACIONES,
+            $condHist,
+            ['avHistAsig_fechaCarga'],
+            ['avHistAsig_fechaCarga' => 1],
+            1
+        );
+        $docHist = $mdbHist->siguiente();
+
+        if ($docHist && isset($docHist['avHistAsig_fechaCarga'])) {
+            return (int)$docHist['avHistAsig_fechaCarga'];
+        }
+    }
+
+    // Ventas, o Cobranza sin historico encontrado: usar la fechaCarga actual como respaldo.
+    return (int)($datos[$prefAsig . '_fechaCarga'] ?? 0);
 }
 
 function buscarUnPeriodoCartera(string $coleccion, $cartera, array $condicionExtra, array $sort): ?array
@@ -557,12 +662,13 @@ function avisarSiActivoNoContieneHoy(string $cartera, array $rowActivo, int $fec
         return;
     }
 
-    echo "[ANOMALIA] Cartera {$cartera}: el periodo marcado activo:1 (periodo "
+    // Solo informativo: el periodo se procesa igual
+    echo "[AVISO] Cartera {$cartera}: el periodo activo:1 (periodo "
         . (int)($rowActivo['periodo'] ?? 0)
         . ", desde " . date('Y-m-d', $fecha)
         . " hasta " . date('Y-m-d', $fechaFin)
-        . ") NO contiene la fecha de hoy (" . date('Y-m-d', $ahora) . "). "
-        . "Revisar control_carga_periodo para esta cartera: el periodo actual (y el anterior calculado a partir de el) puede no ser el correcto.\n";
+        . ") no contiene la fecha de hoy (" . date('Y-m-d', $ahora) . "). "
+        . "Se procesa igual.<br>\n";
 } 
 
 
