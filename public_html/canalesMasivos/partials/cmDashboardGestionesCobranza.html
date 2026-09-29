@@ -1,0 +1,542 @@
+<div class="gc-root">
+    <div class="gc-container">
+        <!--#region FILTROS-->
+        <div class="gc-filtros-bar">
+
+    <!-- IZQUIERDA: FILTROS -->
+    <div class="gc-filtros-izq">
+
+        <div class="gc-filtro-icon">
+            &nbsp;
+            <li class="fa fa-filter fa-15x"></li>
+            &nbsp;
+        </div>
+
+        <div class="gc-filtro-content">
+ 
+
+            <div class="gc-filtro-item-select">
+                <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroTiempo"
+                    class="form-control "
+                    ng-model="filtroTiempo"
+                    ng-change="validarFiltros()">
+                    <option value="ini">Seleccione una opci&oacute;n</option>
+                    <option value="asigActual">Asignaci&oacute;n Per&iacute;odo Actual</option>
+                    <option value="asigAnterior">Asignaci&oacute;n Per&iacute;odo Anterior</option>
+                </select>
+            </div>
+
+            <div class="gc-filtro-item-select">
+                <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroCartera"
+                    class="form-control "
+                    ng-model="filtroCartera"
+                    ng-options="p.id as p.nombre for p in listas.carteras"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <div class="gc-filtro-item-select" ng-if="filtroCartera !== 'todo'">
+                <li class="fa fa-fw fa-tachometer fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroPeriodo"
+                    class="form-control "
+                    ng-model="listas.filtroPeriodo"
+                    ng-options="p.id as p.nombre for p in periodo"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <div class="gc-filtro-item-select">
+                <li class="fa fa-fw fa-tags fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroProducto"
+                    class="form-control "
+                    ng-model="filtroProducto"
+                    ng-options="p.id as p.nombre for p in listas.productos"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+            <div class="gc-filtro-item-select">
+                <li class="fa fa-fw fa-random fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroCanal"
+                    class="form-control "
+                    ng-model="filtroCanal"
+                    ng-change="validarFiltros()">
+                    <option value="todo">Todos los canales</option>
+                    <option value="AV">AV</option>
+                    <option value="WHATSAPP">WHATSAPP</option>
+                    <option value="EMAIL">EMAIL</option>
+                </select>
+            </div>
+
+            <div class="gc-filtro-item-select">
+                <li class="fa fa-fw fa-calendar fa-15x"></li>
+                <select  ng-disabled="cargando" id="filtroFechaCarga"
+                    class="form-control "
+                    ng-model="filtroFechaCarga"
+                    ng-options="p.id as p.nombre for p in listas.fechasCarga"
+                    ng-change="validarFiltros()"></select>
+            </div>
+
+
+        </div>
+    </div> 
+ 
+
+    <!-- DERECHA: TITULO + BOTONES -->
+    <div class="gc-filtros-derecha">
+
+        <div class="gc-refresh-block">
+            <i class="fa fa-fw fa-refresh fa-15x"
+                title="Actualizar datos ahora"
+                ng-click="traerParametrizacion()"></i>
+
+            <select title="Actualizar autom&aacute;ticamente"
+                id="tiempoAct"
+                class="form-control input-sm select-filtro"
+                ng-model="tiempoActualizar"
+                ng-options="p.id as p.nombre for p in listas.tiemposActualiza"
+                ng-change="setTiempoActualizar()"></select>
+        </div>
+
+
+    </div>
+
+</div>
+
+
+        <!--#region FILTROS APLICADOS-->
+        <div class="gc-filtros-aplicados">
+
+    <!-- Lado izquierdo: filtros -->
+    <div class="gc-badges-izq">
+        <div ng-show="filtrosAplicados.tiempo.activo" class="gc-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.tiempo.titulo}}
+                <li ng-click="quitarFiltro('tiempo')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.cartera.activo" class="gc-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.cartera.titulo}}
+                <li ng-click="quitarFiltro('cartera')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.producto.activo" class="gc-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.producto.titulo}}
+                <li ng-click="quitarFiltro('producto')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.canal.activo" class="gc-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.canal.titulo}}
+                <li ng-click="quitarFiltro('canal')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="filtrosAplicados.fechaCarga.activo" class="gc-badge-item">
+            <span class="badge">
+                {{filtrosAplicados.fechaCarga.titulo}}
+                <li ng-click="quitarFiltro('fechaCarga')" class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+
+        <div ng-show="cuantosAplicados>1" class="gc-badge-item">
+            <span class="badge" ng-click="quitarFiltro('todo')">
+                {{filtrosAplicados.todo.titulo}}
+                <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+            </span>
+        </div>
+    </div>
+
+    <!-- Lado derecho: boton -->
+    <!--<div>
+        <button type="button" class="btn btn-primary gc-btn-ver-datos"
+        ng-click="mostrarModalGestiones()">
+            <i class="fa fa-eye gc-btn-ver-datos-icon"></i>
+            Ver Datos
+        </button>
+    </div>-->
+
+</div>
+
+        <!--#endregion-->
+        <!--#endregion-->
+        <!--#region TITULO-->
+
+        <!--#region seccion resultado general-->
+
+        <div class="contenedor-seccion">
+
+            <div layout="row">
+            <span class="titulo-pantalla gc-titulo-span">
+                {{titulo}}
+            </span>
+
+            </div>
+
+
+
+            <!-- DASHBOARD KPI -->
+            <div class="gc-kpi-dashboard">
+
+                <!-- FILA SUPERIOR -->
+                <div class="gc-kpi-row">
+
+                    <!-- KPI 1: GAUGE -->
+                    <div class="gc-card">
+
+                        <div ng-show="cargandoGraficos" class="gc-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gc-loading-icon"></i>
+                        </div>
+
+                        <div class="gc-card-header">
+                            <div class="gc-card-header-title">
+                                KPI de Gesti&oacute;n de Base
+                                <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                            </div>
+                            <div class="gc-header-actions">
+                                <button type="button" class="gc-btn-detalle" ng-click="irDetalleBase()">
+                                    <span>Ver Detalle</span>
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="gc-gauge-row">
+
+                            <div class="gc-gauge-chart-wrap">
+                                <div id="chartGauge" class="gc-chart-gauge"></div>
+                            </div>
+
+                            <div class="gc-kpi-detail">
+
+                                <div class="gc-kpi-detail-item">
+                                    <div class="gc-kpi-detail-icon gc-kpi-icon-blue">
+                                        <i class="fa fa-database"></i>
+                                    </div>
+                                    <div class="gc-kpi-detail-text">
+                                        <div class="gc-kpi-detail-label">Base Asignada</div>
+                                        <div class="gc-kpi-detail-value">{{ totales.gestion[0].total || 0 }} Clientes</div>
+                                    </div>
+                                </div>
+
+                                <div class="gc-kpi-detail-item">
+                                    <div class="gc-kpi-detail-icon gc-kpi-icon-green">
+                                        <i class="fa fa-check"></i>
+                                    </div>
+                                    <div class="gc-kpi-detail-text">
+                                        <div class="gc-kpi-detail-label">Clientes Gestionados</div>
+                                        <div class="gc-kpi-detail-value">{{ totales.gestion[1].total || 0 }}</div>
+                                    </div>
+                                </div>
+
+                                <div class="gc-kpi-detail-item">
+                                    <div class="gc-kpi-detail-icon gc-kpi-icon-red">
+                                        <i class="fa fa-times"></i>
+                                    </div>
+                                    <div class="gc-kpi-detail-text">
+                                        <div class="gc-kpi-detail-label">Clientes Sin Gesti&oacute;n</div>
+                                        <div class="gc-kpi-detail-value">{{ totales.gestion[2].total || 0 }}</div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: PIE -->
+                    <div class="gc-card">
+                        <div ng-show="cargandoGraficos" class="gc-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gc-loading-icon"></i>
+                        </div>
+
+                        <div class="gc-card-header">
+                            <div class="gc-card-header-title">
+                                KPI de Contactabilidad
+                                <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                            </div>
+                            <div class="gc-header-actions">
+                                <button type="button" class="gc-btn-detalle" ng-click="irDetalleContactabilidad()">
+                                    <span>Ver Detalle</span>
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="gc-pie-row">
+
+                            <div class="gc-pie-chart-wrap">
+                                <div id="chartPie" class="gc-chart-pie"></div>
+                            </div>
+
+                            <div class="gc-pie-legend">
+
+                                <div class="gc-pie-legend-item gc-pie-legend-green">
+                                    <span><i class="fa fa-check"></i> Contacto Directo</span>
+                                    <b>{{ totales.tipificacion[0].porcentaje || 0 }}%</b>
+                                </div>
+
+                                <div class="gc-pie-legend-item gc-pie-legend-yellow">
+                                    <span><i class="fa fa-check"></i> Contacto Indirecto</span>
+                                    <b>{{ totales.tipificacion[1].porcentaje || 0 }}%</b>
+                                </div>
+
+                                <div class="gc-pie-legend-item gc-pie-legend-orange">
+                                    <span><i class="fa fa-check"></i> Sin Contacto</span>
+                                    <b>{{ totales.tipificacion[2].porcentaje || 0 }}%</b>
+                                </div>
+
+                                <div class="gc-pie-legend-item gc-pie-legend-red">
+                                    <span><i class="fa fa-check"></i> No Contactado</span>
+                                    <b>{{ totales.gestion[2].porcentaje || 0 }}%</b>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: EFECTIVIDAD -->
+                    <div class="gc-card">
+                        <div ng-show="cargandoGraficos" class="gc-loading-overlay">
+                            <i class="fa fa-spinner fa-fw fa-spin fa-4x gc-loading-icon"></i>
+                        </div>
+
+                        <div class="gc-card-header">
+                            <div class="gc-card-header-title">
+                                KPI de Efectividad
+                                <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                            </div>
+                            <div class="gc-header-actions">
+                                <button type="button" class="gc-btn-detalle" ng-click="irDetalleEfectividad()">
+                                    <span>Ver Detalle</span>
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Porcentajes destacados -->
+                        <div class="gc-efectividad-box">
+
+                            <div class="gc-efectividad-stat">
+                                <div class="gc-efectividad-stat-value">{{ totales.gestion[4].porcentaje || 0 }}%</div>
+                                <div class="gc-efectividad-stat-label">Efectividad</div>
+                            </div>
+
+                            <div class="gc-efectividad-stat">
+                                <div class="gc-efectividad-stat-value">{{ totales.gestion[5].porcentaje || 0 }}%</div>
+                                <div class="gc-efectividad-stat-label">Efectividad de contacto</div>
+                            </div>
+
+                        </div>
+
+                        <!-- Totales con icono -->
+                        <div class="gc-efectividad-stats-row">
+
+                            <div class="gc-efectividad-item">
+                                <div class="gc-efectividad-item-icon gc-bg-gestionados">
+                                    <i class="fa fa-user"></i>
+                                </div>
+                                <div class="gc-efectividad-item-value">{{ totales.gestion[1].total || 0 }}</div>
+                                <div class="gc-efectividad-item-label">Gestionados</div>
+                            </div>
+
+                            <div class="gc-efectividad-item">
+                                <div class="gc-efectividad-item-icon gc-bg-contactados">
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                                <div class="gc-efectividad-item-value">{{ totales.gestion[3].total || 0 }}</div>
+                                <div class="gc-efectividad-item-label">Contactados</div>
+                            </div>
+
+                            <div class="gc-efectividad-item">
+                                <div class="gc-efectividad-item-icon gc-bg-interesados">
+                                    <i class="fa fa-star"></i>
+                                </div>
+                                <div class="gc-efectividad-item-value">{{ totales.gestion[4].total || 0 }}</div>
+                                <div class="gc-efectividad-item-label">Compromiso de Pago</div>
+                            </div>
+
+                            <div class="gc-efectividad-item">
+                                <div class="gc-efectividad-item-icon gc-bg-efectivos">
+                                    <i class="fa fa-check"></i>
+                                </div>
+                                <div class="gc-efectividad-item-value">{{ totales.gestion[6].total || 0 }}</div>
+                                <div class="gc-efectividad-item-label">Pagados</div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+        </div>
+
+                <!-- FILA INFERIOR -->
+                <div class="gc-lower-row">
+
+                    <!-- BARRAS HORARIOS -->
+                    <div class="gc-barras-col">
+                        <div class="gc-barras-card">
+                            <div ng-show="cargandoGraficos" class="gc-loading-overlay">
+                                <i class="fa fa-spinner fa-fw fa-spin fa-4x gc-loading-icon"></i>
+                            </div>
+
+                            <div class="gc-card-header">
+                                <div class="gc-card-header-title">
+                                    Contactabilidad por Horarios
+                                    <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                                </div>
+                                <div class="gc-header-actions">
+                                    <button type="button" class="gc-btn-detalle" ng-click="irDetalleHorarios()">
+                                        <span>Ver Detalle</span>
+                                        <i class="fa fa-angle-right"></i>
+                                    </button>
+                                    <!--<button type="button" class="gc-btn-filtrar">
+                                        <i class="fa fa-filter"></i>
+                                        <span>Filtrar</span>
+                                    </button>-->
+                                </div>
+                            </div>
+
+                            <div id="chartBarras" class="gc-chart-barras"></div>
+
+                        </div>
+                    </div>
+
+                    <!-- INTENSIDAD -->
+                    <div class="gc-intensidad-col">
+
+                         <div class="gc-intensidad-card">
+
+                            <div ng-show="cargandoGraficos" class="gc-loading-overlay">
+                                <i class="fa fa-spinner fa-fw fa-spin fa-4x gc-loading-icon"></i>
+                            </div>
+
+                            <!-- Titulo -->
+                            <div class="gc-card-header">
+                                <div class="gc-card-header-title">
+                                    Intensidad por Canales
+                                    <i class="fa fa-info-circle" title="Informaci&oacute;n"></i>
+                                </div>
+                                <div class="gc-header-actions">
+                                    <button type="button" class="gc-btn-detalle" ng-click="irDetalleIntensidad()">
+                                        <span>Ver Detalle</span>
+                                        <i class="fa fa-angle-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+
+                            <div class="gc-intensidad-body">
+
+                                    <!-- Bloque 1 -->
+                                <div class="gc-canal-card">
+
+                                    <!-- icono -->
+                                    <div class="gc-canal-icon gc-c-green">
+                                        <i class="fa fa-phone"></i>
+                                    </div>
+
+                                    <!-- Texto -->
+                                    <div class="gc-canal-text">
+                                        <div class="gc-canal-title">Call Center</div>
+                                        <div class="gc-canal-subtitle">Intentos Promedio</div>
+                                    </div>
+
+                                    <div class="gc-canal-value">{{ totales.intensidad[0].tooltip[0] || 0 }}</div>
+                                </div>
+
+                                <!-- Bloque 2 -->
+                                <div class="gc-canal-card">
+
+                                    <div class="gc-canal-icon gc-c-whatsapp">
+                                        <i class="fa fa-whatsapp"></i>
+                                    </div>
+
+                                    <div class="gc-canal-text">
+                                        <div class="gc-canal-title">WhatsApp</div>
+                                        <div class="gc-canal-subtitle">Intentos Promedio</div>
+                                    </div>
+
+                                    <div class="gc-canal-value">{{ totales.intensidad[0].tooltip[2] || 0 }}</div>
+                                </div>
+
+                                <!-- Bloque 3 -->
+                                <div class="gc-canal-card">
+
+                                    <div class="gc-canal-icon gc-c-correo">
+                                        <i class="fa fa-envelope"></i>
+                                    </div>
+
+                                    <div class="gc-canal-text">
+                                        <div class="gc-canal-title">Correo</div>
+                                        <div class="gc-canal-subtitle">Intentos Promedio</div>
+                                    </div>
+
+                                    <div class="gc-canal-value">{{ totales.intensidad[0].tooltip[1] || 0 }}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+</div>
+
+<modal-popup titulo="Gestiones Realizadas " evento="{{modalGraficos.evento}}" icono="fa fa-check-square-o fa-fw"
+    width="1500" abrir="modalGraficos.activo" class="gc-modal-color">
+
+    <div layout="row" >
+
+        <div ng-show="cargandoGraficos" class="gc-loading-overlay">
+            <i class="fa fa-spinner fa-fw fa-spin fa-4x gc-loading-icon"></i>
+        </div>
+
+    <table  tabula="asignacionGestiones" tamanio-inicial="10"
+                           url="../canalesMasivos/cmDashboardGestionesCobranzaCtrl.php?act=listaAsignacionGestiones&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroPeriodo={{listas.filtroPeriodo}}">
+                    <tr>
+                            <th width="5%" tabula-encabezado="cubAG_numFactura" titulo="Operaci&oacute;n" ordenar filtrar></th>
+                            <th width="30%" tabula-encabezado="cubAG_carteraNombre" titulo="Cartera" ordenar filtrar></th>
+                            <th width="5%" tabula-encabezado="cubAG_gestionada" titulo="Gestionado" ordenar></th>
+                            <th width="10%" tabula-encabezado="cubAG_tipificacion1" titulo="Contactabilidad" ordenar filtrar></th>
+                            <th width="25%" tabula-encabezado="cubAG_tipificacion2" titulo="Gesti&oacute;n Realizada" ordenar filtrar></th>
+                            <th width="15%" tabula-encabezado="cubAG_fechaGestion" titulo="Fecha y Hora Gesti&oacute;n" ordenar ></th>
+                    </tr>
+
+                        <tr ng-repeat="x in tabulas['asignacionGestiones'].filas track by $index" >
+
+                            <td class="p-1 m-0 gc-td-center">{{ x.cubAG_numFactura }}</td>
+                            <td class="p-1 m-0 gc-td-center">{{ x.cubAG_carteraNombre }}</td>
+                            <td class="p-1 m-0 gc-td-center">{{ x.cubAG_gestionada }}</td>
+                            <td class="p-1 m-0 gc-td-center">{{ x.cubAG_tipificacion1 }}</td>
+                            <td class="p-1 m-0 gc-td-center">{{ x.cubAG_tipificacion2 }}</td>
+                            <td class="p-1 m-0 gc-td-center">{{  x.cubAG_fechaGestion ? (x.cubAG_fechaGestion * 1000 | date:'yyyy-MM-dd HH:mm:ss') : '' }}</td>
+            </tr> 
+            <tr>
+                 <td colspan="1" align="center">
+
+                    </td>
+                <td colspan="4" align="center">
+                 <tabula-paginador dataset="tabulas['asignacionGestiones']" maxbotones="3"></tabula-paginador>
+                </td>
+                <td colspan="1" align="center">
+                         <button type="button" class="btn btn-success" ng-click="descargarReporteExcel()">
+                        <i class="fa fa-file-excel-o" ></i>
+                        Exportar Excel
+                    </button>
+                </td>
+
+            </tr>
+            </table>  
+
+    </div>
+
+</modal-popup>

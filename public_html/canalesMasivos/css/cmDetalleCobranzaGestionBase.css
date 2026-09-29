@@ -1,0 +1,431 @@
+.gc-root, .gc-root *{
+    box-sizing: border-box;
+}
+
+.gc-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #f4f5f7;
+}  
+
+.gc-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* =========================
+   FILTROS (igual al dashboard principal)
+========================= */
+
+.gc-filtros-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gc-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gc-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gc-filtro-content{
+    padding: 12px;
+    display: flex;
+}
+
+.gc-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+}
+
+.gc-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+}
+
+.gc-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    width: 170px;
+}
+
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 170px;
+}
+
+.gc-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gc-btn-volver{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cbd0d6;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6368;
+    background: #fff;
+    white-space: nowrap;
+}
+
+.gc-btn-volver:hover{
+    background: #f2f3f5;
+}
+
+/* =========================
+   FILTROS APLICADOS (badges)
+========================= */
+
+.gc-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.gc-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gc-badge-item{
+    padding-right: 8px;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gc-titulo-span{
+    margin-right: 15px;
+}
+
+.gc-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gc-loading-icon{
+    color: #666;
+}
+
+.gc-kpi-icon-blue{ background: #2196F3; }
+.gc-kpi-icon-green{ background: #4CAF50; }
+.gc-kpi-icon-red{ background: #F44336; }
+
+.gc-td-center{
+    vertical-align: middle;
+    text-align: center;
+}
+
+.gc-detalle-kpi-row{
+    position: relative;
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.gc-detalle-kpi-card{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 35px; 
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 24px 20px;
+}
+
+.gc-detalle-kpi-icon{
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #fff;
+}
+
+.gc-detalle-kpi-text{
+    min-width: 0;
+}
+
+.gc-detalle-kpi-label{
+    font-size: 15px;
+    font-weight: 600;
+    color: #5f6368;
+}
+
+.gc-detalle-kpi-value{
+    font-size: 26px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.25;
+}
+
+.gc-detalle-kpi-sub{
+    font-size: 13px;
+    color: #8a8f98;
+}
+
+/* 3 columnas de listas */
+.gc-detalle-listas-row{
+    display: flex;
+    gap: 16px;
+    width: 100%;
+}
+
+.gc-detalle-lista-col{
+    flex: 1;
+    min-width: 0;
+}
+
+.gc-detalle-lista-card{
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.gc-detalle-tabla-wrap{
+    width: 100%;
+    overflow: hidden;
+    padding: 0 2px;
+}
+
+.gc-detalle-lista-card table{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none !important;
+}
+
+.gc-detalle-lista-card table th,
+.gc-detalle-lista-card table td{
+    height: 40px;
+    box-sizing: border-box;
+    padding: 4px 8px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.gc-detalle-lista-card table th{
+    font-size: 12px;
+    color: #5f6368;
+    border: none;
+    border-bottom: 2px solid #e3e6ea;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+.gc-detalle-lista-card table td{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.gc-detalle-lista-card table td.gc-td-paginador{
+    border-bottom: none;
+    padding: 10px 0 0 0;
+}
+
+.gc-paginador-scale{
+    transform: scale(0.90) !important; 
+    transform-origin: center top;
+}
+
+.gc-detalle-lista-header{
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+/* Fila con buscador chico + botón exportar lado a lado */
+.gc-detalle-buscador-row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.gc-detalle-buscador-row .gc-detalle-buscador{
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 0;
+}
+
+.gc-detalle-buscador-chica{
+    max-width: 345px;
+} 
+
+/* Botón "Exportar" (Excel) de cada lista de detalle */
+.gc-btn-exportar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 14px !important;
+    border: none;
+    border-radius: 16px !important;
+    background-color: #1d6f42;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.gc-btn-exportar:hover{
+    background-color: #16572f;
+}
+
+.gc-btn-exportar:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.gc-detalle-buscador{
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.gc-detalle-buscador i{
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa0a6;
+    font-size: 13px;
+}
+
+.gc-detalle-buscador input{
+    padding-left: 30px;
+    font-size: 13px;
+    border-radius: 999px;
+}
+
+.gc-td-cliente{
+    text-align: center;
+    font-size: 13px;
+}
+
+.gc-td-cliente-inner{
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+.gc-td-cliente-inner .gc-dot{
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.gc-td-cliente-texto{
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gc-dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.gc-dot-blue{ background: #2196F3; }
+.gc-dot-green{ background: #4CAF50; }
+.gc-dot-red{ background: #F44336; }
+
+.gc-badge-estado{
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.gc-badge-gestionado{
+    background: #E8F6EA;
+    color: #3c8c46;
+}
+
+.gc-badge-sinGestion{
+    background: #FDEFEF;
+    color: #c13c3c;
+}

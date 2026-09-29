@@ -34,6 +34,8 @@ require_once("../comunes/top.inc.php");
         "canalesMasivos/controllers/cmDashboardGestiones.js",
         "canalesMasivos/controllers/cmDashboardGestionesCarteraPorMora.js",
         "canalesMasivos/controllers/cmDashboardGestionesVentas.js",
+        "canalesMasivos/controllers/cmDashboardColocacionTarjetas.js",
+        "canalesMasivos/partials/cmDashboardColocacionTarjetas.html",
         "canalesMasivos/controllers/cmReporteAgenteVirtualWhatsapp.js",
         "canalesMasivos/controllers/cmReporteAgenteVirtualWhatsappDesarrollo.js",
         "canalesMasivos/controllers/cmLocalLLM.js",
@@ -50,7 +52,13 @@ require_once("../comunes/top.inc.php");
         "canalesMasivos/controllers/cmDetalleContactabilidad.js",
         "canalesMasivos/controllers/cmDetalleEfectividad.js",
         "canalesMasivos/controllers/cmDetalleHorarios.js",
-        "canalesMasivos/controllers/cmDetalleIntensidad.js"
+        "canalesMasivos/controllers/cmDetalleIntensidad.js",
+        "canalesMasivos/controllers/cmDashboardGestionesCobranza.js",
+        "canalesMasivos/controllers/cmDetalleCobranzaGestionBase.js",
+        "canalesMasivos/controllers/cmDetalleCobranzaContactabilidad.js",
+        "canalesMasivos/controllers/cmDetalleCobranzaEfectividad.js",
+        "canalesMasivos/controllers/cmDetalleCobranzaHorarios.js",
+        "canalesMasivos/controllers/cmDetalleCobranzaIntensidad.js"
     );
     // $ngEstilos = array();
     $ngEstilos = array(

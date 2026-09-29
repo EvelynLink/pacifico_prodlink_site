@@ -1,0 +1,639 @@
+/* =========================================================================
+   cmDashboardGestionesCobranza.css
+========================================================================= */
+
+.gc-root, .gc-root *{
+    box-sizing: border-box;
+}
+
+.gc-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px;
+    background: #f4f5f7;
+}
+ 
+.gc-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 97vw;
+}
+
+/* =========================
+   FILTROS
+========================= */
+
+.gc-filtros-bar{
+    width: 100%;
+    display: flex;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gc-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gc-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gc-filtro-content{
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 8px;
+}
+
+.gc-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+    flex-shrink: 0;
+}
+
+.gc-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+    flex-shrink: 0;
+}
+
+.gc-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    
+    width: 170px;
+} 
+  
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 160px !important;
+}
+
+.gc-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gc-refresh-block{
+    display: flex;
+    align-items: center;
+}
+
+/* =========================
+   FILTROS APLICADOS
+========================= */
+
+.gc-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.gc-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gc-badge-item{
+    padding-right: 8px;
+}
+
+.gc-btn-ver-datos{
+    height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gc-btn-ver-datos-icon{
+    opacity: 0.9;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gc-titulo-span{
+    margin-right: 15px;
+}
+
+/* =========================
+   DASHBOARD KPI
+========================= */
+
+.gc-kpi-dashboard{
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    width: 100%;
+    gap: 16px;
+}
+
+.gc-kpi-row{
+    display: flex;
+    width: 100%;
+    gap: 16px;
+}
+
+.gc-card{
+    flex: 1;
+    min-width: 0; 
+    background: #fff;
+    padding: 14px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    position: relative;
+    height: 340px; 
+}
+
+.gc-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gc-loading-icon{
+    color: #666;
+}
+
+/* Header comun a todas las tarjetas: titulo + icono info + boton(es) */
+.gc-card-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
+    border-bottom: 2px solid rgba(0,0,0,0.08);
+}
+
+.gc-card-header-title{
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+}
+
+.gc-card-header-title .fa-info-circle{
+    font-size: 14px;
+    color: #9aa0a6;
+    cursor: help;
+}
+
+.gc-header-actions{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.gc-btn-detalle,
+.gc-btn-filtrar{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    background: #fff;
+}
+
+.gc-btn-detalle{
+    border: 1px solid #2196F3;
+    color: #2196F3;
+}
+
+.gc-btn-detalle:hover{
+    background: #EAF4FE;
+}
+
+.gc-btn-filtrar{
+    border: 1px solid #cbd0d6;
+    color: #5f6368;
+}
+
+.gc-btn-filtrar:hover{
+    background: #f2f3f5;
+}
+
+/* KPI 1: Gauge */
+
+.gc-gauge-row{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.gc-gauge-chart-wrap{
+    flex: 0 0 42%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gc-chart-gauge{
+    height: 230px;
+    width: 100%;
+}
+
+.gc-kpi-detail{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gc-kpi-detail-item{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 4px;
+}
+
+.gc-kpi-detail-item + .gc-kpi-detail-item{
+    border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+.gc-kpi-detail-icon{
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.gc-kpi-detail-text{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.gc-kpi-detail-label{
+    font-weight: 600;
+    font-size: 14px;
+    color: #333;
+}
+
+.gc-kpi-detail-value{
+    font-size: 13px;
+    color: #7d8590;
+}
+
+.gc-ic-mr{
+    margin-right: 6px;
+}
+
+.gc-c-blue{
+    color: #2196F3;
+}
+
+.gc-c-green{
+    color: #4CAF50;
+}
+
+.gc-c-red{
+    color: #F44336;
+}
+
+.gc-kpi-icon-blue{
+    background: #2196F3;
+}
+
+.gc-kpi-icon-green{
+    background: #4CAF50;
+}
+
+.gc-kpi-icon-red{
+    background: #F44336;
+}
+
+/* KPI 2: Pie */
+
+.gc-pie-row{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.gc-pie-chart-wrap{
+    flex: 0 0 40%;
+    min-width: 0;
+}
+
+.gc-chart-pie{
+    height: 260px;
+    width: 100%;
+}
+
+.gc-pie-legend{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.gc-pie-legend-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.gc-pie-legend-item span{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gc-pie-legend-green{
+    border-color: #4FAF5A;
+    color: #3c8c46;
+    background: #F2FAF3;
+}
+
+.gc-pie-legend-yellow{
+    border-color: #F2D36A;
+    color: #a4842a;
+    background: #FFFBEF;
+}
+
+.gc-pie-legend-orange{
+    border-color: #F5A04C;
+    color: #b56d22;
+    background: #FFF6EE;
+}
+
+.gc-pie-legend-red{
+    border-color: #E05A5A;
+    color: #c13c3c;
+    background: #FDF0F0;
+}
+
+.gc-fw600{
+    font-weight: 600;
+}
+
+/* KPI 3: Efectividad */
+
+.gc-efectividad-box{
+    display: flex;
+    align-items: stretch;
+    justify-content: space-evenly;
+    background: #EFF6FE;
+    border-radius: 8px;
+    padding: 18px 8px;
+    margin-bottom: 18px;
+}
+
+.gc-efectividad-stat{
+    text-align: center;
+    padding: 0 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gc-efectividad-stat + .gc-efectividad-stat{
+    border-left: 1px dashed #c7d3e0;
+}
+
+.gc-efectividad-stat-value{
+    font-size: 22px;
+    font-weight: 700;
+    color: #2196F3;
+}
+
+.gc-efectividad-stat-label{
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.gc-efectividad-stats-row{
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+}
+
+.gc-efectividad-item{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 8px;
+}
+
+.gc-efectividad-item + .gc-efectividad-item{
+    border-left: 1px dashed #d5d9de;
+}
+
+.gc-efectividad-item-icon{
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    color: #fff;
+}
+
+.gc-bg-gestionados{ background: #7C6FDB; }
+.gc-bg-contactados{ background: #2196F3; }
+.gc-bg-interesados{ background: #F2C94C; }
+.gc-bg-efectivos{ background: #4FAF5A; }
+
+.gc-efectividad-item-value{
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.gc-efectividad-item-label{
+    font-size: 12px;
+    color: #8a8f98;
+    text-align: center;
+}
+
+/* =========================
+   FILA INFERIOR
+========================= */
+
+.gc-lower-row{
+    display: flex;
+    gap: 16px;
+    width: 85%;
+    margin: 0 auto;
+}
+
+.gc-barras-col{
+    flex: 1;
+    min-width: 0;
+}
+
+.gc-barras-card{
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 14px;
+    width: 100%;
+    height: 340px;
+    position: relative;
+}
+
+.gc-chart-barras{
+    height: 280px;
+}
+
+.gc-intensidad-col{
+    flex: 1;
+    min-width: 0;
+}
+
+.gc-intensidad-card{
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 14px;
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.gc-intensidad-body{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+}
+
+.gc-canal-card{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+.gc-canal-icon{
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.gc-c-whatsapp{
+    color: #25D366;
+}
+
+.gc-c-correo{
+    color: #2196F3;
+}
+
+.gc-canal-text{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.gc-canal-title{
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.gc-canal-subtitle{
+    font-size: 12px;
+    color: #8a8f98;
+}
+
+.gc-canal-value{
+    font-size: 20px; 
+    font-weight: 700;
+    color: #333;
+    flex-shrink: 0;
+}
+
+/* =========================
+   MODAL "VER DATOS"
+========================= */
+
+.gc-modal-color{
+    color: black;
+}
+
+.gc-td-center{
+    vertical-align: middle;
+    text-align: center;
+}

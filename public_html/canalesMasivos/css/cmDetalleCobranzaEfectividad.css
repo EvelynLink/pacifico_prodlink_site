@@ -1,0 +1,546 @@
+/* =========================================================================
+   cmDetalleEfectividad.css
+========================================================================= */
+
+.gc-root, .gc-root *{
+    box-sizing: border-box;
+}
+
+.gc-root{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 8px; 
+    background: #f4f5f7;
+}
+
+.gc-container{
+    display: flex;
+    flex-direction: column;
+    padding-top: 12px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* =========================
+   FILTROS (igual al resto de pantallas)
+========================= */
+
+.gc-filtros-bar{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    border: solid 1px #cbcbcb;
+    border-radius: 4px;
+    background: #fff;
+}
+
+.gc-filtros-izq{
+    display: flex;
+    flex: 1;
+}
+
+.gc-filtro-icon{
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #cbcbcb;
+}
+
+.gc-filtro-content{
+    padding: 12px;
+    display: flex;
+}
+
+.gc-filtro-item{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 6px;
+}
+
+.gc-filtro-item-select{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 12px;
+}
+
+.gc-input-fecha{
+    width: 120px;
+}
+
+/* Anchos fijos por filtro: sin esto, el flex los reparte por igual y al
+   agregar mas selects (canal, fecha de carga) el texto de cada uno se
+   corta. "Cartera" se deja mas angosto (antes ocupaba de mas); el resto
+   con el ancho suficiente para mostrar su etiqueta por defecto completa. */
+#filtroCartera{
+    width: 170px;
+}
+
+#filtroProducto{
+    width: 180px;
+}
+
+#filtroCanal{
+    width: 160px;
+}
+
+#filtroFechaCarga{
+    width: 170px;
+}
+
+.gc-filtros-derecha{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+
+.gc-btn-volver{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #cbd0d6;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5f6368;
+    background: #fff;
+    white-space: nowrap;
+}
+
+.gc-btn-volver:hover{
+    background: #f2f3f5;
+}
+
+/* =========================
+   FILTROS APLICADOS (badges)
+========================= */
+
+.gc-filtros-aplicados{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.gc-badges-izq{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gc-badge-item{
+    padding-right: 8px;
+}
+
+/* =========================
+   TITULO
+========================= */
+
+.gc-titulo-span{
+    margin-right: 15px;
+}
+
+.gc-loading-overlay{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+}
+
+.gc-loading-icon{
+    color: #666;
+}
+
+/* =========================================================================
+   ESPECIFICO DE ESTA PANTALLA DE DETALLE
+========================================================================= */
+
+/* KPI resumen: 4 tarjetas */
+.gc-detalle-kpi-row{
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.gc-detalle-kpi-card{
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 20px 16px;
+}
+
+.gc-detalle-kpi-icon{
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #fff;
+}
+
+.gc-kpi-icon-gestionados{ background: #7C6FDB; }
+.gc-kpi-icon-contactados{ background: #2196F3; }
+.gc-kpi-icon-interesados{ background: #F2C94C; }
+.gc-kpi-icon-efectivos{ background: #4FAF5A; }
+
+.gc-c-texto-gestionados{ color: #5b4fc4; }
+.gc-c-texto-contactados{ color: #1976d2; }
+.gc-c-texto-interesados{ color: #a4842a; }
+.gc-c-texto-efectivos{ color: #3c8c46; }
+
+.gc-detalle-kpi-text{
+    min-width: 0;
+}
+
+.gc-detalle-kpi-label{
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.gc-detalle-kpi-value{
+    font-size: 20px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.gc-detalle-kpi-sub{
+    font-size: 13px;
+    color: #8a8f98;
+}
+
+/* Columna "Leido" del detalle (solo aplica a gestiones por EMAIL). */
+.gc-badge-leido{ background: #E4F5E6; color: #2f8a3d; }
+.gc-badge-no-leido{ background: #F2F3F5; color: #8a8f98; }
+
+/* Tarjeta con pestañas + tabla */
+.gc-detalle-tabs-card{
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+    padding: 0 16px 16px 16px;
+    overflow: hidden;
+}
+
+.gc-detalle-tabs-bar{
+    display: flex;
+    gap: 28px;
+    border-bottom: 1px solid #e3e6ea;
+    margin: 0 -16px 16px -16px;
+    padding: 0 16px;
+}
+
+.gc-detalle-tab{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 2px 12px 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #8a8f98;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+}
+
+.gc-detalle-tab:hover{
+    color: #5f6368;
+}
+
+.gc-detalle-tab-activo.gc-detalle-tab-gestionados{
+    color: #5b4fc4;
+    border-bottom-color: #7C6FDB;
+}
+
+.gc-detalle-tab-activo.gc-detalle-tab-contactados{
+    color: #1976d2;
+    border-bottom-color: #2196F3;
+}
+
+.gc-detalle-tab-activo.gc-detalle-tab-interesados{
+    color: #a4842a;
+    border-bottom-color: #F2C94C;
+}
+
+.gc-detalle-tab-activo.gc-detalle-tab-efectivos{
+    color: #3c8c46;
+    border-bottom-color: #4FAF5A;
+}
+
+.gc-detalle-tabs-subbar{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.gc-detalle-tabs-caption{
+    font-size: 13px;
+    color: #5f6368;
+}
+
+.gc-detalle-buscador{
+    position: relative;
+}
+
+.gc-detalle-buscador i{
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9aa0a6;
+    font-size: 13px;
+}
+
+.gc-detalle-buscador input{
+    padding-left: 30px;
+    font-size: 13px;
+    border-radius: 999px;
+}
+
+.gc-detalle-buscador-tabs{
+    width: 280px;
+    flex-shrink: 0;
+    margin: 0 !important;
+}
+
+/* Alto fijo para que el input quede a la misma altura que el botón Exportar */
+.gc-detalle-buscador-tabs input{
+    height: 34px !important;
+    margin: 0 !important;
+}
+
+.gc-detalle-subbar-derecha{
+    display: flex;
+    align-items: center !important;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Botón "Exportar" (Excel) de la tabla de detalle */
+.gc-btn-exportar{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px !important;
+    padding: 0 14px !important;
+    margin: 0 !important;
+    border: none;
+    border-radius: 4px;
+    background-color: #1d6f42;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+}
+
+.gc-btn-exportar:hover{
+    background-color: #16572f;
+}
+
+.gc-btn-exportar:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Tabla única: scroll horizontal propio en vez de encoger columnas (igual
+   que el detalle de llamadas del Reporte Agente Virtual). */
+.gc-detalle-tabla-wrap{
+    width: 100%;
+    overflow-x: auto;
+    padding: 0 2px 4px 2px;
+}
+
+/* [tabula] en vez de "table" a secas: el filtro de fecha de columna abre su
+   propio calendario (uib-datepicker), que tambien es un <table> anidado
+   aqui dentro; sin este alcance, el width:100% de abajo se le aplicaba
+   tambien a el y lo dejaba aplastado. */
+.gc-detalle-tabs-card table[tabula]{
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none !important;
+}
+ 
+.gc-detalle-tabs-card table[tabula] th,
+.gc-detalle-tabs-card table[tabula] td{
+    min-height: 40px;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.gc-detalle-tabs-card table[tabula] th{
+    font-size: 12px;
+    color: #5f6368;
+    border: none;
+    border-bottom: 2px solid #e3e6ea;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+/* !important: algo (la directiva u otro estilo) sigue forzando nowrap +
+   ellipsis en el dato; esto obliga a mostrar el texto completo en varias
+   lineas, igual que "Detalle de llamadas" en Reporte Agente Virtual. */
+.gc-detalle-tabs-card table[tabula] td,
+.gc-detalle-tabs-card table[tabula] td *{
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+}
+
+.gc-detalle-tabs-card table[tabula] td{
+    font-size: 13px;
+}
+
+.gc-detalle-tabs-card table[tabula] td.gc-td-paginador{
+    border-bottom: none;
+    padding: 10px 0 0 0;
+}
+
+.gc-paginador-scale{
+    transform: scale(1.1);
+    transform-origin: center top;
+}
+
+/* Calendario del filtro de columna (Fecha Gestion): tamano propio, sin
+   heredar el table-layout:fixed de la tabla principal de arriba. */
+.uib-datepicker-popup,
+.uib-datepicker-popup table{
+    width: auto !important;
+    table-layout: auto !important;
+    min-width: 220px;
+}
+
+.uib-datepicker-popup td,
+.uib-datepicker-popup th{
+    width: auto !important;
+    height: auto !important;
+    white-space: nowrap;
+}
+
+/* Icono de audio/transcripcion en la tabla de llamadas (duplicado en los 3 detalles, ver nota de arriba) */
+.gc-icono-audio{
+    cursor: pointer;
+    color: #3f6ad8;
+}
+
+.gc-icono-audio:hover{
+    color: #2b4fae;
+}
+
+.gc-icono-whatsapp{
+    cursor: pointer;
+    color: #25d366;
+}
+
+.gc-icono-whatsapp:hover{
+    color: #1da851;
+}
+
+.gc-icono-correo{
+    cursor: pointer;
+    color: #8B5CF6;
+}
+
+.gc-icono-correo:hover{
+    color: #6d43d1;
+}
+
+.gc-audio-modal-player{
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 16px 0;
+}
+
+.gc-transcripcion-item{
+    padding: 6px 0;
+}
+
+.gc-transcripcion-burbuja{
+    display: inline-block;
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.gc-transcripcion-agente{
+    text-align: left;
+}
+
+.gc-transcripcion-cliente{
+    text-align: right;
+}
+
+.gc-transcripcion-agente .gc-transcripcion-burbuja{
+    background-color: #fcf3cf;
+    border-radius: 0px 8px 8px 8px;
+}
+
+.gc-transcripcion-cliente .gc-transcripcion-burbuja{
+    background-color: #d6eaf8;
+    border-radius: 8px 0px 8px 8px;
+}
+
+.gc-transcripcion-hora{
+    display: block;
+    font-size: 11px;
+    color: #6f7990;
+    margin-top: 2px;
+}
+
+.gc-sin-transcripcion{
+    text-align: center;
+    color: #6f7990;
+    padding: 12px 0;
+}
+
+.gc-correo-destinatario,
+.gc-correo-asunto{
+    font-size: 13px;
+    padding: 4px 0;
+}
+
+.gc-correo-cuerpo{
+    margin-top: 10px;
+    padding: 12px;
+    border: 1px solid #e3e6ea;
+    border-radius: 6px;
+    max-height: 420px;
+    overflow: auto;
+}
