@@ -290,46 +290,9 @@
 .gv-badge-leido{ background: #E4F5E6; color: #2f8a3d; }
 .gv-badge-no-leido{ background: #F2F3F5; color: #8a8f98; }
 
-/* Boton propio con icono de filtro para "Leido": el tabula real no soporta
-   un select, asi que este es un control aparte, no ligado a esa columna. */
-.gv-filtro-leido-wrap{
-    position: relative;
-}
-.gv-btn-filtro-leido{
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 38px;
-    padding: 0 14px;
-    border: 1px solid #dcdfe3;
-    border-radius: 6px;
-    background: #fff;
-    color: #5f6368;
-    font-size: 13px;
-    cursor: pointer;
-}
-.gv-btn-filtro-leido.gv-filtro-leido-activo{
-    border-color: #8B5CF6;
+/* Embudo del encabezado "Leido" resaltado cuando hay un filtro aplicado. */
+.gv-filtro-leido-activo{
     color: #8B5CF6;
-}
-.gv-filtro-leido-overlay{
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 15;
-}
-.gv-filtro-leido-popup{
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    z-index: 20;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-    padding: 10px;
-    min-width: 160px;
-}
-.gv-filtro-leido-popup select{
-    width: 100%;
 }
 
 /* Refuerzo visual de "leido" con ancho 0 en Call Center/WhatsApp: sin esto,

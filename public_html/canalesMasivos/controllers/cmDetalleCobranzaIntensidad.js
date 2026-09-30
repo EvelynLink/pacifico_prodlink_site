@@ -58,7 +58,9 @@ app.controller("cmDetalleCobranzaIntensidad", ['$scope', 'avisos', 'simple', 'pe
     $scope.filtroCanal = "todo";
     $scope.filtroFechaCarga = "todo";
     // Solo aplica en la pestaña Correo (unico canal con lectura registrada).
-    $scope.filtroLeido = "todo";
+    // Objeto y no primitivo: el select vive en el encabezado de la tabula (ng-if + transclude),
+    // y un valor primitivo quedaria copiado en el scope hijo sin llegar al controller.
+    $scope.leido = { valor: "todo", mostrar: false };
 
     // Nombres a mostrar en el badge, con las MISMAS llaves y el mismo texto
     // que se guardan en cubAG_canal / se mandan al backend: AV, EMAIL, WHATSAPP.
@@ -199,10 +201,13 @@ app.controller("cmDetalleCobranzaIntensidad", ['$scope', 'avisos', 'simple', 'pe
         recargarTabla();
     };
 
-    // Filtro de "Leido" propio (el tabula real no soporta un select por columna).
-    $scope.mostrarFiltroLeido = false;
+    /**
+     * Aplica el filtro de "Leido" elegido en el encabezado de la columna (el tabula
+     * real no soporta un select por columna, por eso el encabezado se arma a mano).
+     * @returns {void}
+     */
     $scope.filtroLeidoCambio = function () {
-        $scope.mostrarFiltroLeido = false;
+        $scope.leido.mostrar = false;
         $scope.buscarCliente();
     };
 
@@ -220,7 +225,7 @@ app.controller("cmDetalleCobranzaIntensidad", ['$scope', 'avisos', 'simple', 'pe
             "&filtroPeriodo=" + $scope.listas.filtroPeriodo +
             "&filtroCanal=" + $scope.filtroCanal +
             "&filtroFechaCarga=" + $scope.filtroFechaCarga +
-            "&filtroLeido=" + ($scope.tabActivo.key === 'correo' ? $scope.filtroLeido : 'todo') +
+            "&filtroLeido=" + ($scope.tabActivo.key === 'correo' ? $scope.leido.valor : 'todo') +
             "&buscarCliente=" + $scope.busqueda;
 
         pedido.async({
@@ -263,7 +268,7 @@ app.controller("cmDetalleCobranzaIntensidad", ['$scope', 'avisos', 'simple', 'pe
         if (qp.filtroProducto) { $scope.filtroProducto = qp.filtroProducto; }
         if (qp.filtroCanal) { $scope.filtroCanal = qp.filtroCanal; }
         if (qp.filtroFechaCarga) { $scope.filtroFechaCarga = qp.filtroFechaCarga; }
-        if (qp.filtroLeido) { $scope.filtroLeido = qp.filtroLeido; }
+        if (qp.filtroLeido) { $scope.leido.valor = qp.filtroLeido; }
 
         if (FILTROS_PERIODO.indexOf(qp.filtroTiempo) !== -1) { $scope.filtroTiempo = qp.filtroTiempo; }
         $scope.listas.filtroPeriodo = (qp.filtroPeriodo !== undefined && qp.filtroPeriodo !== "") ? parseInt(qp.filtroPeriodo, 10) : CICLO_TODOS;

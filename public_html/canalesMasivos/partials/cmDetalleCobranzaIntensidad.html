@@ -222,23 +222,6 @@
                     </div>
 
                     <div class="gc-detalle-subbar-derecha">
-                        <!-- Solo tiene sentido en la pestaña Correo (unico canal con lectura registrada). -->
-                        <div class="gc-filtro-leido-wrap" ng-show="tabActivo.key === 'correo'">
-                            <button type="button" class="gc-btn-filtro-leido"
-                                ng-class="{ 'gc-filtro-leido-activo': filtroLeido !== 'todo' }"
-                                ng-click="mostrarFiltroLeido = !mostrarFiltroLeido">
-                                <i class="fa fa-filter"></i> Le&iacute;do
-                            </button>
-                            <div class="gc-filtro-leido-overlay" ng-show="mostrarFiltroLeido" ng-click="mostrarFiltroLeido = false"></div>
-                            <div class="gc-filtro-leido-popup" ng-show="mostrarFiltroLeido">
-                                <select class="form-control" ng-model="filtroLeido" ng-change="filtroLeidoCambio()">
-                                    <option value="todo">Todos</option>
-                                    <option value="si">S&iacute;</option>
-                                    <option value="no">No</option>
-                                </select>
-                            </div>
-                        </div>
-
                         <div class="gc-detalle-buscador gc-detalle-buscador-tabs">
                             <i class="fa fa-search"></i>
                             <input type="text" class="form-control" placeholder="Buscar cliente..."
@@ -257,7 +240,7 @@
                 <!-- TABLA UNICA (7 columnas: las 3 pestañas salen todas de cuGestionCobranzaMysql, solo cambia el filtro de canal; Leido solo aplica en la pestaña Correo) -->
                 <div class="gc-detalle-tabla-wrap">
                     <table tabula="listaIntensidad" ng-if="mostrarTabla" tamanio-inicial="10"
-                        url="../canalesMasivos/cmDashboardGestionesCobranzaCtrl.php?act={{actActual}}&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroPeriodo={{listas.filtroPeriodo}}&filtroCanal={{filtroCanal}}&filtroFechaCarga={{filtroFechaCarga}}&filtroLeido={{ tabActivo.key === 'correo' ? filtroLeido : 'todo' }}&buscarCliente={{busqueda}}">
+                        url="../canalesMasivos/cmDashboardGestionesCobranzaCtrl.php?act={{actActual}}&filtroCartera={{filtroCartera}}&filtroProducto={{filtroProducto}}&filtroTiempo={{filtroTiempo}}&filtroPeriodo={{listas.filtroPeriodo}}&filtroCanal={{filtroCanal}}&filtroFechaCarga={{filtroFechaCarga}}&filtroLeido={{ tabActivo.key === 'correo' ? leido.valor : 'todo' }}&buscarCliente={{busqueda}}">
                         <tr>
                             <th width="{{ tabActivo.key === 'correo' ? '5%' : '6%' }}" align="center">Detalle</th>
                             <th width="{{ tabActivo.key === 'correo' ? '12%' : '13%' }}" tabula-encabezado="operacion" titulo="Operaci&oacute;n" ordenar filtrar></th>
@@ -268,7 +251,18 @@
                             <th width="{{ tabActivo.key === 'correo' ? '13%' : '16%' }}" tabula-encabezado="estado" titulo="Estado" ordenar filtrar></th>
                             <!-- Ancho 0 + oculta cuando no es Correo: no dependemos de que el navegador
                                  reacomode las demas columnas solo, cada una ya trae su ancho correcto arriba. -->
-                            <th width="{{ tabActivo.key === 'correo' ? '12%' : '0%' }}" tabula-encabezado="leido" titulo="Le&iacute;do" ordenar ng-class="{ 'gc-col-oculta': tabActivo.key !== 'correo' }"></th>
+                            <!-- Encabezado propio (sin tabula-encabezado): tabula solo tiene filtros de texto, rango y fecha,
+                                 asi que el select de Leido se arma aqui con el mismo embudo que dibuja la directiva. -->
+                            <th width="{{ tabActivo.key === 'correo' ? '12%' : '0%' }}" valign="top" ng-class="{ 'gc-col-oculta': tabActivo.key !== 'correo' }">
+                                <div><div><nobr>Le&iacute;do&nbsp;&nbsp;<i class="bi bi-funnel" ng-class="{ 'gc-filtro-leido-activo': leido.valor !== 'todo' }" ng-click="leido.mostrar = !leido.mostrar; $event.stopPropagation();"></i></nobr></div></div>
+                                <div ng-show="leido.mostrar">
+                                    <select class="form-control" ng-model="leido.valor" ng-change="filtroLeidoCambio()">
+                                        <option value="todo">Todos</option>
+                                        <option value="si">S&iacute;</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                            </th>
                         </tr>
                         <tr ng-repeat="x in tabulas['listaIntensidad'].filas track by $index">
                             <td class="p-1 m-0" align="center">
