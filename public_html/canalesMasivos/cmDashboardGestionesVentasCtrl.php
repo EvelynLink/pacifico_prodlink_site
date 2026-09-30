@@ -595,8 +595,9 @@ switch ($act) {
         // Nombre archivo
         $fechaHoy = date("Y_m_d");
 
-        if ($filtroCartera != "" && $filtroCartera != "todo") {
-            $nombreArchivo = "GESTIONES_VENTAS_" . $nombreCartera . "_" . $fechaHoy;
+        // El nombre de la cartera reemplaza a "VENTAS"; sin cartera se deja "VENTAS".
+        if ($nombreCartera !== "") {
+            $nombreArchivo = "GESTIONES_" . $nombreCartera . "_" . $fechaHoy;
         } else {
             $nombreArchivo = "GESTIONES_VENTAS_" . $fechaHoy;
         }
@@ -787,11 +788,9 @@ switch ($act) {
         list($cabeceras, $filasExcel, $columnasTexto) = armarFilasExcelDetalle($forma, $filas);
 
         $fechaHoy = date("Y_m_d");
-        $nombreArchivo = "VENTAS_" . strtoupper(preg_replace('/^lista/', '', $tipo));
-        if ($nombreCartera !== "") {
-            $nombreArchivo .= "_" . $nombreCartera;
-        }
-        $nombreArchivo .= "_" . $fechaHoy;
+        // El archivo empieza con el nombre de la cartera; sin cartera se deja "VENTAS".
+        $prefijoArchivo = $nombreCartera !== "" ? $nombreCartera : "VENTAS";
+        $nombreArchivo = $prefijoArchivo . "_" . strtoupper(preg_replace('/^lista/', '', $tipo)) . "_" . $fechaHoy;
 
         $json["ruta"] = generarExcelGenerico($cabeceras, $filasExcel, $nombreArchivo, $columnasTexto);
         #endregion
@@ -3479,6 +3478,25 @@ function obtenerAudioTranscripcionPorAvId($avId)
     return ["error" => "No existe el detalle de la llamada (002)"];
 }
 
+/**
+ * Mensaje de plantilla con el que arranca el chat de WhatsApp (ws_plantilla y
+ * ws_fecha de avProgramadasWhatsApp). Se envia siempre, responda o no el cliente.
+ * @param array|\ArrayAccess $r Documento de avProgramadasWhatsApp
+ * @return array<int, array{direccion:string, mensaje:string, fechaHora:string}> Vacio si no hay plantilla
+ */
+function mensajePlantillaWhatsapp(array|\ArrayAccess $r): array
+{
+    $plantilla = (string) ($r["ws_plantilla"] ?? "");
+    if ($plantilla === "") {
+        return [];
+    }
+    return [[
+        "direccion" => "agente",
+        "mensaje" => $plantilla,
+        "fechaHora" => !empty($r["ws_fecha"]) ? date("d/m/Y H:i.s", (int) $r["ws_fecha"]) : "",
+    ]];
+}
+
 // Trae solo la transcripcion de un chat de WhatsApp, a partir del cubGV_avId
 // guardado en cuGestionVentas (subset de cmReporteAgenteVirtualWhatsappCtrl.php
 // -> obtenerDetalleChat, que ademas trae resumen/costo/analisis que aqui no hacen falta).
@@ -3500,9 +3518,13 @@ function obtenerTranscripcionWhatsappPorAvId($avId)
 
     // ws_tieneTranscripcion no es confiable (queda en 0 aun en chats ya
     // contestados con conversacion real); el indicador valido es que exista
-    // ws_idConversacion. Si el cliente nunca respondio, ese campo no existe.
+    // ws_idConversacion. Si el cliente nunca respondio, ese campo no existe y no
+    // hay chat que pedir al proveedor: se muestra solo el mensaje enviado.
     if (empty($r["ws_idConversacion"] ?? "")) {
-        return ["transcripcion" => base64_encode(json_encode([])), "telefono" => $r["ws_telefono"] ?? ""];
+        return [
+            "transcripcion" => base64_encode(json_encode(utf8_converter(mensajePlantillaWhatsapp($r)))),
+            "telefono" => $r["ws_telefono"] ?? "",
+        ];
     }
 
     $idChat = $r["ws_idConversacion"];
@@ -3541,11 +3563,7 @@ function obtenerTranscripcionWhatsappPorAvId($avId)
         if ($resp["estado"] != "OK") {
             return ["error" => "No existe el detalle del chat (002)"];
         }
-        $transcripcion[] = [
-            "direccion" => "agente",
-            "mensaje" => $r["ws_plantilla"],
-            "fechaHora" => date("d/m/Y H:i.s", $r["ws_fecha"]),
-        ];
+        $transcripcion = mensajePlantillaWhatsapp($r);
         if (isset($resp["datos"]["message_with_tool_calls"])) {
             foreach ($resp["datos"]["message_with_tool_calls"] as $value) {
                 if ($value["role"] == "agent" || $value["role"] == "user") {
