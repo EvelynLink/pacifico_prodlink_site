@@ -3610,6 +3610,14 @@ function telefonoComoTexto($telefono)
         return '0' . substr($telefono, 3);
     }
     return $telefono;
+} 
+
+// Cedula del cliente para los Excel de detalle: cuGestionVentas la guarda en
+// cubGV_cedula y cuAsignacionesGestionVentas en cubAV_cedula. Va siempre
+// junto al numero de factura/operacion.
+function cedulaClienteExcel(array|ArrayAccess $f): string
+{
+    return (string) ($f['cubGV_cedula'] ?? $f['cubAV_cedula'] ?? '');
 }
 
 // Arma (cabeceras, filas) listas para generarExcelGenerico() segun la
@@ -3623,10 +3631,12 @@ function armarFilasExcelDetalle($forma, $filas)
     switch ($forma) {
 
         case "noContactado":
-            $cabeceras = ["Nro. Operación", "Nombre Cliente", "Producto", "Fecha Carga"];
+            $cabeceras = ["Nro. Operación", "Cédula", "Nombre Cliente", "Producto", "Fecha Carga"];
+            $columnasTexto = [1];
             $filasExcel = array_map(function ($f) {
                 return [
                     $f['operacion'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['nombreCliente'] ?? '',
                     $f['campania'] ?? '',
                     !empty($f['fechaMostrar']) ? date('d/m/Y H:i', $f['fechaMostrar']) : '',
@@ -3635,11 +3645,12 @@ function armarFilasExcelDetalle($forma, $filas)
             break;
 
         case "intensidadTelefono":
-            $cabeceras = ["Nro. Operación", "Nombre Cliente", "Campaña", "Número Telefónico", "Fecha Gestión", "Estado"];
-            $columnasTexto = [3];
+            $cabeceras = ["Nro. Operación", "Cédula", "Nombre Cliente", "Campaña", "Número Telefónico", "Fecha Gestión", "Estado"];
+            $columnasTexto = [1, 4];
             $filasExcel = array_map(function ($f) {
                 return [
                     $f['operacion'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['nombreCliente'] ?? '',
                     $f['campania'] ?? '',
                     telefonoComoTexto($f['telefono'] ?? ''),
@@ -3650,10 +3661,12 @@ function armarFilasExcelDetalle($forma, $filas)
             break;
 
         case "intensidadCorreo":
-            $cabeceras = ["Nro. Operación", "Nombre Cliente", "Campaña", "Correo Electrónico", "Fecha Gestión", "Estado", "Leído"];
+            $cabeceras = ["Nro. Operación", "Cédula", "Nombre Cliente", "Campaña", "Correo Electrónico", "Fecha Gestión", "Estado", "Leído"];
+            $columnasTexto = [1];
             $filasExcel = array_map(function ($f) {
                 return [
                     $f['operacion'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['nombreCliente'] ?? '',
                     $f['campania'] ?? '',
                     $f['correo'] ?? '',
@@ -3665,7 +3678,8 @@ function armarFilasExcelDetalle($forma, $filas)
             break;
 
         case "baseAsignada":
-            $cabeceras = ["Cliente", "Producto", "Estado", "Fecha AV", "Fecha Email", "Fecha Whatsapp"];
+            $cabeceras = ["Cliente", "Cédula", "Producto", "Estado", "Fecha AV", "Fecha Email", "Fecha Whatsapp"];
+            $columnasTexto = [1];
             $filasExcel = array_map(function ($f) {
                 // Estado usa la gestion GENERAL (cubAV_gestionada), no por canal.
                 $estado = !empty($f['cubAV_gestionada']) ? "Gestionado" : "No Gestionado";
@@ -3675,6 +3689,7 @@ function armarFilasExcelDetalle($forma, $filas)
                 };
                 return [
                     $f['cubAV_numFactura'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['cubAV_producto'] ?? '',
                     $estado,
                     $fechaCanal('AV'),
@@ -3686,7 +3701,7 @@ function armarFilasExcelDetalle($forma, $filas)
 
         case "clientesGestionados":
             $cabeceras = [
-                "Cliente", "Estado",
+                "Cliente", "Cédula", "Estado",
                 "AV - Tipificación 1", "AV - Tipificación 2", "AV - Fecha Gestión", "AV - Ponderación", "AV - Teléfono",
                 "EMAIL - Tipificación 1", "EMAIL - Tipificación 2", "EMAIL - Fecha Gestión", "EMAIL - Ponderación", "EMAIL - Correo",
                 "WHATSAPP - Tipificación 1", "WHATSAPP - Tipificación 2", "WHATSAPP - Fecha Gestión", "WHATSAPP - Ponderación", "WHATSAPP - Teléfono",
@@ -3696,7 +3711,7 @@ function armarFilasExcelDetalle($forma, $filas)
                 "Total Correos", "Correos Enviados", "Correos Leídos", "Correos No Enviados",
             ];
             // AV - Telefono, WHATSAPP - Telefono, Mejor Gestion - Telefono/Correo.
-            $columnasTexto = [6, 16, 22];
+            $columnasTexto = [1, 7, 17, 23];
             $filasExcel = array_map(function ($f) {
                 $fecha = function ($valor) {
                     return !empty($valor) ? date('d/m/Y H:i', $valor) : '';
@@ -3728,6 +3743,7 @@ function armarFilasExcelDetalle($forma, $filas)
 
                 return [
                     $f['cubAV_numFactura'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['cubAV_estado'] ?? '',
                     $av['tipificacion1'] ?? '',
                     $av['tipificacion2'] ?? '',
@@ -3765,10 +3781,12 @@ function armarFilasExcelDetalle($forma, $filas)
             break;
 
         case "clientesSinGestion":
-            $cabeceras = ["Cliente", "Estado"];
+            $cabeceras = ["Cliente", "Cédula", "Estado"];
+            $columnasTexto = [1];
             $filasExcel = array_map(function ($f) {
                 return [
                     $f['cubAV_numFactura'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['cubAV_estado'] ?? '',
                 ];
             }, $filas);
@@ -3776,8 +3794,8 @@ function armarFilasExcelDetalle($forma, $filas)
 
         case "contactabilidad":
         default:
-            $cabeceras = ["Nro. Operación", "Nombre Cliente", "Número Telefónico", "Email", "Campaña", "Tipificación 1", "Tipificación 2", "Fecha Gestión", "Canal", "Leído"];
-            $columnasTexto = [2];
+            $cabeceras = ["Nro. Operación", "Cédula", "Nombre Cliente", "Número Telefónico", "Email", "Campaña", "Tipificación 1", "Tipificación 2", "Fecha Gestión", "Canal", "Leído"];
+            $columnasTexto = [1, 3];
             $filasExcel = array_map(function ($f) {
                 $canal = $f['canal'] ?? '';
                 // En el Excel, TELEFONICA se muestra como "AV" (mismo canal,
@@ -3785,6 +3803,7 @@ function armarFilasExcelDetalle($forma, $filas)
                 $canalExcel = $canal === 'TELEFONICA' ? 'AV' : $canal;
                 return [
                     $f['operacion'] ?? '',
+                    cedulaClienteExcel($f),
                     $f['nombreCliente'] ?? '',
                     telefonoComoTexto($f['telefono'] ?? ''),
                     $f['correo'] ?? '',
