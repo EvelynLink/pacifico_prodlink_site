@@ -1,0 +1,423 @@
+<div class="sg-root">
+
+    <!--#region FILTROS (mismos que dashboardGestionIndividual)-->
+    <div class="sg-filtros-bar">
+        <div class="sg-filtros-icono">
+            <li class="fa fa-filter fa-15x"></li>
+        </div>
+        <div class="sg-filtros-contenido">
+            <div class="sg-filtro">
+                <li class="fa fa-fw fa-clock-o fa-15x"></li>
+                <select ng-disabled="cargando" id="filtroTiempo" class="form-control" ng-model="filtroTiempo"
+                    ng-change="traerParametrizacion(false)">
+                    <option value="hora">&Uacute;ltima hora</option>
+                    <option value="dia">Este d&iacute;a</option>
+                    <option value="ayer">Ayer</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="semanaanterior">Semana anterior</option>
+                    <option value="mes">Este mes</option>
+                    <option value="mesanterior">Mes anterior</option>
+                    <option value="rango">Rango de tiempo</option>
+                </select>
+            </div>
+            <div class="sg-filtro" ng-show="filtroTiempo==='rango'">
+                <input id="fechaDesde" class="form-control sg-filtro-fecha" type="text" datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaDesde" ng-click="abreFechaDesde = !abreFechaDesde" ng-model="fechaDesde"
+                    placeholder="Desde" ng-change="aplicarRangoFechas()">
+            </div>
+            <div class="sg-filtro" ng-show="filtroTiempo==='rango'">
+                <input id="fechaHasta" class="form-control sg-filtro-fecha" type="text" datepicker-popup="dd/MM/yyyy"
+                    is-open="abreFechaHasta" ng-click="abreFechaHasta = !abreFechaHasta" ng-model="fechaHasta"
+                    placeholder="Hasta" ng-change="aplicarRangoFechas()">
+            </div>
+            <div class="sg-filtro">
+                <li class="fa fa-fw fa-briefcase fa-15x"></li>
+                <md-select ng-disabled="cargando" id="filtroCartera" class="form-control sg-filtro-select"
+                    ng-model="filtroCartera" multiple placeholder="Cartera" ng-change="cambioCheck()">
+                    <md-option ng-value="p.id" ng-repeat="p in listas.carteras">{{p.nombre}}</md-option>
+                </md-select>
+            </div>
+            <div class="sg-filtro" ng-if="filtroCartera.length > 0">
+                <li class="fa fa-fw fa-tachometer fa-15x"></li>
+                <md-select ng-disabled="cargando" id="filtroPeriodo" class="form-control sg-filtro-select"
+                    ng-model="listas.filtroPeriodo" multiple placeholder="Todos los ciclos" ng-change="cambioCheck()">
+                    <md-option ng-value="p.id" ng-repeat="p in periodo">{{p.nombre}}</md-option>
+                </md-select>
+            </div>
+            <div class="sg-filtro">
+                <li class="fa fa-fw fa-tags fa-15x"></li>
+                <md-select ng-disabled="cargando" id="filtroCampania" class="form-control sg-filtro-select"
+                    ng-model="filtroCampania" multiple placeholder="Campa&ntilde;a" ng-change="cambioCheck()">
+                    <md-option ng-value="p.id" ng-repeat="p in listas.campanias">{{p.nombre}}</md-option>
+                </md-select>
+            </div>
+            <div class="sg-filtro">
+                <li class="fa fa-fw fa-exchange fa-15x"></li>
+                <md-select ng-disabled="cargando" id="filtroCanal" class="form-control sg-filtro-select"
+                    ng-model="filtroCanal" multiple placeholder="Todos los canales" ng-change="cambioCheck()">
+                    <md-option ng-value="'llamada'">Llamadas</md-option>
+                    <md-option ng-value="'wp'">WhatsApp</md-option>
+                    <md-option ng-value="'mail'">Correo electr&oacute;nico</md-option>
+                </md-select>
+            </div>
+            <div class="sg-filtro">
+                <button class="btn btn-primary" ng-disabled="cargando" ng-click="traerParametrizacion(true)">Filtrar</button>
+            </div>
+        </div>
+        <div class="sg-filtros-actualiza">
+            <i class="fa fa-fw fa-refresh fa-15x sg-clickable" title="Actualizar datos ahora" ng-click="traerParametrizacion(true)"></i>
+            <select title="Actualizar autom&aacute;ticamente" class="form-control input-sm" ng-model="tiempoActualizar"
+                ng-options="p.id as p.nombre for p in listas.tiemposActualiza" ng-change="setTiempoActualizar()"></select>
+        </div>
+    </div>
+
+    <div class="sg-badges" ng-show="filtrosAplicados.length > 0">
+        <span class="badge" ng-repeat="f in filtrosAplicados">
+            {{f.titulo}}
+            <li ng-click="quitarFiltro(f.clave)" class="fa fa-fw fa-times sg-clickable" title="Quitar filtro"></li>
+        </span>
+        <span class="badge sg-clickable" ng-show="filtrosAplicados.length > 1" ng-click="quitarFiltro('todo')">
+            Quita filtros <li class="fa fa-fw fa-times" title="Quitar filtro"></li>
+        </span>
+    </div>
+    <div class="sg-titulo">{{titulo}}</div>
+    <!--#endregion-->
+
+    <!--#region CUADROS SUPERIORES-->
+    <div class="sg-cards">
+        <div class="sg-card" ng-show="canalesActivos.indexOf('llamada') >= 0" title="{{cuadrosSuperiores.intentos.tooltip}}">
+            <div class="sg-card-icono sg-fondo-llamadas"><i class="fa fa-phone"></i></div>
+            <div>
+                <div class="sg-card-label sg-color-llamadas">Intentos</div>
+                <div class="sg-card-valor sg-color-llamadas">
+                    <span ng-show="!cargandoTotales">{{cuadrosSuperiores.intentos.total}}</span>
+                    <i class="fa fa-spinner fa-spin" ng-show="cargandoTotales"></i>
+                </div>
+                <div class="sg-card-sub">Llamadas realizadas</div>
+            </div>
+        </div>
+        <div class="sg-card" ng-show="canalesActivos.indexOf('wp') >= 0">
+            <div class="sg-card-icono sg-fondo-whatsapp"><i class="fa fa-whatsapp"></i></div>
+            <div>
+                <div class="sg-card-label sg-color-whatsapp">Contactos</div>
+                <div class="sg-card-valor sg-color-whatsapp">
+                    <span ng-show="!cargandoTotales">{{cuadrosSuperiores.whatsapp.total}}</span>
+                    <i class="fa fa-spinner fa-spin" ng-show="cargandoTotales"></i>
+                </div>
+                <div class="sg-card-sub">Total de WhatsApp</div>
+            </div>
+        </div>
+        <div class="sg-card" ng-show="canalesActivos.indexOf('mail') >= 0">
+            <div class="sg-card-icono sg-fondo-correo"><i class="fa fa-envelope-o"></i></div>
+            <div>
+                <div class="sg-card-label sg-color-correo">Correo</div>
+                <div class="sg-card-valor sg-color-correo">
+                    <span ng-show="!cargandoTotales">{{cuadrosSuperiores.correo.total}}</span>
+                    <i class="fa fa-spinner fa-spin" ng-show="cargandoTotales"></i>
+                </div>
+                <div class="sg-card-sub">Total de correos</div>
+            </div>
+        </div>
+        <div class="sg-card">
+            <div class="sg-card-icono sg-fondo-pendientes"><i class="fa fa-clock-o"></i></div>
+            <div>
+                <div class="sg-card-label sg-color-pendientes">Clientes pendientes</div>
+                <div class="sg-card-valor sg-color-pendientes">
+                    <span ng-show="!cargandoTotales">{{cuadrosSuperiores.pendientes.total}}</span>
+                    <i class="fa fa-spinner fa-spin" ng-show="cargandoTotales"></i>
+                </div>
+                <div class="sg-card-sub">Clientes por gestionar</div>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
+
+    <!--#region PESTANIAS-->
+    <div class="sg-tabs">
+        <div class="sg-tab {{p.clase}}" ng-repeat="p in pestanias" ng-show="pestaniaVisible(p)"
+            ng-class="{ 'sg-tab-activo': pestaniaActiva.key === p.key }" ng-click="cambiarPestania(p)">
+            <i class="fa {{p.icono}}"></i> {{p.label}}
+        </div>
+    </div>
+    <!--#endregion-->
+
+    <!--#region PESTANIA LLAMADAS-->
+    <div ng-if="pestaniaActiva.key === 'llamadas'">
+        <div class="sg-fila-kpi">
+            <div class="sg-kpi-panel sg-panel-llamadas sg-kpi-3">
+                <div class="sg-kpi" ng-repeat="c in secciones.llamadas.cuadros" title="{{c.tooltip}}">
+                    <div class="sg-kpi-icono sg-kpi-icono-llamadas"><i class="fa {{c.icono}}"></i></div>
+                    <div>
+                        <div class="sg-kpi-label">{{c.nombre}}</div>
+                        <div class="sg-kpi-valor sg-color-llamadas">{{c.total}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="sg-grafico">
+                <div id="sgGraficoTipificaciones" ng-style="altoGrafico()"></div>
+                <div class="sg-sin-datos" ng-show="!cargandoTotales && secciones.llamadas.tipificaciones.length === 0">
+                    Sin tipificaciones en el periodo
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-tabla-card">
+            <div class="sg-tabla-cabecera">
+                <span>Mostrando clientes <b class="sg-color-llamadas">llamadas</b></span>
+                <div class="sg-buscador">
+                    <i class="fa fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Buscar cliente..." ng-model="busqueda.texto"
+                        ng-model-options="{ debounce: 400 }" ng-change="buscarCliente()">
+                </div>
+            </div>
+            <div class="sg-tabla-wrap" ng-if="parametrosTabla">
+                <table tabula="sgLlamadas" tamanio-inicial="10" observa-y-recarga="recarga.llamadas" url="{{urlTabla('listaLlamadas')}}">
+                    <tr>
+                        <th width="13%" tabula-encabezado="operacion" titulo="Nro. Operaci&oacute;n" ordenar filtrar></th>
+                        <th width="19%" tabula-encabezado="nombreCliente" titulo="Nombre Cliente" ordenar filtrar></th>
+                        <th width="17%" tabula-encabezado="campania" titulo="Campa&ntilde;a" ordenar filtrar></th>
+                        <th width="14%" tabula-encabezado="contacto" titulo="N&uacute;mero Telef&oacute;nico" ordenar filtrar></th>
+                        <th width="14%" tabula-encabezado="fechaMostrar" titulo="&Uacute;ltimo intento" tipo="timestamp" ordenar filtrar></th>
+                        <th width="13%" tabula-encabezado="estado" titulo="Estado" filtrar></th>
+                        <th width="10%" class="sg-centro">Conversaci&oacute;n</th>
+                    </tr>
+                    <tr ng-repeat="x in tabulas['sgLlamadas'].filas track by $index">
+                        <td>{{x.operacion}}</td>
+                        <td>{{x.nombreCliente}}</td>
+                        <td>{{x.campania}}</td>
+                        <td>{{x.contacto}}</td>
+                        <td>{{x.fechaMostrar ? (x.fechaMostrar * 1000 | date:'dd/MM/yyyy HH:mm') : ''}}</td>
+                        <td><span class="sg-badge sg-badge-{{x.estadoClase}}">{{x.estado}}</span></td>
+                        <td class="sg-centro">
+                            <li class="fa fa-file-audio-o fa-fw sg-icono-detalle sg-color-llamadas" title="Audio y transcripci&oacute;n"
+                                ng-click="mostrarDetalleLlamada(x)" ng-show="x.tieneDetalle"></li>
+                            <li class="fa fa-file-audio-o fa-fw sg-icono-detalle sg-icono-deshabilitado" title="Audio y transcripci&oacute;n"
+                                ng-show="x.detalleDeshabilitado"></li>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="sg-td-paginador" colspan="7">
+                            <tabula-paginador dataset="tabulas['sgLlamadas']" maxbotones="3"></tabula-paginador>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
+
+    <!--#region PESTANIA WHATSAPP-->
+    <div ng-if="pestaniaActiva.key === 'whatsapp'">
+        <div class="sg-kpi-panel sg-panel-whatsapp sg-kpi-4 sg-kpi-centrado">
+            <div class="sg-kpi" ng-repeat="c in secciones.whatsapp.cuadros" title="{{c.extra || c.tooltip}}">
+                <div class="sg-kpi-icono sg-kpi-icono-whatsapp"><i class="fa {{c.icono}}"></i></div>
+                <div>
+                    <div class="sg-kpi-label">{{c.nombre}}</div>
+                    <div class="sg-kpi-valor sg-color-whatsapp">{{c.total}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-tabla-card">
+            <div class="sg-tabla-cabecera">
+                <span>Mostrando clientes <b class="sg-color-whatsapp">WhatsApp</b></span>
+                <div class="sg-buscador">
+                    <i class="fa fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Buscar cliente..." ng-model="busqueda.texto"
+                        ng-model-options="{ debounce: 400 }" ng-change="buscarCliente()">
+                </div>
+            </div>
+            <div class="sg-tabla-wrap" ng-if="parametrosTabla">
+                <table tabula="sgWhatsapp" tamanio-inicial="10" observa-y-recarga="recarga.whatsapp" url="{{urlTabla('listaWhatsapp')}}">
+                    <tr>
+                        <th width="14%" tabula-encabezado="operacion" titulo="Nro. Operaci&oacute;n" ordenar filtrar></th>
+                        <th width="22%" tabula-encabezado="nombreCliente" titulo="Nombre Cliente" ordenar filtrar></th>
+                        <th width="20%" tabula-encabezado="campania" titulo="Campa&ntilde;a" ordenar filtrar></th>
+                        <th width="16%" tabula-encabezado="contacto" titulo="N&uacute;mero Telef&oacute;nico" ordenar filtrar></th>
+                        <th width="16%" tabula-encabezado="estado" titulo="Estado" filtrar></th>
+                        <th width="12%" class="sg-centro">Conversaci&oacute;n</th>
+                    </tr>
+                    <tr ng-repeat="x in tabulas['sgWhatsapp'].filas track by $index">
+                        <td>{{x.operacion}}</td>
+                        <td>{{x.nombreCliente}}</td>
+                        <td>{{x.campania}}</td>
+                        <td>{{x.contacto}}</td>
+                        <td><span class="sg-badge sg-badge-{{x.estadoClase}}">{{x.estado}}</span></td>
+                        <td class="sg-centro">
+                            <li class="fa fa-whatsapp fa-fw sg-icono-detalle sg-color-whatsapp" title="Transcripci&oacute;n del chat"
+                                ng-click="mostrarDetalleWhatsapp(x)" ng-show="x.tieneDetalle"></li>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="sg-td-paginador" colspan="6">
+                            <tabula-paginador dataset="tabulas['sgWhatsapp']" maxbotones="3"></tabula-paginador>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
+
+    <!--#region PESTANIA CORREO-->
+    <div ng-if="pestaniaActiva.key === 'correo'">
+        <div class="sg-kpi-panel sg-panel-correo sg-kpi-4 sg-kpi-centrado">
+            <div class="sg-kpi" ng-repeat="c in secciones.correo.cuadros" title="{{c.tooltip}}">
+                <div class="sg-kpi-icono sg-kpi-icono-correo"><i class="fa {{c.icono}}"></i></div>
+                <div>
+                    <div class="sg-kpi-label">{{c.nombre}}</div>
+                    <div class="sg-kpi-valor sg-color-correo">{{c.total}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-tabla-card">
+            <div class="sg-tabla-cabecera">
+                <span>Mostrando clientes <b class="sg-color-correo">Email</b></span>
+                <div class="sg-buscador">
+                    <i class="fa fa-search"></i>
+                    <input type="text" class="form-control" placeholder="Buscar cliente..." ng-model="busqueda.texto"
+                        ng-model-options="{ debounce: 400 }" ng-change="buscarCliente()">
+                </div>
+            </div>
+            <div class="sg-tabla-wrap" ng-if="parametrosTabla">
+                <table tabula="sgCorreo" tamanio-inicial="10" observa-y-recarga="recarga.correo" url="{{urlTabla('listaCorreo')}}">
+                    <tr>
+                        <th width="14%" tabula-encabezado="operacion" titulo="Nro. Operaci&oacute;n" ordenar filtrar></th>
+                        <th width="22%" tabula-encabezado="nombreCliente" titulo="Nombre Cliente" ordenar filtrar></th>
+                        <th width="20%" tabula-encabezado="campania" titulo="Campa&ntilde;a" ordenar filtrar></th>
+                        <th width="18%" tabula-encabezado="contacto" titulo="Correo" ordenar filtrar></th>
+                        <th width="14%" tabula-encabezado="estado" titulo="Estado" filtrar></th>
+                        <th width="12%" class="sg-centro">Correo</th>
+                    </tr>
+                    <tr ng-repeat="x in tabulas['sgCorreo'].filas track by $index">
+                        <td>{{x.operacion}}</td>
+                        <td>{{x.nombreCliente}}</td>
+                        <td>{{x.campania}}</td>
+                        <td>{{x.contacto}}</td>
+                        <td><span class="sg-badge sg-badge-{{x.estadoClase}}">{{x.estado}}</span></td>
+                        <td class="sg-centro">
+                            <li class="fa fa-envelope-o fa-fw sg-icono-detalle sg-color-correo" title="Detalle del correo"
+                                ng-click="mostrarDetalleCorreo(x)" ng-show="x.tieneDetalle"></li>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="sg-td-paginador" colspan="6">
+                            <tabula-paginador dataset="tabulas['sgCorreo']" maxbotones="3"></tabula-paginador>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!--#endregion-->
+
+    <!--#region PESTANIA PENDIENTES-->
+    <div ng-if="pestaniaActiva.key === 'pendientes'">
+        <div class="sg-kpi-panel sg-panel-pendientes sg-kpi-3 sg-kpi-centrado">
+            <div class="sg-kpi sg-kpi-selector" ng-repeat="c in secciones.pendientes.cuadros" title="{{c.tooltip}}"
+                ng-show="canalesActivos.indexOf(c.clave) >= 0"
+                ng-class="{ 'sg-kpi-elegido': canalPendiente === c.clave }" ng-click="elegirCanalPendiente(c.clave)">
+                <div class="sg-kpi-icono sg-kpi-icono-pendientes"><i class="fa {{c.icono}}"></i></div>
+                <div>
+                    <div class="sg-kpi-label">{{c.nombre}}</div>
+                    <div class="sg-kpi-valor sg-color-pendientes">{{c.total}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sg-tabla-cabecera">
+            <span>Mostrando clientes <b class="sg-color-pendientes">Pendientes</b></span>
+            <div class="sg-buscador">
+                <i class="fa fa-search"></i>
+                <input type="text" class="form-control" placeholder="Buscar cliente..." ng-model="busqueda.texto"
+                    ng-model-options="{ debounce: 400 }" ng-change="buscarCliente()">
+            </div>
+        </div>
+        <div class="sg-tabla-wrap" ng-if="parametrosTabla">
+            <table tabula="sgPendientes" tamanio-inicial="10" observa-y-recarga="recarga.pendientes" url="{{urlTabla('listaPendientes')}}">
+                <tr>
+                    <th width="14%" tabula-encabezado="operacion" titulo="Nro. Operaci&oacute;n" ordenar filtrar></th>
+                    <th width="22%" tabula-encabezado="nombreCliente" titulo="Nombre Cliente" ordenar filtrar></th>
+                    <th width="20%" tabula-encabezado="campania" titulo="Campa&ntilde;a" ordenar filtrar></th>
+                    <th width="16%">Canal de Comunicaci&oacute;n</th>
+                    <th width="14%">Estado</th>
+                    <th width="14%" class="sg-centro">Cancelar Acci&oacute;n</th>
+                </tr>
+                <tr ng-repeat="x in tabulas['sgPendientes'].filas track by $index">
+                    <td>{{x.operacion}}</td>
+                    <td>{{x.nombreCliente}}</td>
+                    <td>{{x.campania}}</td>
+                    <td>{{x.canal}}</td>
+                    <td><span class="sg-badge sg-badge-{{x.estadoClase}}">{{x.estado}}</span></td>
+                    <td class="sg-centro"><span class="sg-cancelar">Cancelar</span></td>
+                </tr>
+                <tr>
+                    <td class="sg-td-paginador" colspan="6">
+                        <tabula-paginador dataset="tabulas['sgPendientes']" maxbotones="3"></tabula-paginador>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <!--#endregion-->
+
+    <!--#region MODAL AUDIO Y TRANSCRIPCION-->
+    <modal-popup titulo="Audio y Transcripci&oacute;n - {{verDetalleLlamada.nombreCliente}}" icono="fa fa-file-audio-o fa-fw"
+        width="700" abrir="verDetalleLlamada.activo">
+        <div class="sg-audio-player">
+            <audio controls autoplay ng-if="verDetalleLlamada.detalle.audio">
+                <source ng-src="{{verDetalleLlamada.detalle.audio}}" type="audio/mpeg">
+                Su navegador no soporta audio.
+            </audio>
+            <span class="badge" ng-if="!verDetalleLlamada.detalle.audio">Sin audio registrado</span>
+        </div>
+        <div ng-repeat="item in verDetalleLlamada.detalle.transcripcion" class="sg-transcripcion-item"
+            ng-class="{'sg-transcripcion-agente': item.direccion==='agente', 'sg-transcripcion-cliente': item.direccion==='cliente'}">
+            <div class="sg-transcripcion-burbuja">
+                <b ng-show="item.direccion==='agente'">Agente virtual</b>
+                <b ng-show="item.direccion==='cliente'">{{verDetalleLlamada.detalle.telefono}}</b>
+                <div>{{item.mensaje}}</div>
+                <span class="sg-transcripcion-hora" ng-show="item.fechaHora">{{item.fechaHora}}</span>
+            </div>
+        </div>
+        <div class="sg-sin-transcripcion" ng-show="!verDetalleLlamada.detalle.transcripcion || verDetalleLlamada.detalle.transcripcion.length === 0">
+            No hay transcripci&oacute;n
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+
+    <!--#region MODAL TRANSCRIPCION WHATSAPP-->
+    <modal-popup titulo="Transcripci&oacute;n del chat - {{verDetalleWhatsapp.nombreCliente}}" icono="fa fa-whatsapp fa-fw"
+        width="700" abrir="verDetalleWhatsapp.activo">
+        <div ng-repeat="item in verDetalleWhatsapp.detalle.transcripcion" class="sg-transcripcion-item"
+            ng-class="{'sg-transcripcion-agente': item.direccion==='agente', 'sg-transcripcion-cliente': item.direccion==='cliente'}">
+            <div class="sg-transcripcion-burbuja">
+                <b ng-show="item.direccion==='agente'">Agente virtual</b>
+                <b ng-show="item.direccion==='cliente'">{{verDetalleWhatsapp.detalle.telefono}}</b>
+                <div>{{item.mensaje}}</div>
+                <span class="sg-transcripcion-hora" ng-show="item.fechaHora">{{item.fechaHora}}</span>
+            </div>
+        </div>
+        <div class="sg-sin-transcripcion" ng-show="!verDetalleWhatsapp.detalle.transcripcion || verDetalleWhatsapp.detalle.transcripcion.length === 0">
+            No hay transcripci&oacute;n
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+
+    <!--#region MODAL DETALLE CORREO-->
+    <modal-popup titulo="Detalle del correo - {{verDetalleCorreo.nombreCliente}}" icono="fa fa-envelope-o fa-fw"
+        width="700" abrir="verDetalleCorreo.activo">
+        <div class="sg-correo-destinatario" ng-show="verDetalleCorreo.detalle.destinatario">
+            <b>Para:</b> {{verDetalleCorreo.detalle.destinatario}}
+        </div>
+        <div class="sg-correo-cuerpo" ng-bind-html="verDetalleCorreo.detalle.html" ng-show="verDetalleCorreo.detalle.html"></div>
+        <div class="sg-sin-datos" ng-show="!verDetalleCorreo.detalle.html">
+            No hay detalle del correo
+        </div>
+    </modal-popup>
+    <!--#endregion-->
+
+    <wait-window activar="cargando"></wait-window>
+</div>
+<!-- _FIN_DE_ARCHIVO -->

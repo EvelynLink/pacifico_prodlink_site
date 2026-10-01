@@ -58,7 +58,8 @@ require_once("../comunes/top.inc.php");
         "canalesMasivos/controllers/cmDetalleCobranzaContactabilidad.js",
         "canalesMasivos/controllers/cmDetalleCobranzaEfectividad.js",
         "canalesMasivos/controllers/cmDetalleCobranzaHorarios.js",
-        "canalesMasivos/controllers/cmDetalleCobranzaIntensidad.js"
+        "canalesMasivos/controllers/cmDetalleCobranzaIntensidad.js",
+        "canalesMasivos/controllers/cmDashboardSeguimientoGestiones.js"
     );
     // $ngEstilos = array();
     $ngEstilos = array(

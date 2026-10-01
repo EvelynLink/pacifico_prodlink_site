@@ -1,0 +1,535 @@
+/* Dashboard de seguimiento de gestiones (prefijo sg-) */
+
+.sg-root {
+    padding: 10px 16px 24px 16px;
+    color: #1F2937;
+}
+
+.sg-clickable {
+    cursor: pointer;
+}
+
+.sg-centro {
+    text-align: center;
+}
+
+/* Colores por canal */
+.sg-color-llamadas { color: #3B6FF0; }
+.sg-color-whatsapp { color: #22A845; }
+.sg-color-correo { color: #8E5CF6; }
+.sg-color-pendientes { color: #22A845; }
+
+.sg-fondo-llamadas { background-color: #C9D7FF; color: #3B6FF0; }
+.sg-fondo-whatsapp { background-color: #E3F6E6; color: #22A845; }
+.sg-fondo-correo { background-color: #DCCDFB; color: #8E5CF6; }
+.sg-fondo-pendientes { background-color: #E3F6E6; color: #22A845; }
+
+/* Filtros */
+.sg-filtros-bar {
+    display: flex;
+    align-items: stretch;
+    border: solid 1px #CBCBCB;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.sg-filtros-icono {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #CBCBCB;
+    padding: 0 10px;
+}
+
+.sg-filtros-contenido {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    flex: 1;
+    padding: 8px;
+    gap: 6px;
+}
+
+.sg-filtro {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sg-filtro-select {
+    width: 220px;
+}
+
+.sg-filtro-fecha {
+    width: 110px;
+}
+
+.sg-filtros-actualiza {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px;
+}
+
+.sg-filtros-actualiza select {
+    width: 130px;
+}
+
+.sg-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.sg-titulo {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6B7280;
+    margin: 4px 0 10px 2px;
+}
+
+/* Cuadros superiores */
+.sg-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.sg-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: #FFFFFF;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    padding: 14px 18px;
+}
+
+.sg-card-icono {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+}
+
+.sg-card-label {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sg-card-valor {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.sg-card-sub {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+/* Pestañas */
+.sg-tabs {
+    display: flex;
+    border-bottom: 1px solid #E5E7EB;
+    margin-bottom: 16px;
+}
+
+.sg-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 6px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+
+.sg-tab.sg-tab-activo {
+    border-bottom-color: #8E5CF6;
+}
+
+/* KPIs de cada pestaña */
+.sg-fila-kpi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    /* El panel de indicadores toma el alto del grafico, que crece con la cantidad de barras */
+    align-items: stretch;
+    margin-bottom: 16px;
+}
+
+.sg-kpi-panel {
+    display: grid;
+    gap: 18px 24px;
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin-bottom: 16px;
+}
+
+.sg-fila-kpi .sg-kpi-panel {
+    flex: 1 1 480px;
+    margin-bottom: 0;
+}
+
+.sg-kpi-3 { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+.sg-kpi-4 { grid-template-columns: repeat(4, minmax(140px, 1fr)); }
+
+.sg-kpi-centrado {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sg-panel-llamadas { background-color: #EEF3FF; }
+.sg-panel-whatsapp { background-color: #EAF8EC; }
+.sg-panel-correo { background-color: #F3EEFF; }
+.sg-panel-pendientes { background-color: #EAF8EC; }
+
+.sg-kpi {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sg-kpi-icono {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.sg-kpi-icono-llamadas { background-color: #C9D7FF; color: #3B6FF0; }
+.sg-kpi-icono-whatsapp { background-color: #BDEDC4; color: #22A845; }
+.sg-kpi-icono-correo { background-color: #DCCDFB; color: #8E5CF6; }
+.sg-kpi-icono-pendientes { background-color: #BDEDC4; color: #22A845; }
+
+.sg-kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.sg-kpi-valor {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.sg-kpi-selector {
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 6px 10px;
+    border: 2px solid transparent;
+}
+
+.sg-kpi-selector.sg-kpi-elegido {
+    border-color: #22A845;
+    background-color: #FFFFFF;
+}
+
+/* Gráfico de tipificaciones */
+.sg-grafico {
+    flex: 1 1 380px;
+    min-width: 320px;
+}
+
+.sg-sin-datos {
+    text-align: center;
+    color: #9CA3AF;
+    font-size: 12px;
+    padding: 10px;
+}
+
+/* Tablas */
+.sg-tabla-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 6px 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sg-buscador {
+    position: relative;
+    width: 260px;
+}
+
+.sg-buscador i {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6B7280;
+}
+
+.sg-buscador input {
+    padding-left: 30px;
+}
+
+.sg-tabla-wrap table {
+    width: 100%;
+    font-size: 12px;
+}
+
+.sg-tabla-wrap th {
+    font-weight: 700;
+    padding: 6px 4px;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.sg-tabla-wrap td {
+    padding: 5px 4px;
+    border-bottom: 1px solid #F1F2F4;
+}
+
+.sg-td-paginador {
+    text-align: right;
+    border-bottom: none !important;
+}
+
+.sg-icono-detalle {
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Icono visible pero sin detalle disponible todavia (en progreso, pendiente) */
+.sg-icono-detalle.sg-icono-deshabilitado {
+    color: #666666;
+    cursor: not-allowed;
+}
+
+.sg-cancelar {
+    color: #DC2626;
+    font-weight: 600;
+    cursor: default;
+}
+
+/* Estados */
+.sg-badge {
+    display: inline-block;
+    min-width: 90px;
+    text-align: center;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.sg-badge-contactado { background-color: #DCF5E1; color: #15803D; }
+.sg-badge-gestionado { background-color: #EDE4FD; color: #6D28D9; }
+.sg-badge-sincontacto { background-color: #E5E7EB; color: #374151; }
+.sg-badge-programado { background-color: #C9D7FF; color: #1E40AF; }
+.sg-badge-enviado { background-color: #DCF5E1; color: #15803D; }
+.sg-badge-enproceso { background-color: #EAF8EC; color: #15803D; }
+.sg-badge-error { background-color: #FDE2E2; color: #B91C1C; }
+
+/* Tarjeta de tabla de las pestanias Llamadas, WhatsApp y Correo
+   (mismo diseno que los detalles del dashboard de gestion de cobranza, prefijo gc-detalle-) */
+.sg-tabla-card {
+    position: relative;
+    background: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.10);
+    padding: 16px;
+    overflow: hidden;
+}
+
+.sg-tabla-card .sg-tabla-cabecera {
+    gap: 16px;
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    font-weight: 400;
+    color: #5F6368;
+}
+
+.sg-tabla-card .sg-buscador {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+.sg-tabla-card .sg-buscador i {
+    color: #9AA0A6;
+    font-size: 13px;
+}
+
+.sg-tabla-card .sg-buscador input {
+    height: 34px;
+    margin: 0;
+    font-size: 13px;
+    border-radius: 999px;
+}
+
+.sg-tabla-card .sg-tabla-wrap {
+    width: 100%;
+    overflow-x: auto;
+    padding: 0 2px 4px 2px;
+}
+
+/* [tabula] y no "table" a secas: el filtro de fecha de la columna abre un
+   uib-datepicker, que tambien es un <table> anidado dentro de la tabla.
+   font-size: inherit anula el 12px de .sg-tabla-wrap table (pestania Pendientes),
+   para que la letra salga del mismo tamanio que en los detalles de cobranza. */
+.sg-tabla-card table[tabula] {
+    width: 100%;
+    font-size: inherit;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: none !important;
+}
+
+.sg-tabla-card table[tabula] th,
+.sg-tabla-card table[tabula] td {
+    height: 46px;
+    box-sizing: border-box;
+    padding: 4px 10px;
+    vertical-align: middle;
+    text-align: center;
+    border: none;
+    border-bottom: 1px solid #EEF0F2;
+}
+
+.sg-tabla-card table[tabula] th {
+    font-size: 12px;
+    font-weight: 700;
+    color: #5F6368;
+    border-bottom: 2px solid #E3E6EA;
+    overflow: visible;
+    white-space: nowrap;
+}
+
+/* !important: la directiva tabula y los estilos globales de la tabla fuerzan
+   nowrap + ellipsis; asi el dato se ve completo en varias lineas,
+   igual que en el detalle de Contactabilidad del dashboard de cobranza. */
+.sg-tabla-card table[tabula] td,
+.sg-tabla-card table[tabula] td * {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
+}
+
+.sg-tabla-card table[tabula] td {
+    font-size: 13px;
+    color: #333333;
+}
+
+.sg-tabla-card table[tabula] td.sg-td-paginador {
+    text-align: center;
+    border-bottom: none;
+    padding: 10px 0 0 0;
+}
+
+.sg-tabla-card tabula-paginador {
+    display: inline-block;
+    transform: scale(1.1);
+    transform-origin: center top;
+}
+
+/* Calendario del filtro de columna: tamanio propio, sin heredar el
+   table-layout:fixed ni el alto de celda de la tabla de arriba. */
+.sg-tabla-card .uib-datepicker-popup,
+.sg-tabla-card .uib-datepicker-popup table {
+    width: auto !important;
+    table-layout: auto !important;
+    min-width: 220px;
+}
+
+.sg-tabla-card .uib-datepicker-popup td,
+.sg-tabla-card .uib-datepicker-popup th {
+    width: auto !important;
+    height: auto !important;
+    white-space: nowrap;
+}
+
+.sg-tabla-card .sg-icono-detalle {
+    font-size: inherit;
+}
+
+/* Estado como ovalo, con los colores de los detalles de cobranza */
+.sg-tabla-card .sg-badge {
+    min-width: 0;
+    padding: 4px 14px;
+    border-radius: 999px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.sg-tabla-card .sg-badge-contactado { background-color: #E4F6EA; color: #2E7D46; }
+.sg-tabla-card .sg-badge-gestionado { background-color: #EFECFB; color: #7C6FDB; }
+.sg-tabla-card .sg-badge-sincontacto { background-color: #EEF0F2; color: #5F6368; }
+
+/* Modales de detalle (mismos colores y forma que los detalles del dashboard de gestion de cobranza) */
+.sg-audio-player {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 16px 0;
+}
+
+.sg-transcripcion-item {
+    padding: 6px 0;
+}
+
+.sg-transcripcion-agente { text-align: left; }
+.sg-transcripcion-cliente { text-align: right; }
+
+.sg-transcripcion-burbuja {
+    display: inline-block;
+    max-width: 80%;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+.sg-transcripcion-agente .sg-transcripcion-burbuja {
+    background-color: #FCF3CF;
+    border-radius: 0 8px 8px 8px;
+}
+
+.sg-transcripcion-cliente .sg-transcripcion-burbuja {
+    background-color: #D6EAF8;
+    border-radius: 8px 0 8px 8px;
+}
+
+.sg-transcripcion-hora {
+    display: block;
+    font-size: 11px;
+    color: #6F7990;
+    margin-top: 2px;
+}
+
+.sg-sin-transcripcion {
+    text-align: center;
+    color: #6F7990;
+    padding: 12px 0;
+}
+
+.sg-correo-destinatario {
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.sg-correo-cuerpo {
+    border: 1px solid #E5E7EB;
+    border-radius: 6px;
+    padding: 10px;
+    max-height: 60vh;
+    overflow: auto;
+}
+
+@media (max-width: 900px) {
+    .sg-kpi-3, .sg-kpi-4 {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+}

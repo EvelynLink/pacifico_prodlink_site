@@ -634,7 +634,12 @@ switch ($act) {
                         $json["respuesta"]["analisis"] = (isset($r["av_tipificacion"]["analisis"]) ? (is_array($r["av_tipificacion"]["analisis"]) ? "" : $r["av_tipificacion"]["analisis"]) : "") . (isset($r["av_tipificacion"]["resumen"]) ? $r["av_tipificacion"]["resumen"] : "") . $resumen;
                         foreach ($row["transcripcion"] as $key => $value) {
                             if (isset($value["tiempoTranscurridoSegundos"]) && $value["tiempoTranscurridoSegundos"] != "") {
-                                $row["transcripcion"][$key]["fechaHora"] = date("H:i:s", (strlen($row["fechaInicio"]) > 10 ? ($row["fechaInicio"] / 1000) + $value["tiempoTranscurridoSegundos"] : $row["fechaInicio"] + $value["tiempoTranscurridoSegundos"]));
+                                $f = $row["fechaInicio"];
+                                if (strlen($row["fechaInicio"]) > 10) {
+                                    $f = $f / 1000;
+                                }
+                                $ff = $f + $value["tiempoTranscurridoSegundos"];
+                                $row["transcripcion"][$key]["fechaHora"] = date("H:i:s", $ff);
                             }
                             $row["transcripcion"][$key]["mensaje"] = utf8_2_encode($value["mensaje"]);
                         }
@@ -1746,9 +1751,11 @@ switch ($act) {
                         $hasta = "";
                         break;
                     case 'rango':
-                        if ($hasta - $desde > 86400) {
-                            $desde = date("d/m/Y", ($key));
-                            $hasta = "";
+                        if (is_numeric($hasta) && is_numeric($desde)) {
+                            if ($hasta - $desde > 86400) {
+                                $desde = date("d/m/Y", ($key));
+                                $hasta = "";
+                            }
                         }
                         break;
                 }
@@ -2587,6 +2594,7 @@ switch ($act) {
 
         $mongo = new MYMONGODB();
         $mongo2 = new MYMONGODB();
+        $condicion = [];
         $condicion["av_fecha"] = ['$gte' => $desde, '$lte' => $hasta];
         $programadas = $mongo->buscar("avProgramadas", $condicion);
         $llamadasXcartera = [];
