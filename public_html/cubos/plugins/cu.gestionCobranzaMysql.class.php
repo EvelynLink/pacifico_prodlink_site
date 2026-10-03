@@ -23,6 +23,12 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                         break;
                     }
 
+                    // Cambios en scllamadas (MySQL): inserta la llamada si no tiene gestión en Mongo.
+                    if ($tabla === self::TABLA_LLAMADAS) {
+                        $this->insertarLlamadasSinGestion(0, 0, $regIds);
+                        break;
+                    }
+
                     $config = $this->getConfigByTabla($tabla);
                     if (!$config) break;
 
@@ -72,6 +78,24 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
         'avDetalleConversacionesLink',
         'avDetalleConversacionesRetell',
     ];
+
+    // Llamadas de MySQL que no tienen gestión en avProgramadas, avProgramadasWhatsApp ni cbEnvioMails.
+    // El nombre de la tabla también es el valor de cubGC_origen de esas filas.
+    protected const TABLA_LLAMADAS = 'scllamadas';
+    protected const CANAL_LLAMADAS = 'TELEFONICA';
+    protected const LOTE_LLAMADAS  = 1000;
+
+    // Colección de gestión => campo que guarda el scLlamadas_id de la llamada.
+    protected const CAMPOS_LLAMADA_GESTION = [
+        'avProgramadas'         => ['av_evento', 'av_detalleReintentos.evento'],
+        'avProgramadasWhatsApp' => ['ws_evento'],
+        'cbEnvioMails'          => ['cem_susLlamadaId'],
+    ];
+
+    // Resultado de la última llamada enviada a createData() desde insertarLlamadasSinGestion().
+    private string $estadoLlamada = '';
+    // Si al guardar una gestión se borra la fila 'scllamadas' de la misma llamada (apagado durante recreate()).
+    private bool $quitarLlamadasSinGestion = true;
 
 
     /**
@@ -247,6 +271,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             'fecha_fin'                 => ['mdb' => 'cubGC_fechaFin',        'defaultValue' => '(Sin fecha fin)'],
             'fecha_periodo'             => ['mdb' => 'cubGC_fechaPeriodo',        'defaultValue' => '(Sin fecha periodo)'],
             'analisis_calidad'          => ['mdb' => 'cubGC_analisisCalidad',        'defaultValue' => '(Sin análisis de calidad)'],
+            'origen'                    => ['mdb' => 'cubGC_origen',        'defaultValue' => '(Sin origen)'],
         ];
         return $campos;
     }
@@ -511,6 +536,8 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             // Horario real (CDR) de la llamada, via scllamadas + sccdr. Solo aplica a TELEFONICA.
             'cubGC_horaInicio'                        => 0,
             'cubGC_horaFin'                           => 0,
+            // Colección o tabla de la que sale la gestión; 'scllamadas' = llamada sin avProgramadas.
+            'cubGC_origen'                            => $tabla,
         ];
 
         //Buscar registros en mongo CRM y añadir al cubo
@@ -833,6 +860,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                     } else {
                         $mdbCubo->actualizar(self::COLLECTION_CUBO, $condCubo, $fila);
                     }
+                    $this->auxQuitarLlamadaSinGestion($idLlamada, $mdbCubo);
                 }
             }
         }
@@ -857,7 +885,8 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 'ws_campaniaNombre',
                 'ws_duracionSegundos',
                 'ws_tipificacion',
-                'ws_fechaPeriodo'
+                'ws_fechaPeriodo',
+                'ws_evento'
             ];
             $mdbAvProgWhats->buscar('avProgramadasWhatsApp', $condAvProgWhats, $datAvProgWhats);
             while ($doc = $mdbAvProgWhats->siguiente()) {
@@ -901,6 +930,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 } else {
                     $mdbCubo->actualizar(self::COLLECTION_CUBO, $condCubo, $fila);
                 }
+                $this->auxQuitarLlamadaSinGestion((int)($doc['ws_evento'] ?? 0), $mdbCubo);
             }
         }
         //Buscar registros en mongo cbEnvioMails y añadir al cubo
@@ -978,8 +1008,13 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                     } else {
                         $mdbCubo->actualizar(self::COLLECTION_CUBO, $condCubo, $fila);
                     }
+                    $this->auxQuitarLlamadaSinGestion((int)($doc['cem_susLlamadaId'] ?? 0), $mdbCubo);
                 }
             }
+        }
+
+        if ($tabla === self::TABLA_LLAMADAS) {
+            $insertado = $this->auxGuardarLlamadaSinGestion($datos, $data['llamada'], (int)$data['campaniaId'], $mdbCubo) || $insertado;
         }
         if ($insertado) {
             return [];
@@ -994,6 +1029,8 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
 
         // Borra la colección completa antes de reconstruirla desde cero
         $mdb->borrarColeccion(self::COLLECTION_CUBO);
+        // Con la colección vacía no hay filas 'scllamadas' que quitar, y sin índices cada borrado recorrería el cubo.
+        $this->quitarLlamadasSinGestion = false;
 
         // Tablas de gestiones que alimentan el cubo (las mismas que atiende process())
         $tablas = ['avProgramadas', 'avProgramadasWhatsApp', 'cbEnvioMails'];
@@ -1053,7 +1090,416 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             }
         }
 
+        // Índices antes de las llamadas sin gestión, para que la búsqueda de duplicados por fila no recorra el cubo.
         $this->createIndices($mdb);
+
+        // Las llamadas sin gestión van al final: insertarLlamadasSinGestion() consulta las
+        // colecciones de origen, así que no depende de lo que ya se haya reconstruido.
+        $this->quitarLlamadasSinGestion = true;
+        $this->insertarLlamadasSinGestion();
+    }
+
+    //==================================================
+    // FUNCIONES PRINCIPALES: llamadas de scllamadas sin gestión
+    //==================================================
+
+    /**
+     * Inserta en el cubo las llamadas de scllamadas que no tienen gestión en avProgramadas,
+     * avProgramadasWhatsApp ni cbEnvioMails, marcadas con cubGC_origen = 'scllamadas'.
+     * La cartera sale de la campaña (scLlamadas_ruta0 -> scramas -> cobcarteraramas) y se
+     * confirma con el crédito del cliente (scLlamadas_usuarioId -> cbCreditos.usUsuarios_id).
+     *
+     * @param int   $desde Timestamp mínimo de scLlamadas_fechaCreacion (0 = sin límite).
+     * @param int   $hasta Timestamp máximo, exclusivo (0 = sin límite).
+     * @param array $ids   scLlamadas_id a procesar; si viene, se ignora el rango de fechas.
+     * @return array{revisadas:int, conGestion:int, sinCampania:int, sinCredito:int, ambiguas:int, fueraDePeriodo:int, insertadas:int, actualizadas:int}
+     */
+    public function insertarLlamadasSinGestion(int $desde = 0, int $hasta = 0, array $ids = []): array
+    {
+        $resumen = [
+            'revisadas' => 0, 'conGestion' => 0, 'sinCampania' => 0, 'sinCredito' => 0,
+            'ambiguas' => 0, 'fueraDePeriodo' => 0, 'insertadas' => 0, 'actualizadas' => 0,
+        ];
+        $campanias = $this->auxCampaniasPorNombre();
+        if (empty($campanias)) {
+            return $resumen;
+        }
+
+        if (!empty($ids)) {
+            $llamadas = [];
+            foreach ($ids as $idLlamada) {
+                $llamadas = array_merge($llamadas, $this->auxLeerLlamadas(0, 0, 0, 1, (int)$idLlamada));
+            }
+            $this->auxProcesarLoteLlamadas($llamadas, $campanias, $resumen);
+            return $resumen;
+        }
+
+        $ultimoId = 0;
+        do {
+            $llamadas = $this->auxLeerLlamadas($desde, $hasta, $ultimoId, self::LOTE_LLAMADAS);
+            if (empty($llamadas)) {
+                break;
+            }
+            $ultimoId = (int)$llamadas[count($llamadas) - 1]['scLlamadas_id'];
+            $this->auxProcesarLoteLlamadas($llamadas, $campanias, $resumen);
+        } while (count($llamadas) === self::LOTE_LLAMADAS);
+
+        return $resumen;
+    }
+
+    //==================================================
+    // FUNCIONES AUXILIARES: llamadas de scllamadas sin gestión
+    //==================================================
+
+    /**
+     * Campañas que tienen cartera asociada, agrupadas por nombre de rama.
+     * Un mismo nombre puede tener varias parejas (rama repetida o rama en varias carteras).
+     *
+     * @return array<string, array<int, array{campaniaId:int, carteraId:string}>>
+     */
+    private function auxCampaniasPorNombre(): array
+    {
+        $db = new MYSQLDB();
+        $db->query("SELECT scRamas_id, scRamas_nombre, cobCarteraRamas_carteraIdfk
+                    FROM scramas
+                    INNER JOIN cobcarteraramas ON cobCarteraRamas_ramaIdfk = scRamas_id");
+        $campanias = [];
+        while ($row = $db->fetchRow()) {
+            $campanias[$this->auxClaveCampania($row['scRamas_nombre'] ?? '')][] = [
+                'campaniaId' => (int)$row['scRamas_id'],
+                'carteraId'  => (string)$row['cobCarteraRamas_carteraIdfk'],
+            ];
+        }
+        return $campanias;
+    }
+
+    // Normaliza el nombre de campaña igual que lo compara MySQL (sin distinguir mayúsculas ni espacios extremos).
+    private function auxClaveCampania(?string $nombre): string
+    {
+        return strtoupper(trim((string)$nombre));
+    }
+
+    /**
+     * Lee llamadas tipificadas de scllamadas, con los mismos filtros de la consulta de seguimiento.
+     *
+     * @param int $desde       Timestamp mínimo de creación (0 = sin límite).
+     * @param int $hasta       Timestamp máximo exclusivo (0 = sin límite).
+     * @param int $despuesDeId Solo llamadas con id mayor a este (paginación por id).
+     * @param int $limite      Cantidad máxima de filas.
+     * @param int $soloId      Si es mayor a 0, solo esa llamada.
+     * @return array<int, array<string, mixed>>
+     */
+    private function auxLeerLlamadas(int $desde, int $hasta, int $despuesDeId, int $limite, int $soloId = 0): array
+    {
+        $db = new MYSQLDB();
+        $sql = $db->mkSQL(
+            "SELECT l.scLlamadas_id, l.scLlamadas_usuarioId, l.scLlamadas_fechaCreacion, l.scLlamadas_ruta0,
+                    l.scLlamadas_ruta1, l.scLlamadas_ruta2, l.scLlamadas_texto,
+                    sc1.scCDR_callerId, sc1.scCDR_horaIni, sc1.scCDR_horaFin, sc1.scCDR_duration,
+                    CONCAT(IFNULL(scColaProgramadas_area, ''), IFNULL(scColaProgramadas_numero, '')) AS numeroCola
+             FROM scllamadas l
+             LEFT JOIN sccdr sc1 ON sc1.scCDR_id = l.scLlamadas_cdrId
+             LEFT JOIN sccolaprogramadas ON scColaProgramadas_id = l.scLlamadas_colaProgramadasId
+             WHERE l.scLlamadas_id > %N
+               AND (%N = 0 OR l.scLlamadas_id = %N)
+               AND (%N = 0 OR l.scLlamadas_fechaCreacion >= %N)
+               AND (%N = 0 OR l.scLlamadas_fechaCreacion < %N)
+               AND IFNULL(l.scLlamadas_ruta1, '') NOT IN ('', 'Conexión exitosa')
+               AND IFNULL(l.scLlamadas_ruta2, '') <> 'Mail No Enviado'
+               AND IFNULL(l.scLlamadas_texto, '') NOT LIKE 'Llamada desprogramada%%'
+               AND IFNULL(l.scLlamadas_texto, '') NOT IN ('WHATSAPP NO ENVIADO', 'WHATSAPP CON ERROR')
+             ORDER BY l.scLlamadas_id
+             LIMIT %N",
+            $despuesDeId,
+            $soloId, $soloId,
+            $desde, $desde,
+            $hasta, $hasta,
+            $limite
+        );
+        $db->query($sql);
+        $llamadas = [];
+        while ($row = $db->fetchRow()) {
+            $llamadas[] = $row;
+        }
+        return $llamadas;
+    }
+
+    /**
+     * Procesa un lote de llamadas: descarta las que ya tienen gestión, resuelve
+     * campaña/cartera/crédito y las envía a createData().
+     *
+     * @param array $llamadas  Filas de auxLeerLlamadas().
+     * @param array $campanias Resultado de auxCampaniasPorNombre().
+     * @param array $resumen   Contadores, se actualizan por referencia.
+     */
+    private function auxProcesarLoteLlamadas(array $llamadas, array $campanias, array &$resumen): void
+    {
+        if (empty($llamadas)) {
+            return;
+        }
+        $resumen['revisadas'] += count($llamadas);
+        $conGestion = $this->auxLlamadasConGestion(array_map(fn($l) => (int)$l['scLlamadas_id'], $llamadas));
+
+        foreach ($llamadas as $llamada) {
+            $idLlamada = (int)$llamada['scLlamadas_id'];
+            if (isset($conGestion[$idLlamada])) {
+                $resumen['conGestion']++;
+                continue;
+            }
+            $candidatas = $campanias[$this->auxClaveCampania($llamada['scLlamadas_ruta0'] ?? '')] ?? [];
+            if (empty($candidatas)) {
+                $resumen['sinCampania']++;
+                continue;
+            }
+            $eleccion = $this->auxElegirCredito($llamada, $candidatas);
+            if ($eleccion['estado'] === 'sinCredito') {
+                $resumen['sinCredito']++;
+                continue;
+            }
+            if ($eleccion['estado'] === 'ambigua') {
+                $resumen['ambiguas']++;
+                $this->insertLog('LLAMADA_AMBIGUA;' . $idLlamada . ';' . implode(',', $eleccion['carteras']));
+                continue;
+            }
+
+            $this->estadoLlamada = '';
+            $this->createData([
+                'row'        => $eleccion['credito'],
+                'idGestion'  => null,
+                'tabla'      => self::TABLA_LLAMADAS,
+                'llamada'    => $llamada,
+                'campaniaId' => $eleccion['campaniaId'],
+            ]);
+            if (isset($resumen[$this->estadoLlamada])) {
+                $resumen[$this->estadoLlamada]++;
+            }
+        }
+    }
+
+    /**
+     * Ids de llamada que ya tienen gestión en alguna colección de origen del cubo.
+     *
+     * @param int[] $ids scLlamadas_id del lote.
+     * @return array<int, true>
+     */
+    private function auxLlamadasConGestion(array $ids): array
+    {
+        // El id puede estar guardado como número o como texto según la colección.
+        $variantes = array_merge($ids, array_map('strval', $ids));
+        $buscados = array_flip($ids);
+        $conGestion = [];
+        $mdb = new MYMONGODB();
+
+        foreach (self::CAMPOS_LLAMADA_GESTION as $coleccion => $campos) {
+            $condicion = ['$or' => array_map(fn($campo) => [$campo => ['$in' => $variantes]], $campos)];
+            $proyeccion = array_map(fn($campo) => explode('.', $campo)[0], $campos);
+            $mdb->buscar($coleccion, $condicion, $proyeccion);
+            while ($doc = $mdb->siguiente()) {
+                foreach ($this->auxIdsLlamadaDelDocumento($doc, $campos) as $idLlamada) {
+                    if (isset($buscados[$idLlamada])) {
+                        $conGestion[$idLlamada] = true;
+                    }
+                }
+            }
+        }
+        return $conGestion;
+    }
+
+    /**
+     * Extrae los ids de llamada de un documento de gestión, incluidos los de un arreglo
+     * (campo con punto, ej. 'av_detalleReintentos.evento').
+     *
+     * @param array    $doc    Documento de la colección de gestión.
+     * @param string[] $campos Campos de CAMPOS_LLAMADA_GESTION para esa colección.
+     * @return int[]
+     */
+    private function auxIdsLlamadaDelDocumento(array $doc, array $campos): array
+    {
+        $ids = [];
+        foreach ($campos as $campo) {
+            $partes = explode('.', $campo);
+            if (count($partes) === 1) {
+                $ids[] = (int)($doc[$campo] ?? 0);
+                continue;
+            }
+            foreach (($doc[$partes[0]] ?? []) as $elemento) {
+                $ids[] = (int)($elemento[$partes[1]] ?? 0);
+            }
+        }
+        return $ids;
+    }
+
+    /**
+     * Elige el crédito (y con él cartera y campaña) al que corresponde la llamada.
+     * Entre las parejas campaña-cartera candidatas solo quedan las carteras donde el cliente
+     * tiene crédito; si queda más de una, desempata primero por ponderación configurada
+     * para la tipificación y después por período vigente en la fecha de la llamada.
+     *
+     * @param array $llamada    Fila de auxLeerLlamadas().
+     * @param array $candidatas Parejas ['campaniaId', 'carteraId'] de la campaña.
+     * @return array{estado:string, credito?:array, campaniaId?:int, carteras?:string[]}
+     *               estado: 'ok' | 'sinCredito' | 'ambigua'
+     */
+    private function auxElegirCredito(array $llamada, array $candidatas): array
+    {
+        $usuarioId = (int)($llamada['scLlamadas_usuarioId'] ?? 0);
+        if ($usuarioId <= 0) {
+            return ['estado' => 'sinCredito'];
+        }
+        $carteras = array_values(array_unique(array_column($candidatas, 'carteraId')));
+
+        // Si el cliente tuviera varias facturas en la cartera, se queda con la del período más reciente.
+        $creditos = [];
+        $mdb = new MYMONGODB();
+        $mdb->buscar('cbCreditos', [
+            'usUsuarios_id' => ['$in' => [$usuarioId, (string)$usuarioId]],
+            'cre_carteraId' => ['$in' => $carteras],
+        ], [], ['cre_fechaPeriodo' => -1]);
+        while ($doc = $mdb->siguiente()) {
+            $carteraId = (string)($doc['cre_carteraId'] ?? '');
+            if (!isset($creditos[$carteraId])) {
+                $creditos[$carteraId] = $doc;
+            }
+        }
+
+        $opciones = [];
+        foreach ($candidatas as $candidata) {
+            if (isset($creditos[$candidata['carteraId']])) {
+                $opciones[] = $candidata + ['credito' => $creditos[$candidata['carteraId']]];
+            }
+        }
+        if (empty($opciones)) {
+            return ['estado' => 'sinCredito'];
+        }
+
+        $ruta2 = (string)($llamada['scLlamadas_ruta2'] ?? '');
+        $fecha = (int)($llamada['scLlamadas_fechaCreacion'] ?? 0);
+        $opciones = $this->auxFiltrarOpciones($opciones, fn($o) => $this->auxBuscarPonderacion($o['campaniaId'], $ruta2, (int)$o['carteraId']) !== null);
+        $opciones = $this->auxFiltrarOpciones($opciones, fn($o) => $this->auxPeriodoVigente($o['credito'], $fecha));
+
+        if (count($opciones) > 1) {
+            return ['estado' => 'ambigua', 'carteras' => array_column($opciones, 'carteraId')];
+        }
+        return ['estado' => 'ok', 'credito' => $opciones[0]['credito'], 'campaniaId' => $opciones[0]['campaniaId']];
+    }
+
+    // Aplica un criterio de desempate solo si hay más de una opción y el criterio deja al menos una.
+    private function auxFiltrarOpciones(array $opciones, callable $criterio): array
+    {
+        if (count($opciones) <= 1) {
+            return $opciones;
+        }
+        $filtradas = array_values(array_filter($opciones, $criterio));
+        return empty($filtradas) ? $opciones : $filtradas;
+    }
+
+    /**
+     * Ponderación configurada en cobmaparbolgst para campaña + tipificación (ruta2) + cartera.
+     *
+     * @return array{cobMapArbolGst_id:mixed, cobMapArbolGst_ponderacion:mixed}|null
+     */
+    private function auxBuscarPonderacion(int $campaniaId, string $ruta2, int $carteraId): ?array
+    {
+        $db = new MYSQLDB();
+        $sql = $db->mkSQL(
+            "SELECT cobMapArbolGst_id, cobMapArbolGst_ponderacion FROM cobmaparbolgst
+             WHERE cobMapArbolGst_campaniaId=%N AND cobMapArbolGst_ramaOrigenNombre=%Q AND cobMapArbolGst_carteraId=%N",
+            $campaniaId,
+            $ruta2,
+            $carteraId
+        );
+        $db->query($sql);
+        $row = $db->fetchRow();
+        return $row ?: null;
+    } 
+
+    // Indica si el período activo de la cartera del crédito cubre la fecha dada (mismo criterio que createData()).
+    private function auxPeriodoVigente(array $credito, int $fecha): bool
+    {
+        $mdb = new MYMONGODB();
+        $mdb->buscar('control_carga_periodo', [
+            'cartera' => (int)($credito['cre_carteraId'] ?? 0),
+            'periodo' => (int)($credito['cre_periodo'] ?? 0),
+            'fecha'   => (int)($credito['cre_fechaPeriodo'] ?? 0),
+            'activo'  => 1,
+        ], ['fecha', 'fechaFin'], ['_id' => -1], 1);
+        $periodo = $mdb->siguiente();
+        if (!$periodo) {
+            return false;
+        }
+        return $fecha >= (int)($periodo['fecha'] ?? 0) && $fecha <= (int)($periodo['fechaFin'] ?? 0);
+    }
+
+    /**
+     * Arma y guarda (o actualiza) en el cubo la fila de una llamada sin gestión.
+     * Igual que en avProgramadas, solo entran llamadas desde el inicio del período del crédito.
+     *
+     * @param array      $datos      Datos base del crédito ya armados por createData().
+     * @param array      $llamada    Fila de auxLeerLlamadas().
+     * @param int        $campaniaId scRamas_id de la campaña elegida.
+     * @param MYMONGODB  $mdbCubo    Conexión usada por createData() para el cubo.
+     * @return bool true si se insertó una fila nueva.
+     */
+    private function auxGuardarLlamadaSinGestion(array $datos, array $llamada, int $campaniaId, MYMONGODB $mdbCubo): bool
+    {
+        $fechaGestion = (int)($llamada['scLlamadas_fechaCreacion'] ?? 0);
+        if ($fechaGestion < (int)$datos['cubGC_fechaInicio']) {
+            $this->estadoLlamada = 'fueraDePeriodo';
+            return false;
+        }
+
+        $ruta2 = !empty($llamada['scLlamadas_ruta2']) ? $llamada['scLlamadas_ruta2'] : null;
+        $fila = $datos;
+        $fila['cubGC_avId'] = null;
+        $fila['cubGC_llamadaId'] = (int)$llamada['scLlamadas_id'];
+        $fila['cubGC_canal'] = self::CANAL_LLAMADAS;
+        $fila['cubGC_fechaGestion'] = $fechaGestion;
+        $fila['cubGC_fechaProgramacion'] = $fechaGestion;
+        $fila['cubGC_telefono'] = !empty($llamada['numeroCola']) ? $llamada['numeroCola'] : ($llamada['scCDR_callerId'] ?? null);
+        $fila['cubGC_campaniaId'] = $campaniaId;
+        $fila['cubGC_campaniaNombre'] = $llamada['scLlamadas_ruta0'] ?? null;
+        $fila['cubGC_duracionGestionSeg'] = (int)($llamada['scCDR_duration'] ?? 0);
+        $fila['cubGC_horaInicio'] = (int)($llamada['scCDR_horaIni'] ?? 0);
+        $fila['cubGC_horaFin'] = (int)($llamada['scCDR_horaFin'] ?? 0);
+        $fila['cubGC_nivelContacto'] = $llamada['scLlamadas_ruta1'];
+        $fila['cubGC_tipificacion_respuesta1'] = $llamada['scLlamadas_ruta1'];
+        $fila['cubGC_tipificacion_respuesta2'] = $ruta2;
+        $fila['cubGC_tipificacion_compromiso'] = null;
+        $fila['cubGC_tipificacion_montoCompromiso'] = null;
+        $fila['cubGC_resumen'] = !empty($llamada['scLlamadas_texto']) ? $llamada['scLlamadas_texto'] : null;
+
+        $rowMap = $this->auxBuscarPonderacion($campaniaId, (string)$ruta2, (int)$datos['cubGC_carteraId']);
+        if ($rowMap !== null) {
+            $fila['cubGC_cobmaparbolgstId'] = $rowMap['cobMapArbolGst_id'] ?? null;
+            $fila['cubGC_ponderacion'] = (int)($rowMap['cobMapArbolGst_ponderacion'] ?? 0);
+        }
+
+        $condCubo = [
+            'cubGC_numFactura' => (string)$fila['cubGC_numFactura'],
+            'cubGC_carteraId'  => (string)$fila['cubGC_carteraId'],
+            'cubGC_origen'     => self::TABLA_LLAMADAS,
+            'cubGC_llamadaId'  => $fila['cubGC_llamadaId'],
+        ];
+        if (!$mdbCubo->buscar(self::COLLECTION_CUBO, $condCubo, ['_id'], [], 1)) {
+            $mdbCubo->guardar(self::COLLECTION_CUBO, $fila);
+            $this->estadoLlamada = 'insertadas';
+            return true;
+        }
+        $mdbCubo->actualizar(self::COLLECTION_CUBO, $condCubo, $fila);
+        $this->estadoLlamada = 'actualizadas';
+        return false;
+    }
+
+    // Cuando llega la gestión real de una llamada, borra la fila 'scllamadas' que se hubiera insertado antes para ella.
+    private function auxQuitarLlamadaSinGestion(int $idLlamada, MYMONGODB $mdbCubo): void
+    {
+        if ($idLlamada <= 0 || !$this->quitarLlamadasSinGestion) {
+            return;
+        }
+        $mdbCubo->borrar(self::COLLECTION_CUBO, [
+            'cubGC_origen'    => self::TABLA_LLAMADAS,
+            'cubGC_llamadaId' => $idLlamada,
+        ]);
     }
 
     protected function baseQuery(int $limit = 0): string
@@ -1079,7 +1525,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             'cubGC_numFactura',
             'cubGC_carteraId',
             'cubGC_cedula',
-
+            'cubGC_llamadaId',
         ];
         foreach ($indices as $campo) {
             $mdb->crearIndice(self::COLLECTION_CUBO, [$campo => 1]);
