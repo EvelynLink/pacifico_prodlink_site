@@ -33,9 +33,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                         $condOrigen = [
                             '_id' => new MongoDB\BSON\ObjectId($id)
                         ];
-                        if ($config['tipificacion']) {
-                            $condOrigen[$config['tipificacion']] = ['$nin' => [null, '']];
-                        }
                         // SOLO para emails
                         if ($tabla === 'cbEnvioMails') {
                             $condOrigen['cem_susErrorEnvio'] = 0;
@@ -121,8 +118,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 return [
                     'factura'      => 'av_factura',
                     'cartera'      => 'av_carteraId',
-                    //'tipificacion' => 'av_tipificacion.respuesta2',
-                    'tipificacion' => null,
                     'campos'       => [
                         '_id',
                         'av_factura',
@@ -133,7 +128,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 return [
                     'factura'      => 'ws_factura',
                     'cartera'      => 'ws_carteraId',
-                    'tipificacion' => 'ws_tipificacion.respuesta2',
                     'campos'       => [
                         '_id',
                         'ws_factura',
@@ -144,7 +138,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 return [
                     'factura'      => 'cem_susFactura',
                     'cartera'      => 'cem_susCarteraId',
-                    'tipificacion' => null,
                     'campos'       => [
                         '_id',
                         'cem_susFactura',
@@ -221,6 +214,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
     {
         $campos = [
             'fecha_gestion'             => ['mdb' => 'cubGC_fechaGestion',        'defaultValue' => '(Sin fecha gestión)'],
+            'fecha_programacion'        => ['mdb' => 'cubGC_fechaProgramacion',   'defaultValue' => '(Sin fecha programación)'],
             'sponsor'                   => ['mdb' => 'cubGC_sponsor',        'defaultValue' => '(Sin sponsor)'],
             'nombre_cliente'            => ['mdb' => 'cubGC_nombres',        'defaultValue' => '(Sin nombre cliente)'],
             'apellido_cliente'          => ['mdb' => 'cubGC_apellidos',        'defaultValue' => '(Sin apellido cliente)'],
@@ -235,6 +229,8 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             'nivel_contacto'            => ['mdb' => 'cubGC_nivelContacto',        'defaultValue' => '(Sin nivel de contacto)'],
             'duración'                  => ['mdb' => 'cubGC_duracionGestionSeg',        'defaultValue' => '(Sin duración)'],
             'tipificación'              => ['mdb' => 'cubGC_tipificacion',        'defaultValue' => '(Sin tipificación)'],
+            'compromiso'                => ['mdb' => 'cubGC_tipificacion_compromiso',        'defaultValue' => '(Sin compromiso)'],
+            'monto_compromiso'          => ['mdb' => 'cubGC_tipificacion_montoCompromiso',        'defaultValue' => '(Sin monto compromiso)'],
             'resumen'                   => ['mdb' => 'cubGC_resumen',        'defaultValue' => '(Sin resumen)'],
             'ponderación'               => ['mdb' => 'cubGC_ponderacion',        'defaultValue' => '(Sin ponderación)'],
             'registro_operacion'        => ['mdb' => 'cubGC_numFactura',        'defaultValue' => '(Sin registro operación)'],
@@ -492,6 +488,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             //Mongo avProgramadas, avProgramadasWhatsapp, cbEnvioMails         
             'cubGC_avId'                              => '',
             'cubGC_fechaGestion'                      => 0,
+            'cubGC_fechaProgramacion'                 => 0,
             'cubGC_telefono'                          => '',
             'cubGC_email'                             => '',
             'cubGC_campaniaId'                        => '',
@@ -503,9 +500,17 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             'cubGC_duracionGestionSeg'                => '',
             'cubGC_tipificacion_respuesta1'           => '',
             'cubGC_tipificacion_respuesta2'           => '',
+            'cubGC_tipificacion_compromiso'           => '',
+            'cubGC_tipificacion_montoCompromiso'      => 0,
             'cubGC_resumen'                           => '',
             'cubGC_llamadaId'                         => 0,
             'cubGC_analisisCalidad'                   => null,
+            // Solo aplica a correos (canal EMAIL), se pasan tal cual vienen de cbEnvioMails.
+            'cubGC_abierto'                           => 0,
+            'cubGC_cantidad_abierto'                  => 0,
+            // Horario real (CDR) de la llamada, via scllamadas + sccdr. Solo aplica a TELEFONICA.
+            'cubGC_horaInicio'                        => 0,
+            'cubGC_horaFin'                           => 0,
         ];
 
         //Buscar registros en mongo CRM y añadir al cubo
@@ -592,16 +597,17 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             $condAvProg = [
                 'av_factura' => (string)$datos['cubGC_numFactura'],
                 'av_carteraId' => (int)$datos['cubGC_carteraId'],
-                'av_eventoFecha' => ['$gte' => $datos['cubGC_fechaInicio']]
+                'av_fecha' => ['$gte' => $datos['cubGC_fechaInicio']]
                 // 'av_tipificacion.respuesta2' => ['$nin' => ['', null]] //ojo
             ];
-
-            if (!empty($idGestion)) {
+  
+            if (!empty($idGestion)) { 
                 $condAvProg['_id'] = new MongoDB\BSON\ObjectId($idGestion);
             }
 
             $datAvProg = [
                 '_id',
+                'av_fecha',
                 'av_fechaFinLlamada',
                 'av_eventoFecha',
                 'av_telefono',
@@ -630,6 +636,13 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                     $doc['av_idConversacion'] ?? null
                 );
 
+                // Igual que av_proveedor/av_idConversacion, compromiso y montoCompromiso
+                // pertenecen al avProgramadas, no a cada evento/reintento.
+                $compromiso = $doc['av_tipificacion']['compromiso'] ?? null;
+                $montoCompromiso = isset($doc['av_tipificacion']['montoCompromiso'])
+                    ? (float)$doc['av_tipificacion']['montoCompromiso']
+                    : null;
+
                 $eventos = [];
 
                 // Evento principal
@@ -647,7 +660,8 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                         if (!empty($reintento['evento'])) {
                             $eventos[] = [
                                 'evento' => (int)$reintento['evento'],
-                                'principal' => false
+                                'principal' => false,
+                                'fecha' => (int)($reintento['fecha'] ?? 0)
                             ];
                         }
                     }
@@ -662,6 +676,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                     $fila['cubGC_avId'] = $doc['_id'] ?? null;
                     $fila['cubGC_llamadaId'] = $idLlamada;
                     $fila['cubGC_canal'] = 'TELEFONICA';
+                    $fila['cubGC_fechaProgramacion'] = (int)($doc['av_fecha'] ?? 0);
 
                     //$fechaGestion = !empty($doc['av_fechaFinLlamada']) ? (int)$doc['av_fechaFinLlamada'] : (int)$doc['av_eventoFecha'];
 
@@ -673,6 +688,26 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                     $fila['cubGC_proveedor'] = $doc['av_proveedor'] ?? null;
                     $fila['cubGC_proveedorSip'] = $doc['av_proveedorSip'] ?? null;
                     $fila['cubGC_analisisCalidad'] = $analisisCalidad;
+                    $fila['cubGC_tipificacion_compromiso'] = $compromiso;
+                    $fila['cubGC_tipificacion_montoCompromiso'] = $montoCompromiso;
+
+                    //==================================================
+                    // Horario real de la llamada (CDR), via scllamadas.scLlamadas_cdrId.
+                    // Independiente de si el evento ya tiene tipificación o no.
+                    //==================================================
+
+                    $dbCdr = new MYSQLDB();
+                    $sqlCdr = $dbCdr->mkSQL(
+                        "SELECT sc1.scCDR_horaIni AS horaInicio, sc1.scCDR_horaFin AS horaFin
+                         FROM scllamadas
+                         LEFT JOIN sccdr sc1 ON sc1.scCDR_id = scllamadas.scLlamadas_cdrId
+                         WHERE scllamadas.scLlamadas_id = %N",
+                        $idLlamada
+                    );
+                    $dbCdr->query($sqlCdr);
+                    $rowCdr = $dbCdr->fetchRow() ?: [];
+                    $fila['cubGC_horaInicio'] = (int)($rowCdr['horaInicio'] ?? 0);
+                    $fila['cubGC_horaFin'] = (int)($rowCdr['horaFin'] ?? 0);
 
                     //==================================================
                     // Obtener tipificación
@@ -717,8 +752,10 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                             $fila['cubGC_fechaGestion'] = (int)$doc['av_fechaFinLlamada'];
                         } elseif (!empty($doc['av_fechaGeneraLlamada'])) {
                             $fila['cubGC_fechaGestion'] = (int)$doc['av_fechaGeneraLlamada'];
-                        } else {
+                        } elseif (!empty($doc['av_eventoFecha'])) {
                             $fila['cubGC_fechaGestion'] = (int)$doc['av_eventoFecha'];
+                        } else {
+                            $fila['cubGC_fechaGestion'] = (int)($doc['av_fecha'] ?? 0);
                         }
 
                         if (empty($respuesta1)) {
@@ -734,7 +771,13 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                         }
                     } else {
 
-                        $fila['cubGC_fechaGestion'] = !empty($rowSql['scLlamadas_fechaCreacion'] ?? null) ? (int)$rowSql['scLlamadas_fechaCreacion'] : null;
+                        if (!empty($rowSql['scLlamadas_fechaCreacion'] ?? null)) {
+                            $fila['cubGC_fechaGestion'] = (int)$rowSql['scLlamadas_fechaCreacion'];
+                        } elseif (!empty($ev['fecha'] ?? null)) {
+                            $fila['cubGC_fechaGestion'] = (int)$ev['fecha'];
+                        } else {
+                            $fila['cubGC_fechaGestion'] = (int)($doc['av_fecha'] ?? 0);
+                        }
 
                         $respuesta1 = !empty($rowSql['scLlamadas_ruta1'] ?? null) ? $rowSql['scLlamadas_ruta1'] : null;
                         $respuesta2 = !empty($rowSql['scLlamadas_ruta2'] ?? null) ? $rowSql['scLlamadas_ruta2'] : null;
@@ -800,7 +843,6 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             $condAvProgWhats = [
                 'ws_factura'   => (string) $datos['cubGC_numFactura'],
                 'ws_carteraId'   => (int) $datos['cubGC_carteraId'],
-                'ws_tipificacion.respuesta2' => ['$nin' => ['', null]],
                 'ws_fecha' => ['$gte' => $datos['cubGC_fechaInicio']]
             ];
             if (!empty($idGestion)) {
@@ -809,6 +851,7 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             $datAvProgWhats = [
                 '_id',
                 'ws_fecha',
+                'ws_estadoEnvioFecha',
                 'ws_numeroWP',
                 'ws_campaniaId',
                 'ws_campaniaNombre',
@@ -821,7 +864,8 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 $fila = $datos;
                 $fila['cubGC_avId'] = $doc['_id'] ?? null;
                 $fila['cubGC_canal'] = 'WHATSAPP';
-                $fila['cubGC_fechaGestion'] =  (int)$doc['ws_fecha'] ?? 0;
+                $fila['cubGC_fechaGestion'] = (int)($doc['ws_estadoEnvioFecha'] ?? 0);
+                $fila['cubGC_fechaProgramacion'] = (int)($doc['ws_fecha'] ?? 0);
                 $fila['cubGC_telefono'] = $doc['ws_numeroWP'] ?? null;
                 $fila['cubGC_campaniaId'] = (int)$doc['ws_campaniaId'] ?? null;
                 $fila['cubGC_campaniaNombre'] = $doc['ws_campaniaNombre'] ?? null;
@@ -873,11 +917,14 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
             $datEnvMail = [
                 '_id',
                 'cem_susFechaEnvio',
+                'cem_susFechaAsignacion',
                 'cem_susEmail',
                 'cem_susCampaniaId',
                 'cem_susCampaniaNombre',
                 'cem_susLlamadaId',
-                'cem_susFechaPeriodo'
+                'cem_susFechaPeriodo',
+                'abierto',
+                'cantidad_abierto'
 
             ];
             $mdbEnvMail->buscar('cbEnvioMails', $condEnvMail, $datEnvMail);
@@ -886,14 +933,18 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
                 $fila['cubGC_avId'] = $doc['_id'] ?? null;
                 $fila['cubGC_canal'] = 'EMAIL';
                 $fila['cubGC_fechaGestion'] =  (int)$doc['cem_susFechaEnvio'] ?? 0;
+                $fila['cubGC_fechaProgramacion'] = (int)($doc['cem_susFechaAsignacion'] ?? 0);
                 $fila['cubGC_email'] = $doc['cem_susEmail'] ?? null;
                 $fila['cubGC_campaniaId'] = (int)$doc['cem_susCampaniaId'] ?? null;
                 $fila['cubGC_campaniaNombre'] = $doc['cem_susCampaniaNombre'] ?? null;
                 $fila['cubGC_duracionGestionSeg'] = 0;
+                // Tal cual vienen en cbEnvioMails: abierto=0 si no se abrió o el unixtime de apertura.
+                $fila['cubGC_abierto'] = $doc['abierto'] ?? 0;
+                $fila['cubGC_cantidad_abierto'] = $doc['cantidad_abierto'] ?? 0;
                 //$fila['cubGC_fechaPeriodo'] = isset($doc['cem_susFechaPeriodo']) ? (int)$doc['cem_susFechaPeriodo'] : 0;
                 $dbLlam = new MYSQLDB();
-                $sql = $dbLlam->mkSQL("SELECT scLlamadas_ruta1, scLlamadas_ruta2, scLlamadas_texto 
-                                        FROM scllamadas where scLlamadas_id=%N  AND scLlamadas_ruta1 IS NOT NULL 
+                $sql = $dbLlam->mkSQL("SELECT scLlamadas_ruta1, scLlamadas_ruta2, scLlamadas_texto
+                                        FROM scllamadas where scLlamadas_id=%N  AND scLlamadas_ruta1 IS NOT NULL
                                         AND scLlamadas_ruta1 != ''", $doc['cem_susLlamadaId']);
                 $dbLlam->query($sql);
                 if ($rowSql = $dbLlam->fetchRow()) {
@@ -939,48 +990,67 @@ class cuPGgestionCobranzaMysql extends AbstractCuboPlugin
     public function recreate(): void
     {
         $limit = 20000;
-        $skip = 0;
-        $condiciones = [];
         $mdb = new MYMONGODB();
 
-        $encontreControl = false;
+        // Borra la colección completa antes de reconstruirla desde cero
+        $mdb->borrarColeccion(self::COLLECTION_CUBO);
 
-        if (!$encontreControl) {
-            // Solo borre la colección completa cuando no sea reconstrucción parcial
-            $mdb->borrarColeccion(self::COLLECTION_CUBO);
-        } else {
-            // No borre automáticamente. Hágalo manualmente.
-        }
-
-        // Tablas de gestiones que alimentan el cubo
+        // Tablas de gestiones que alimentan el cubo (las mismas que atiende process())
         $tablas = ['avProgramadas', 'avProgramadasWhatsApp', 'cbEnvioMails'];
 
+        foreach ($tablas as $tabla) {
 
-        for ($i = 0; $i < 400; $i++) {
+            $config = $this->getConfigByTabla($tabla);
+            if (!$config) continue;
 
-            $mdb->buscar('cbCreditos', $condiciones, [], ['_id' => 1], $limit, $skip);
+           
+            $condOrigen = [];
+            // SOLO para emails
+            if ($tabla === 'cbEnvioMails') {
+                $condOrigen['cem_susErrorEnvio'] = 0;
+            }
 
-            $numRows = 0;
+            $skip = 0;
 
-            while ($doc = $mdb->siguiente()) {
+            for ($i = 0; $i < 400; $i++) {
 
-                foreach ($tablas as $tabla) {
+                $mdbOrigen = new MYMONGODB();
+                $mdbOrigen->buscar($tabla, $condOrigen, $config['campos'], ['_id' => 1], $limit, $skip);
 
-                    $this->createData([
-                        'row'       => $doc,
-                        'idGestion' => null,
-                        'tabla'     => $tabla
-                    ]);
+                $numRows = 0;
+
+                while ($doc = $mdbOrigen->siguiente()) {
+
+                    $factura   = $doc[$config['factura']] ?? null;
+                    $cartera   = $doc[$config['cartera']] ?? null;
+                    $idGestion = $doc['_id'] ?? null;
+
+                    if ($factura !== null && $idGestion !== null) {
+
+                        $mdbCred = new MYMONGODB();
+                        $condCred = [
+                            'cre_factura'   => (string)$factura,
+                            'cre_carteraId' => (string)$cartera
+                        ];
+                        $mdbCred->buscar('cbCreditos', $condCred, [], [], 1);
+                        while ($row = $mdbCred->siguiente()) {
+                            $this->createData([
+                                'row'       => $row,
+                                'idGestion' => $idGestion,
+                                'tabla'     => $tabla,
+                            ]);
+                        }
+                    }
+
+                    $numRows++;
                 }
 
-                $numRows++;
-            }
+                if ($numRows < $limit) {
+                    break;
+                }
 
-            if ($numRows < $limit) {
-                break;
+                $skip += $limit;
             }
-
-            $skip += $limit;
         }
 
         $this->createIndices($mdb);
